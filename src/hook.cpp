@@ -265,7 +265,7 @@ bool _ZN8eprosima7fastdds3dds10DataWriter5writeEPv(void * obj, void * data)
   std::cerr << "dds_write," << ser_data->data << std::endl;
 #endif
 
-  auto ret = ((functionT) orig_func)(obj, data);
+  return ((functionT) orig_func)(obj, data);
 }
 
 // for fastrtps
@@ -283,7 +283,7 @@ bool _ZN8eprosima7fastdds3dds10DataWriter5writeEPvRNS_8fastrtps4rtps11WriteParam
 #ifdef DEBUG_OUTPUT
   std::cerr << "dds_write," << ser_data->data << std::endl;
 #endif
-  auto ret = ((functionT) orig_func)(obj, data, params);
+  return ((functionT) orig_func)(obj, data, params);
 }
 
 
