@@ -26,6 +26,9 @@
 #include "rcpputils/get_env.hpp"
 #include "rcutils/shared_library.h"
 
+#define TRACEPOINT_DEFINE
+#include "ros2_hook/tp.h"
+
 // #define DEBUG_OUTPUT
 
 // for fastrtps
@@ -98,6 +101,7 @@ bool _ZN6rclcpp16SubscriptionBase16take_type_erasedEPvRNS_11MessageInfoE(
   if (taken) {
     auto rmw_info = message_info_out.get_rmw_message_info();
     auto source_timestamp = rmw_info.source_timestamp;
+    tracepoint(TRACEPOINT_PROVIDER, take_type_erased, source_timestamp, message_out);
     #ifdef DEBUG_OUTPUT
     std::cerr << "take_type_erased," << source_timestamp << "," << message_out <<
       std::endl;
@@ -114,6 +118,7 @@ int dds_write_impl(void * wr, void * data, long tstamp, int action)
   using functionT = int (*)(void *, void *, long, int);
   int dds_return = ((functionT) dds_write_impl_func)(wr, data, tstamp, action);
 
+  tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, data, tstamp);
 #ifdef DEBUG_OUTPUT
   std::cerr << "dds_bind_addr_to_stamp," << data << "," << tstamp << std::endl;
 #endif
@@ -139,6 +144,7 @@ static void on_data_available(dds_entity_t reader, void * arg)
   // Omit the output of the trace points for the same message.
   // This is to reduce the output, so it does not need to be strict.
   if (timestamp_ns != last_timestamp_ns) {
+    tracepoint(TRACEPOINT_PROVIDER, on_data_available, timestamp_ns);
 #ifdef DEBUG_OUTPUT
     std::cerr << "on_data_available," << timestamp_ns << std::endl;
 #endif
@@ -206,6 +212,8 @@ dds_return_t dds_write(dds_entity_t writer, const void * data)
 {
   using functionT = dds_return_t (*)(dds_entity_t, const void *);
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
+
+  tracepoint(TRACEPOINT_PROVIDER, dds_write, data);
 #ifdef DEBUG_OUTPUT
   std::cerr << "dds_write," << data << std::endl;
 #endif
@@ -232,8 +240,9 @@ void _ZThn8_N11SubListener17on_data_availableEPN8eprosima7fastdds3dds10DataReade
       // Omit the output of a tracepoint for the same message.
       // This is to reduce the output, so it does not need to be strict.
       if (timestamp_ns != last_timestamp_ns) {
+        tracepoint(TRACEPOINT_PROVIDER, on_data_available, timestamp_ns);
 #ifdef DEBUG_OUTPUT
-        std::cerr << "on_data_available," << sinfo.source_timestamp.to_ns() << std::endl;
+        std::cerr << "on_data_available," << timestamp_ns << std::endl;
 #endif
       }
       last_timestamp_ns = timestamp_ns;
@@ -251,6 +260,7 @@ bool _ZN8eprosima7fastdds3dds10DataWriter5writeEPv(void * obj, void * data)
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   auto ser_data = static_cast<rmw_fastrtps_shared_cpp::SerializedData *>(data);
 
+  tracepoint(TRACEPOINT_PROVIDER, dds_write, ser_data->data);
 #ifdef DEBUG_OUTPUT
   std::cerr << "dds_write," << ser_data->data << std::endl;
 #endif
@@ -269,6 +279,7 @@ bool _ZN8eprosima7fastdds3dds10DataWriter5writeEPvRNS_8fastrtps4rtps11WriteParam
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   auto ser_data = static_cast<rmw_fastrtps_shared_cpp::SerializedData *>(data);
 
+  tracepoint(TRACEPOINT_PROVIDER, dds_write, ser_data->data);
 #ifdef DEBUG_OUTPUT
   std::cerr << "dds_write," << ser_data->data << std::endl;
 #endif
@@ -291,6 +302,7 @@ _ZN23rmw_fastrtps_shared_cpp11TypeSupport9serializeEPvPN8eprosima8fastrtps4rtps1
   auto payload_ptr = static_cast<void *>(payload->data);
   auto ret = ((functionT) fastrtps_serialize)(obj, data, payload);
 
+  tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_addr, ser_data->data, payload_ptr);
 #ifdef DEBUG_OUTPUT
   std::cerr << "dds_bind_addr_to_addr," << ser_data->data << "," << payload_ptr << std::endl;
 #endif
@@ -319,6 +331,7 @@ _ZN8eprosima8fastrtps4rtps15StatelessWriter30unsent_change_added_to_historyEPNS1
 
   ((functionT) orig_func)(obj, change, max_blocking_time);
 
+  tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, payload_data_ptr, source_timestamp);
 #ifdef DEBUG_OUTPUT
   std::cerr << "dds_bind_addr_to_stamp," << payload_data_ptr << "," << source_timestamp <<
     std::endl;
@@ -347,6 +360,7 @@ _ZN8eprosima8fastrtps4rtps14StatefulWriter30unsent_change_added_to_historyEPNS1_
 
   ((functionT) orig_func)(obj, change, max_blocking_time);
 
+  tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, payload_data_ptr, source_timestamp);
 #ifdef DEBUG_OUTPUT
   std::cerr << "dds_bind_addr_to_stamp," << payload_data_ptr << "," << source_timestamp <<
     std::endl;

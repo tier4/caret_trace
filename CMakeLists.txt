@@ -31,8 +31,12 @@ find_package(std_msgs REQUIRED)
 find_package(CycloneDDS REQUIRED)
 find_package(fastrtps REQUIRED)
 find_package(rmw_fastrtps_shared_cpp REQUIRED)
+find_package(LTTngUST REQUIRED)
 
-add_library(hook SHARED src/hook.cpp)
+include_directories(include)
+add_library(hook SHARED
+  src/hook.cpp
+  src/tp.c)
 ament_target_dependencies(hook
   rclcpp
   rcl
@@ -41,6 +45,7 @@ ament_target_dependencies(hook
   rcpputils
   std_msgs
   rmw_fastrtps_shared_cpp
+  LTTngUST
   )
 
 target_link_libraries(hook CycloneDDS::ddsc fastrtps)
