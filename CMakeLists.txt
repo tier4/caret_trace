@@ -50,6 +50,15 @@ ament_target_dependencies(hook
 
 target_link_libraries(hook CycloneDDS::ddsc fastrtps)
 
+install(
+  TARGETS hook
+  EXPORT export_hook
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
