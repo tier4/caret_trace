@@ -16,11 +16,11 @@ TRACEPOINT_EVENT(
   take_type_erased,
   TP_ARGS(
     const uint64_t, stamp_arg,
-    const void *, message_addr_arg
+    const void *, message_arg
   ),
   TP_FIELDS(
     ctf_integer(const uint64_t, stamp, stamp_arg)
-    ctf_integer_hex(const void *, message_addr, message_addr_arg)
+    ctf_integer_hex(const void *, message, message_arg)
   )
 )
 
@@ -39,10 +39,10 @@ TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
   dds_write,
   TP_ARGS(
-    const void *, message_addr_arg
+    const void *, message_arg
   ),
   TP_FIELDS(
-    ctf_integer_hex(const void *, message_addr, message_addr_arg)
+    ctf_integer_hex(const void *, message, message_arg)
   )
 )
 
