@@ -15,11 +15,11 @@ TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
   take_type_erased,
   TP_ARGS(
-    const uint64_t, stamp_arg,
+    const uint64_t, source_stamp_arg,
     const void *, message_arg
   ),
   TP_FIELDS(
-    ctf_integer(const uint64_t, stamp, stamp_arg)
+    ctf_integer(const uint64_t, source_stamp, source_stamp_arg)
     ctf_integer_hex(const void *, message, message_arg)
   )
 )
@@ -28,10 +28,10 @@ TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
   on_data_available,
   TP_ARGS(
-    const uint64_t, stamp_arg
+    const uint64_t, source_stamp_arg
   ),
   TP_FIELDS(
-    ctf_integer(const uint64_t, stamp, stamp_arg)
+    ctf_integer(const uint64_t, source_stamp, source_stamp_arg)
   )
 )
 
