@@ -31,6 +31,9 @@
 
 // #define DEBUG_OUTPUT
 
+#define STRINGIFY_(s) #s
+#define STRINGIFY(s) STRINGIFY_(s)
+
 // for fastrtps
 #include "fastdds/dds/subscriber/DataReader.hpp"
 #include "fastdds/rtps/common/WriteParams.h"
@@ -64,6 +67,10 @@ std::shared_ptr<rcpputils::SharedLibrary> _Z12load_libraryv()
       "failed to fetch RMW_IMPLEMENTATION "
       "from environment due to %s", e.what());
     return nullptr;
+  }
+
+  if (env_var.empty()) {
+    env_var = STRINGIFY(DEFAULT_RMW_IMPLEMENTATION);
   }
 
   using functionT = std::shared_ptr<rcpputils::SharedLibrary>(*)();
