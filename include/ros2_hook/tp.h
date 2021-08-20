@@ -50,12 +50,12 @@ TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
   dds_bind_addr_to_stamp,
   TP_ARGS(
-    const void *, addr_from_arg,
-    const uint64_t, stamp_to_arg
+    const void *, addr_arg,
+    const uint64_t, source_stamp_arg
   ),
   TP_FIELDS(
-    ctf_integer_hex(const void *, addr_from, addr_from_arg)
-    ctf_integer(const uint64_t *, stamp_to, stamp_to_arg)
+    ctf_integer_hex(const void *, addr, addr_arg)
+    ctf_integer(const uint64_t *, source_stamp, source_stamp_arg)
   )
 )
 
