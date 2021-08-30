@@ -93,30 +93,6 @@ std::shared_ptr<rcpputils::SharedLibrary> _Z12load_libraryv()
   return library_ptr;
 }
 
-// For tracing inter-process communication.
-// bind : source_timestamp -> &message_out
-// rclcpp::SubscriptionBase::take_type_erased(void*, rclcpp::MessageInfo&)
-bool _ZN6rclcpp16SubscriptionBase16take_type_erasedEPvRNS_11MessageInfoE(
-  void * obj,
-  void * message_out,
-  rclcpp::MessageInfo & message_info_out
-)
-{
-  using functionT = bool (*)(void *, void *, rclcpp::MessageInfo &);
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
-  bool taken = ((functionT) orig_func)(obj, message_out, message_info_out);
-  if (taken) {
-    auto rmw_info = message_info_out.get_rmw_message_info();
-    auto source_timestamp = rmw_info.source_timestamp;
-    tracepoint(TRACEPOINT_PROVIDER, take_type_erased, source_timestamp, message_out);
-    #ifdef DEBUG_OUTPUT
-    std::cerr << "take_type_erased," << source_timestamp << "," << message_out <<
-      std::endl;
-    #endif
-  }
-  return taken;
-}
-
 
 // for cyclonedds
 // bind : &ros_message -> source_timestamp
