@@ -142,29 +142,30 @@ static void on_data_available(dds_entity_t reader, void * arg)
 
 // Configuration to run on_data_available
 // By setting the listener to the parent, the child entities will inherit it.
-dds_entity_t dds_create_participant(
-  const dds_domainid_t domain, const dds_qos_t * qos,
-  const dds_listener_t * listener_)
+dds_entity_t dds_create_subscriber(
+  dds_entity_t participant,
+  const dds_qos_t * qos,
+  const dds_listener_t * listener
+)
 {
-  (void) listener_;   //  ignore argument listener, to remove const.
+  (void) listener;   //  ignore argument listener, to remove const.
   using functionT = dds_entity_t (*)(
     const dds_domainid_t, const dds_qos_t *,
     const dds_listener_t *);
 
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
-  if (listener_) {
+  if (listener) {
     RCLCPP_WARN(
       rclcpp::get_logger("ros2_hook"),
       "dds_create_participant passes non-null listener."
       "ros2_hook implementation assumes listener = nullptr.");
   }
 
-  listener = dds_create_listener(nullptr);
-  // This listener enters the ppant, and is inherited by subsequent entities.
-  dds_lset_data_available(listener, &on_data_available);
-  auto dds_entity = ((functionT) orig_func)(domain, qos, listener);
-  return dds_entity;
+  dds_listener_t * listener_ = dds_create_listener(nullptr);
+  dds_lset_data_available(listener_, &on_data_available);
+
+  return ((functionT) orig_func)(participant, qos, listener_);
 }
 
 // For CycloneDDS
