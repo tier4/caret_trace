@@ -10,24 +10,28 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-// limitations under the License.#include <iostream>
+// limitations under the License.
+
 
 #include <dlfcn.h>
+
+#include <iostream>
 #include <memory>
 #include <unordered_set>
 #include <iomanip>
 #include <string>
 
-#include "rclcpp/rclcpp.hpp"
 #include "rcl/rcl.h"
 #include "rmw/rmw.h"
 #include "rmw/event.h"
-#include "rcpputils/shared_library.hpp"
-#include "rcpputils/get_env.hpp"
 #include "rcutils/shared_library.h"
 
 #define TRACEPOINT_DEFINE
 #include "ros2_hook/tp.h"
+
+#include "rcpputils/shared_library.hpp"
+#include "rcpputils/get_env.hpp"
+#include "rclcpp/rclcpp.hpp"
 
 // #define DEBUG_OUTPUT
 
@@ -35,12 +39,13 @@
 #define STRINGIFY(s) STRINGIFY_(s)
 
 // for fastrtps
-#include "fastdds/dds/subscriber/DataReader.hpp"
 #include "fastdds/rtps/common/WriteParams.h"
+#include "fastdds/dds/subscriber/DataReader.hpp"
 #include "rmw_fastrtps_shared_cpp/TypeSupport.hpp"
 
 // for cyclonedds
 #include "dds/dds.h"
+
 
 // Declare a prototype in order to use the functions implemented in cyclonedds.
 rmw_ret_t rmw_get_gid_for_publisher(const rmw_publisher_t * publisher, rmw_gid_t * gid);
@@ -83,9 +88,9 @@ std::shared_ptr<rcpputils::SharedLibrary> _Z12load_libraryv()
     fastdds_on_data_available = library_ptr->get_symbol(
       "_ZThn8_N11SubListener17on_data_availableEPN8eprosima7fastdds3dds10DataReaderE");
 
-    // rmw_fastrtps_shared_cpp::TypeSupport::serialize(void*, eprosima::fastrtps::rtps::SerializedPayload_t*)
+    // rmw_fastrtps_shared_cpp::TypeSupport::serialize(void*, eprosima::fastrtps::rtps::SerializedPayload_t*)  // NOLINT
     fastrtps_serialize = library_ptr->get_symbol(
-      "_ZN23rmw_fastrtps_shared_cpp11TypeSupport9serializeEPvPN8eprosima8fastrtps4rtps19SerializedPayload_tE");
+      "_ZN23rmw_fastrtps_shared_cpp11TypeSupport9serializeEPvPN8eprosima8fastrtps4rtps19SerializedPayload_tE");  // NOLINT
   } else if (env_var == "rmw_cyclonedds_cpp") {
     dds_write_impl_func = library_ptr->get_symbol("dds_write_impl");
   }
@@ -96,9 +101,9 @@ std::shared_ptr<rcpputils::SharedLibrary> _Z12load_libraryv()
 
 // for cyclonedds
 // bind : &ros_message -> source_timestamp
-int dds_write_impl(void * wr, void * data, long tstamp, int action)
+int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
 {
-  using functionT = int (*)(void *, void *, long, int);
+  using functionT = int (*)(void *, void *, long, int);   // NOLINT
   int dds_return = ((functionT) dds_write_impl_func)(wr, data, tstamp, action);
 
   tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, data, tstamp);
@@ -274,9 +279,9 @@ bool _ZN8eprosima7fastdds3dds10DataWriter5writeEPvRNS_8fastrtps4rtps11WriteParam
 // In order to bind ros_message and source_timestamp, the address of payload is used.
 // The bind from &payload to source_timestamp is done by unsent_change_added_to_history.
 // bind: &ros_message -> &payload
-// rmw_fastrtps_shared_cpp::TypeSupport::serialize(void*, eprosima::fastrtps::rtps::SerializedPayload_t*)
+// rmw_fastrtps_shared_cpp::TypeSupport::serialize(void*, eprosima::fastrtps::rtps::SerializedPayload_t*)   // NOLINT
 bool
-_ZN23rmw_fastrtps_shared_cpp11TypeSupport9serializeEPvPN8eprosima8fastrtps4rtps19SerializedPayload_tE(
+_ZN23rmw_fastrtps_shared_cpp11TypeSupport9serializeEPvPN8eprosima8fastrtps4rtps19SerializedPayload_tE( // NOLINT
   void * obj, void * data, eprosima::fastrtps::rtps::SerializedPayload_t * payload)
 {
   using functionT = bool (*)(void *, void *, eprosima::fastrtps::rtps::SerializedPayload_t *);
@@ -297,7 +302,7 @@ _ZN23rmw_fastrtps_shared_cpp11TypeSupport9serializeEPvPN8eprosima8fastrtps4rtps1
 // bind: &payload -> source_timestamp
 // unsent_change_added_to_history
 void
-_ZN8eprosima8fastrtps4rtps15StatelessWriter30unsent_change_added_to_historyEPNS1_13CacheChange_tERKNSt6chrono10time_pointINS5_3_V212steady_clockENS5_8durationIlSt5ratioILl1ELl1000000000EEEEEE(
+_ZN8eprosima8fastrtps4rtps15StatelessWriter30unsent_change_added_to_historyEPNS1_13CacheChange_tERKNSt6chrono10time_pointINS5_3_V212steady_clockENS5_8durationIlSt5ratioILl1ELl1000000000EEEEEE( // NOLINT
   void * obj,
   eprosima::fastrtps::rtps::CacheChange_t * change,
   const std::chrono::time_point<std::chrono::steady_clock> & max_blocking_time
@@ -326,15 +331,15 @@ _ZN8eprosima8fastrtps4rtps15StatelessWriter30unsent_change_added_to_historyEPNS1
 // bind: &payload -> source_timestamp
 // unsent_change_added_to_history
 void
-_ZN8eprosima8fastrtps4rtps14StatefulWriter30unsent_change_added_to_historyEPNS1_13CacheChange_tERKNSt6chrono10time_pointINS5_3_V212steady_clockENS5_8durationIlSt5ratioILl1ELl1000000000EEEEEE(
+_ZN8eprosima8fastrtps4rtps14StatefulWriter30unsent_change_added_to_historyEPNS1_13CacheChange_tERKNSt6chrono10time_pointINS5_3_V212steady_clockENS5_8durationIlSt5ratioILl1ELl1000000000EEEEEE( // NOLINT
   void * obj,
   eprosima::fastrtps::rtps::CacheChange_t * change,
   const std::chrono::time_point<std::chrono::steady_clock> & max_blocking_time
 )
 {
-  using functionT = bool (*)(
-    void *,
-    eprosima::fastrtps::rtps::CacheChange_t *,
+  using functionT =
+    bool (*)(
+    void *, eprosima::fastrtps::rtps::CacheChange_t *,
     const std::chrono::time_point<std::chrono::steady_clock> &);
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 

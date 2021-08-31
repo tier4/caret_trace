@@ -34,9 +34,14 @@ find_package(rmw_fastrtps_shared_cpp REQUIRED)
 find_package(LTTngUST REQUIRED)
 
 include_directories(include)
+
 add_library(hook SHARED
-  src/hook.cpp
+  src/ros_trace_points.cpp
+  src/hooked_trace_points.cpp
+  src/tracing_controller.cpp
+  src/singleton.cpp
   src/tp.c)
+
 ament_target_dependencies(hook
   rclcpp
   rcl
