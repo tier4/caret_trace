@@ -22,8 +22,6 @@
 #define _TP_H
 
 #include <lttng/tracepoint.h>
-#include <lttng/tracepoint-event.h>
-
 
 TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
@@ -74,3 +72,5 @@ TRACEPOINT_EVENT(
 )
 
 #endif /* _TP_H */
+
+#include <lttng/tracepoint-event.h>
