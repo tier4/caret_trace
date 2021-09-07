@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(ros2_hook)
+project(caret_trace)
 
 set(CMAKE_CXX_FLAGS "-fcf-protection=none")
 
@@ -35,14 +35,14 @@ find_package(LTTngUST REQUIRED)
 
 include_directories(include)
 
-add_library(hook SHARED
+add_library(caret SHARED
   src/ros_trace_points.cpp
   src/hooked_trace_points.cpp
   src/tracing_controller.cpp
   src/singleton.cpp
   src/tp.c)
 
-ament_target_dependencies(hook
+ament_target_dependencies(caret
   rclcpp
   rcl
   rmw
@@ -53,11 +53,11 @@ ament_target_dependencies(hook
   LTTngUST
   )
 
-target_link_libraries(hook CycloneDDS::ddsc fastrtps)
+target_link_libraries(caret CycloneDDS::ddsc fastrtps)
 
 install(
-  TARGETS hook
-  EXPORT export_hook
+  TARGETS caret
+  EXPORT export_caret_trace
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin

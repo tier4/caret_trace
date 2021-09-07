@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROS2_HOOK__SINGLETON_HPP_
+#ifndef CARET_TRACE__SINGLETON_HPP_
 
 #include <cassert>
 #include <mutex>
@@ -59,5 +59,5 @@ std::once_flag Singleton<T>::initFlag;
 template<typename T>
 T * Singleton<T>::instance = nullptr;
 
-#endif  // ROS2_HOOK__SINGLETON_HPP_
-#define ROS2_HOOK__SINGLETON_HPP_
+#endif  // CARET_TRACE__SINGLETON_HPP_
+#define CARET_TRACE__SINGLETON_HPP_

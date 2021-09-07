@@ -27,7 +27,7 @@
 #include "rcutils/shared_library.h"
 
 #define TRACEPOINT_DEFINE
-#include "ros2_hook/tp.h"
+#include "caret_trace/tp.h"
 
 #include "rcpputils/shared_library.hpp"
 #include "rcpputils/get_env.hpp"
@@ -157,9 +157,9 @@ dds_entity_t dds_create_subscriber(
 
   if (listener) {
     RCLCPP_WARN(
-      rclcpp::get_logger("ros2_hook"),
+      rclcpp::get_logger("caret"),
       "dds_create_participant passes non-null listener."
-      "ros2_hook implementation assumes listener = nullptr.");
+      "caret implementation assumes listener = nullptr.");
   }
 
   dds_listener_t * listener_ = dds_create_listener(nullptr);
@@ -236,7 +236,7 @@ void _ZThn8_N11SubListener17on_data_availableEPN8eprosima7fastdds3dds10DataReade
       }
       last_timestamp_ns = timestamp_ns;
     } else {
-      RCLCPP_WARN(rclcpp::get_logger("ros2_hook"), "failed to get message info");
+      RCLCPP_WARN(rclcpp::get_logger("caret"), "failed to get message info");
     }
   }
 }
@@ -282,7 +282,8 @@ bool _ZN8eprosima7fastdds3dds10DataWriter5writeEPvRNS_8fastrtps4rtps11WriteParam
 // bind: &ros_message -> &payload
 // rmw_fastrtps_shared_cpp::TypeSupport::serialize(void*, eprosima::fastrtps::rtps::SerializedPayload_t*)   // NOLINT
 bool
-_ZN23rmw_fastrtps_shared_cpp11TypeSupport9serializeEPvPN8eprosima8fastrtps4rtps19SerializedPayload_tE( // NOLINT
+_ZN23rmw_fastrtps_shared_cpp11TypeSupport9serializeEPvPN8eprosima8fastrtps4rtps19SerializedPayload_tE(
+  // NOLINT
   void * obj, void * data, eprosima::fastrtps::rtps::SerializedPayload_t * payload)
 {
   using functionT = bool (*)(void *, void *, eprosima::fastrtps::rtps::SerializedPayload_t *);
@@ -303,7 +304,8 @@ _ZN23rmw_fastrtps_shared_cpp11TypeSupport9serializeEPvPN8eprosima8fastrtps4rtps1
 // bind: &payload -> source_timestamp
 // unsent_change_added_to_history
 void
-_ZN8eprosima8fastrtps4rtps15StatelessWriter30unsent_change_added_to_historyEPNS1_13CacheChange_tERKNSt6chrono10time_pointINS5_3_V212steady_clockENS5_8durationIlSt5ratioILl1ELl1000000000EEEEEE( // NOLINT
+_ZN8eprosima8fastrtps4rtps15StatelessWriter30unsent_change_added_to_historyEPNS1_13CacheChange_tERKNSt6chrono10time_pointINS5_3_V212steady_clockENS5_8durationIlSt5ratioILl1ELl1000000000EEEEEE(
+  // NOLINT
   void * obj,
   eprosima::fastrtps::rtps::CacheChange_t * change,
   const std::chrono::time_point<std::chrono::steady_clock> & max_blocking_time
@@ -332,7 +334,8 @@ _ZN8eprosima8fastrtps4rtps15StatelessWriter30unsent_change_added_to_historyEPNS1
 // bind: &payload -> source_timestamp
 // unsent_change_added_to_history
 void
-_ZN8eprosima8fastrtps4rtps14StatefulWriter30unsent_change_added_to_historyEPNS1_13CacheChange_tERKNSt6chrono10time_pointINS5_3_V212steady_clockENS5_8durationIlSt5ratioILl1ELl1000000000EEEEEE( // NOLINT
+_ZN8eprosima8fastrtps4rtps14StatefulWriter30unsent_change_added_to_historyEPNS1_13CacheChange_tERKNSt6chrono10time_pointINS5_3_V212steady_clockENS5_8durationIlSt5ratioILl1ELl1000000000EEEEEE(
+  // NOLINT
   void * obj,
   eprosima::fastrtps::rtps::CacheChange_t * change,
   const std::chrono::time_point<std::chrono::steady_clock> & max_blocking_time

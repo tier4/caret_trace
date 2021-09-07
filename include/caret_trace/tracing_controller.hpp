@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROS2_HOOK__TRACING_CONTROLLER_HPP_
+#ifndef CARET_TRACER__TRACING_CONTROLLER_HPP_
 
 #include <shared_mutex>
 #include <unordered_set>
@@ -66,5 +66,5 @@ private:
   std::unordered_map<const void *, bool> allowed_callbacks_;
 };
 
-#endif  // ROS2_HOOK__TRACING_CONTROLLER_HPP_
-#define ROS2_HOOK__TRACING_CONTROLLER_HPP_
+#endif  // CARET_TRACER__TRACING_CONTROLLER_HPP_
+#define CARET_TRACER__TRACING_CONTROLLER_HPP_

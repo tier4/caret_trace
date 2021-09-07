@@ -27,12 +27,12 @@
 #include "rclcpp/rclcpp.hpp"
 
 #include "rcpputils/get_env.hpp"
-#include "ros2_hook/tracing_controller.hpp"
+#include "caret_trace/tracing_controller.hpp"
 
-#define SELECT_NODES_ENV_NAME "HOOK_TRACE_SELECT_NODES"
-#define IGNORE_NODES_ENV_NAME "HOOK_TRACE_IGNORE_NODES"
-#define SELECT_TOPICS_ENV_NAME "HOOK_TRACE_SELECT_TOPICS"
-#define IGNORE_TOPICS_ENV_NAME "HOOK_TRACE_IGNORE_TOPICS"
+#define SELECT_NODES_ENV_NAME "CARET_SELECT_NODES"
+#define IGNORE_NODES_ENV_NAME "CARET_IGNORE_NODES"
+#define SELECT_TOPICS_ENV_NAME "CARET_SELECT_TOPICS"
+#define IGNORE_TOPICS_ENV_NAME "CARET_IGNORE_TOPICS"
 
 bool partial_match(std::unordered_set<std::string> set, std::string target_name)
 {
@@ -95,33 +95,33 @@ TracingController::TracingController()
 {
   if (select_enabled_ || ignore_enabled_) {
     std::string msg = "trace filtering is enabled.";
-    RCLCPP_INFO(rclcpp::get_logger("ros2_hook"), msg.c_str());
+    RCLCPP_INFO(rclcpp::get_logger("caret"), msg.c_str());
   }
   if (select_enabled_ && ignore_enabled_) {
     std::string msg = "both select and ignore are set. select is used.";
-    RCLCPP_INFO(rclcpp::get_logger("ros2_hook"), msg.c_str());
+    RCLCPP_INFO(rclcpp::get_logger("caret"), msg.c_str());
   }
   if (select_enabled_) {
     if (selected_node_names_.size() > 0) {
       std::string msg = SELECT_NODES_ENV_NAME + std::string(": ") + get_env_var(
         SELECT_NODES_ENV_NAME);
-      RCLCPP_INFO(rclcpp::get_logger("ros2_hook"), msg.c_str());
+      RCLCPP_INFO(rclcpp::get_logger("caret"), msg.c_str());
     }
     if (selected_topic_names_.size() > 0) {
       std::string msg = SELECT_TOPICS_ENV_NAME + std::string(": ") + get_env_var(
         SELECT_TOPICS_ENV_NAME);
-      RCLCPP_INFO(rclcpp::get_logger("ros2_hook"), msg.c_str());
+      RCLCPP_INFO(rclcpp::get_logger("caret"), msg.c_str());
     }
   } else if (ignore_enabled_) {
     if (ignored_node_names_.size() > 0) {
       std::string msg = IGNORE_NODES_ENV_NAME + std::string(": ") + get_env_var(
         IGNORE_NODES_ENV_NAME);
-      RCLCPP_INFO(rclcpp::get_logger("ros2_hook"), msg.c_str());
+      RCLCPP_INFO(rclcpp::get_logger("caret"), msg.c_str());
     }
     if (ignored_topic_names_.size() > 0) {
       std::string msg = IGNORE_TOPICS_ENV_NAME + std::string(": ") + get_env_var(
         IGNORE_TOPICS_ENV_NAME);
-      RCLCPP_INFO(rclcpp::get_logger("ros2_hook"), msg.c_str());
+      RCLCPP_INFO(rclcpp::get_logger("caret"), msg.c_str());
     }
   }
 }

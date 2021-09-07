@@ -13,10 +13,10 @@
 // limitations under the License.
 
 #undef TRACEPOINT_PROVIDER
-#define TRACEPOINT_PROVIDER ros2_hook
+#define TRACEPOINT_PROVIDER ros2_caret
 
 #undef TRACEPOINT_INCLUDE
-#define TRACEPOINT_INCLUDE "ros2_hook/tp.h"
+#define TRACEPOINT_INCLUDE "caret_trace/tp.h"
 
 #if !defined(_TP_H) || defined(TRACEPOINT_HEADER_MULTI_READ)
 #define _TP_H

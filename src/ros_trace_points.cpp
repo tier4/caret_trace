@@ -19,8 +19,8 @@
 #include <iomanip>
 #include <string>
 
-#include "ros2_hook/tracing_controller.hpp"
-#include "ros2_hook/singleton.hpp"
+#include "caret_trace/tracing_controller.hpp"
+#include "caret_trace/singleton.hpp"
 
 extern "C" {
 void ros_trace_rcl_node_init(
