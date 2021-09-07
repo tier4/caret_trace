@@ -5,7 +5,7 @@
   <version>0.0.0</version>
   <description>Library to add tracepoints for CARET</description>
   <maintainer email="hasegawa@isp.co.jp">hasegawa</maintainer>
-  <license>Apache 2.0</license>
+  <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>rclcpp</depend>
