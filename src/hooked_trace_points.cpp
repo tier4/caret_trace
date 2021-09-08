@@ -50,13 +50,19 @@
 // Declare a prototype in order to use the functions implemented in cyclonedds.
 rmw_ret_t rmw_get_gid_for_publisher(const rmw_publisher_t * publisher, rmw_gid_t * gid);
 
-void * dds_write_impl_func;
-static dds_listener_t * listener;
-static uint8_t cyclone_dds_dummy_buf[] = {0};  // Dummy buffer for retrieving message info
+namespace CYCLONEDDS
+{
+void * DDS_WRITE_IMPL;
+static dds_listener_t * LISTENER;
+static uint8_t DUMMY_BUF[] = {0};  // Dummy buffer for retrieving message info
+}
 
 // fortrtps用
-static void * fastdds_on_data_available;
-static void * fastrtps_serialize;
+namespace FASTDDS
+{
+static void * ON_DATA_AVAILABLE;
+static void * SERIALIZE;
+}
 
 extern "C" {
 // Get symbols from the DDS shared library
@@ -85,14 +91,14 @@ std::shared_ptr<rcpputils::SharedLibrary> _Z12load_libraryv()
 
   if (env_var == "rmw_fastrtps_cpp") {
     // SubListener::on_data_available(eprosima::fastdds::dds::DataReader*)
-    fastdds_on_data_available = library_ptr->get_symbol(
+    FASTDDS::ON_DATA_AVAILABLE = library_ptr->get_symbol(
       "_ZThn8_N11SubListener17on_data_availableEPN8eprosima7fastdds3dds10DataReaderE");
 
     // rmw_fastrtps_shared_cpp::TypeSupport::serialize(void*, eprosima::fastrtps::rtps::SerializedPayload_t*)  // NOLINT
-    fastrtps_serialize = library_ptr->get_symbol(
+    FASTDDS::SERIALIZE = library_ptr->get_symbol(
       "_ZN23rmw_fastrtps_shared_cpp11TypeSupport9serializeEPvPN8eprosima8fastrtps4rtps19SerializedPayload_tE");  // NOLINT
   } else if (env_var == "rmw_cyclonedds_cpp") {
-    dds_write_impl_func = library_ptr->get_symbol("dds_write_impl");
+    CYCLONEDDS::DDS_WRITE_IMPL = library_ptr->get_symbol("dds_write_impl");
   }
 
   return library_ptr;
@@ -104,7 +110,7 @@ std::shared_ptr<rcpputils::SharedLibrary> _Z12load_libraryv()
 int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
 {
   using functionT = int (*)(void *, void *, long, int);   // NOLINT
-  int dds_return = ((functionT) dds_write_impl_func)(wr, data, tstamp, action);
+  int dds_return = ((functionT) CYCLONEDDS::DDS_WRITE_IMPL)(wr, data, tstamp, action);
 
   tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, data, tstamp);
 #ifdef DEBUG_OUTPUT
@@ -120,7 +126,7 @@ static void on_data_available(dds_entity_t reader, void * arg)
   (void) arg;
   static uint64_t last_timestamp_ns;
   dds_sample_info_t si;
-  void * buf_ptr[] = {&cyclone_dds_dummy_buf};
+  void * buf_ptr[] = {&CYCLONEDDS::DUMMY_BUF};
 
   // cyclonedds does not have an API to get only message info.
   // Therefore, we use a dummy message buffer to get the message.
@@ -148,7 +154,6 @@ dds_entity_t dds_create_subscriber(
   const dds_listener_t * listener
 )
 {
-  (void) listener;   //  ignore argument listener, to remove const.
   using functionT = dds_entity_t (*)(
     const dds_domainid_t, const dds_qos_t *,
     const dds_listener_t *);
@@ -162,10 +167,10 @@ dds_entity_t dds_create_subscriber(
       "caret implementation assumes listener = nullptr.");
   }
 
-  dds_listener_t * listener_ = dds_create_listener(nullptr);
-  dds_lset_data_available(listener_, &on_data_available);
+  CYCLONEDDS::LISTENER = dds_create_listener(nullptr);
+  dds_lset_data_available(CYCLONEDDS::LISTENER, &on_data_available);
 
-  return ((functionT) orig_func)(participant, qos, listener_);
+  return ((functionT) orig_func)(participant, qos, CYCLONEDDS::LISTENER);
 }
 
 // For CycloneDDS
@@ -189,7 +194,7 @@ bool ddsi_serdata_to_sample(
 {
   using functionT = bool (*)(const struct ddsi_serdata *, void *, void **, void *);
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
-  if (sample == &cyclone_dds_dummy_buf) {
+  if (sample == &CYCLONEDDS::DUMMY_BUF) {
     return true;
   }
   return ((functionT) orig_func)(d, sample, bufptr, buflim);
@@ -220,7 +225,7 @@ void _ZThn8_N11SubListener17on_data_availableEPN8eprosima7fastdds3dds10DataReade
   using functionT = void (*)(void *, eprosima::fastdds::dds::DataReader *);
 
   eprosima::fastdds::dds::SampleInfo sinfo;
-  ((functionT) fastdds_on_data_available)(obj, reader);
+  ((functionT) FASTDDS::ON_DATA_AVAILABLE)(obj, reader);
 
   // fastrps has an API to get the info directly, so use it.
   if (reader->get_first_untaken_info(&sinfo) == ReturnCode_t::RETCODE_OK) {
@@ -290,7 +295,7 @@ _ZN23rmw_fastrtps_shared_cpp11TypeSupport9serializeEPvPN8eprosima8fastrtps4rtps1
 
   auto ser_data = static_cast<rmw_fastrtps_shared_cpp::SerializedData *>(data);
   auto payload_ptr = static_cast<void *>(payload->data);
-  auto ret = ((functionT) fastrtps_serialize)(obj, data, payload);
+  auto ret = ((functionT) FASTDDS::SERIALIZE)(obj, data, payload);
 
   tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_addr, ser_data->data, payload_ptr);
 #ifdef DEBUG_OUTPUT
