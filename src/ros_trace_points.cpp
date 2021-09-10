@@ -134,4 +134,31 @@ void ros_trace_callback_end(const void * callback)
     ((functionT) orig_func)(callback);
   }
 }
+
+void ros_trace_dispatch_subscription_callback(
+  const void * message,
+  const void * callback,
+  const uint64_t source_timestamp)
+{
+  static auto & controller = Singleton<TracingController>::get_instance();
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+
+  using functionT = void (*)(const void *, const void *, const uint64_t);
+  if (controller.is_allowed_callback(callback)) {
+    ((functionT) orig_func)(message, callback, source_timestamp);
+  }
+}
+
+void ros_trace_dispatch_intra_process_subscription_callback(
+  const void * message,
+  const void * callback)
+{
+  static auto & controller = Singleton<TracingController>::get_instance();
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+
+  using functionT = void (*)(const void *, const void *);
+  if (controller.is_allowed_callback(callback)) {
+    ((functionT) orig_func)(message, callback);
+  }
+}
 }
