@@ -37,9 +37,13 @@
 bool partial_match(std::unordered_set<std::string> set, std::string target_name)
 {
   for (auto & condition : set) {
-    std::regex re(condition.c_str());
-    if (std::regex_search(target_name, re)) {
-      return true;
+    try {
+      std::regex re(condition.c_str());
+      if (std::regex_search(target_name, re)) {
+        return true;
+      }
+    } catch (std::regex_error & e) {
+      // print out error message during initialization phase
     }
   }
   return false;
@@ -85,6 +89,28 @@ std::unordered_set<std::string> get_env_vars(std::string env_var_name)
   return split(env_var, ':');
 }
 
+bool is_condition_valid(std::string condition)
+{
+  std::string dummy_str = "foo_bar";
+  try {
+    std::regex re(condition.c_str());
+    std::regex_search(dummy_str, re);
+    return true;
+  } catch (std::regex_error & e) {
+    return false;
+  }
+}
+
+void check_condition_set(std::unordered_set<std::string> conditions)
+{
+  for (auto & condition: conditions) {
+    if (!is_condition_valid(condition)) {
+      std::string msg = "Failed to load regular expression \"" + condition + "\". Skip filtering.";
+      RCLCPP_INFO(rclcpp::get_logger("caret"), msg.c_str());
+    }
+  }
+}
+
 TracingController::TracingController()
 : selected_node_names_(get_env_vars(SELECT_NODES_ENV_NAME)),
   ignored_node_names_(get_env_vars(IGNORE_NODES_ENV_NAME)),
@@ -124,6 +150,11 @@ TracingController::TracingController()
       RCLCPP_INFO(rclcpp::get_logger("caret"), msg.c_str());
     }
   }
+
+  check_condition_set(selected_node_names_);
+  check_condition_set(ignored_node_names_);
+  check_condition_set(selected_topic_names_);
+  check_condition_set(ignored_topic_names_);
 }
 
 bool TracingController::is_allowed_callback(const void * callback)
