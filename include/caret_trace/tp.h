@@ -71,6 +71,17 @@ TRACEPOINT_EVENT(
   )
 )
 
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rmw_implementation,
+  TP_ARGS(
+    const char *, rmw_impl_arg
+  ),
+  TP_FIELDS(
+    ctf_string(rmw_impl, rmw_impl_arg)
+  )
+)
+
 #endif /* _TP_H */
 
 #include <lttng/tracepoint-event.h>

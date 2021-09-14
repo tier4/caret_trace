@@ -89,6 +89,8 @@ std::shared_ptr<rcpputils::SharedLibrary> _Z12load_libraryv()
 
   auto library_ptr = ((functionT) orig_func)();
 
+  tracepoint(TRACEPOINT_PROVIDER, rmw_implementation, env_var.c_str());
+
   if (env_var == "rmw_fastrtps_cpp") {
     // SubListener::on_data_available(eprosima::fastdds::dds::DataReader*)
     FASTDDS::ON_DATA_AVAILABLE = library_ptr->get_symbol(
