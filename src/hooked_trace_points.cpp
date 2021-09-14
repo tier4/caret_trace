@@ -125,6 +125,7 @@ int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
 // measure the time when the DDS communication is completed.
 static void on_data_available(dds_entity_t reader, void * arg)
 {
+  (void) on_data_available;
   (void) arg;
   static uint64_t last_timestamp_ns;
   dds_sample_info_t si;
@@ -170,7 +171,9 @@ dds_entity_t dds_create_subscriber(
   }
 
   CYCLONEDDS::LISTENER = dds_create_listener(nullptr);
-  dds_lset_data_available(CYCLONEDDS::LISTENER, &on_data_available);
+
+  // disable on_data_available hook
+  // dds_lset_data_available(CYCLONEDDS::LISTENER, &on_data_available);
 
   return ((functionT) orig_func)(participant, qos, CYCLONEDDS::LISTENER);
 }
@@ -184,7 +187,9 @@ dds_return_t dds_waitset_attach(
 {
   using functionT = dds_return_t (*)(dds_entity_t, dds_entity_t, dds_attach_t);
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
-  dds_set_status_mask(entity, DDS_DATA_AVAILABLE_STATUS);
+
+  // disable on_data_available hook
+  // dds_set_status_mask(entity, DDS_DATA_AVAILABLE_STATUS);
 
   return ((functionT) orig_func)(waitset, entity, x);
 }
