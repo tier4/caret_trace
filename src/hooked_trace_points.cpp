@@ -20,6 +20,7 @@
 #include <unordered_set>
 #include <iomanip>
 #include <string>
+#include <mutex>
 
 #include "rcl/rcl.h"
 #include "rmw/rmw.h"
@@ -68,8 +69,12 @@ extern "C" {
 // Get symbols from the DDS shared library
 // The dds-related-symbol, which is set by an environment variable, cannot be obtained by dlsym.
 // It is necessary to hook load_library and specify the library to be loaded to get them.
-std::shared_ptr<rcpputils::SharedLibrary> _Z12load_libraryv()
+// std::shared_ptr<rcpputils::SharedLibrary> _Z12load_libraryv()
+void update_dds_function_addr()
 {
+  static std::mutex mutex;
+  std::lock_guard<std::mutex> lock(mutex);
+
   std::string env_var;
   try {
     env_var = rcpputils::get_env_var("RMW_IMPLEMENTATION");
@@ -77,33 +82,45 @@ std::shared_ptr<rcpputils::SharedLibrary> _Z12load_libraryv()
     RMW_SET_ERROR_MSG_WITH_FORMAT_STRING(
       "failed to fetch RMW_IMPLEMENTATION "
       "from environment due to %s", e.what());
-    return nullptr;
   }
 
   if (env_var.empty()) {
     env_var = STRINGIFY(DEFAULT_RMW_IMPLEMENTATION);
   }
 
-  using functionT = std::shared_ptr<rcpputils::SharedLibrary>(*)();
-  static void * orig_func = dlsym(RTLD_NEXT, "_Z12load_libraryv");
-
-  auto library_ptr = ((functionT) orig_func)();
+  // ref. rosidl_typesupport/rosidl_typesupport_cpp/src/type_support_dispatch.hpp
+  std::string library_name;
+  try {
+    library_name = rcpputils::get_platform_library_name(env_var);
+  } catch (const std::runtime_error & e) {
+    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "Failed to compute library name for '%s' due to %s",
+      env_var.c_str(), e.what());
+  }
+  rcpputils::SharedLibrary * lib = nullptr;
+  try {
+    lib = new rcpputils::SharedLibrary(library_name);
+  } catch (const std::runtime_error & e) {
+    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "Could not load library %s: %s", library_name.c_str(), e.what());
+  } catch (const std::bad_alloc & e) {
+    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "Could not load library %s: %s", library_name.c_str(), e.what());
+  }
 
   tracepoint(TRACEPOINT_PROVIDER, rmw_implementation, env_var.c_str());
 
   if (env_var == "rmw_fastrtps_cpp") {
     // SubListener::on_data_available(eprosima::fastdds::dds::DataReader*)
-    FASTDDS::ON_DATA_AVAILABLE = library_ptr->get_symbol(
+    FASTDDS::ON_DATA_AVAILABLE = lib->get_symbol(
       "_ZThn8_N11SubListener17on_data_availableEPN8eprosima7fastdds3dds10DataReaderE");
 
     // rmw_fastrtps_shared_cpp::TypeSupport::serialize(void*, eprosima::fastrtps::rtps::SerializedPayload_t*)  // NOLINT
-    FASTDDS::SERIALIZE = library_ptr->get_symbol(
+    FASTDDS::SERIALIZE = lib->get_symbol(
       "_ZN23rmw_fastrtps_shared_cpp11TypeSupport9serializeEPvPN8eprosima8fastrtps4rtps19SerializedPayload_tE");  // NOLINT
   } else if (env_var == "rmw_cyclonedds_cpp") {
-    CYCLONEDDS::DDS_WRITE_IMPL = library_ptr->get_symbol("dds_write_impl");
+    CYCLONEDDS::DDS_WRITE_IMPL = lib->get_symbol("dds_write_impl");
   }
-
-  return library_ptr;
 }
 
 
@@ -112,6 +129,9 @@ std::shared_ptr<rcpputils::SharedLibrary> _Z12load_libraryv()
 int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
 {
   using functionT = int (*)(void *, void *, long, int);   // NOLINT
+  if (CYCLONEDDS::DDS_WRITE_IMPL == nullptr) {
+    update_dds_function_addr();
+  }
   int dds_return = ((functionT) CYCLONEDDS::DDS_WRITE_IMPL)(wr, data, tstamp, action);
 
   tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, data, tstamp);
@@ -302,6 +322,9 @@ _ZN23rmw_fastrtps_shared_cpp11TypeSupport9serializeEPvPN8eprosima8fastrtps4rtps1
 
   auto ser_data = static_cast<rmw_fastrtps_shared_cpp::SerializedData *>(data);
   auto payload_ptr = static_cast<void *>(payload->data);
+  if (FASTDDS::SERIALIZE == nullptr) {
+    update_dds_function_addr();
+  }
   auto ret = ((functionT) FASTDDS::SERIALIZE)(obj, data, payload);
 
   tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_addr, ser_data->data, payload_ptr);
