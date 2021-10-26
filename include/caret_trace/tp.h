@@ -12,6 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Provide fake header guard for cpplint
+#undef CARET_TRACE__TP_H_
+#ifndef CARET_TRACE__TP_H_
+#define CARET_TRACE__TP_H_
+
 #undef TRACEPOINT_PROVIDER
 #define TRACEPOINT_PROVIDER ros2_caret
 
@@ -85,3 +90,5 @@ TRACEPOINT_EVENT(
 #endif /* _TP_H */
 
 #include <lttng/tracepoint-event.h>
+
+#endif  // CARET_TRACE__TP_H_

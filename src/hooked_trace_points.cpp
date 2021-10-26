@@ -47,6 +47,9 @@
 // for cyclonedds
 #include "dds/dds.h"
 
+#define SYMBOL_CONCAT_2(x, y)  x ## y
+#define SYMBOL_CONCAT_3(x, y, z)  x ## y ## z
+
 
 // Declare a prototype in order to use the functions implemented in cyclonedds.
 rmw_ret_t rmw_get_gid_for_publisher(const rmw_publisher_t * publisher, rmw_gid_t * gid);
@@ -313,8 +316,9 @@ bool _ZN8eprosima7fastdds3dds10DataWriter5writeEPvRNS_8fastrtps4rtps11WriteParam
 // The bind from &payload to source_timestamp is done by unsent_change_added_to_history.
 // bind: &ros_message -> &payload
 // rmw_fastrtps_shared_cpp::TypeSupport::serialize(void*, eprosima::fastrtps::rtps::SerializedPayload_t*)   // NOLINT
-bool
-_ZN23rmw_fastrtps_shared_cpp11TypeSupport9serializeEPvPN8eprosima8fastrtps4rtps19SerializedPayload_tE(
+bool SYMBOL_CONCAT_2(
+  _ZN23rmw_fastrtps_shared_cpp11TypeSupport9serialize,
+  EPvPN8eprosima8fastrtps4rtps19SerializedPayload_tE)(
   // NOLINT
   void * obj, void * data, eprosima::fastrtps::rtps::SerializedPayload_t * payload)
 {
@@ -338,13 +342,15 @@ _ZN23rmw_fastrtps_shared_cpp11TypeSupport9serializeEPvPN8eprosima8fastrtps4rtps1
 // for fastrtps
 // bind: &payload -> source_timestamp
 // unsent_change_added_to_history
-void
-_ZN8eprosima8fastrtps4rtps15StatelessWriter30unsent_change_added_to_historyEPNS1_13CacheChange_tERKNSt6chrono10time_pointINS5_3_V212steady_clockENS5_8durationIlSt5ratioILl1ELl1000000000EEEEEE(
+void SYMBOL_CONCAT_3(
+  _ZN8eprosima8fastrtps4rtps15StatelessWriter30unsent_change_added_to_history,
+  EPNS1_13CacheChange_tERKNSt6chrono10time_point,
+  INS5_3_V212steady_clockENS5_8durationIlSt5ratioILl1ELl1000000000EEEEEE)(
   // NOLINT
   void * obj,
   eprosima::fastrtps::rtps::CacheChange_t * change,
-  const std::chrono::time_point<std::chrono::steady_clock> & max_blocking_time
-)
+  const std::chrono::time_point<std::chrono::steady_clock>&max_blocking_time
+  )
 {
   using functionT = bool (*)(
     void *,
@@ -368,13 +374,15 @@ _ZN8eprosima8fastrtps4rtps15StatelessWriter30unsent_change_added_to_historyEPNS1
 // for fastrtps
 // bind: &payload -> source_timestamp
 // unsent_change_added_to_history
-void
-_ZN8eprosima8fastrtps4rtps14StatefulWriter30unsent_change_added_to_historyEPNS1_13CacheChange_tERKNSt6chrono10time_pointINS5_3_V212steady_clockENS5_8durationIlSt5ratioILl1ELl1000000000EEEEEE(
+void SYMBOL_CONCAT_3(
+  _ZN8eprosima8fastrtps4rtps14StatefulWriter30unsent_change_added_to_history,
+  EPNS1_13CacheChange_tERKNSt6chrono10time_point,
+  INS5_3_V212steady_clockENS5_8durationIlSt5ratioILl1ELl1000000000EEEEEE)(
   // NOLINT
   void * obj,
   eprosima::fastrtps::rtps::CacheChange_t * change,
-  const std::chrono::time_point<std::chrono::steady_clock> & max_blocking_time
-)
+  const std::chrono::time_point<std::chrono::steady_clock>&max_blocking_time
+  )
 {
   using functionT =
     bool (*)(
