@@ -192,72 +192,80 @@ void ros_trace_callback_end(const void * callback)
 void ros_trace_dispatch_subscription_callback(
   const void * message,
   const void * callback,
-  const uint64_t source_timestamp)
+  const uint64_t source_timestamp,
+  const uint64_t message_timestamp)
 {
   static auto & controller = Singleton<TracingController>::get_instance();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
-  using functionT = void (*)(const void *, const void *, const uint64_t);
+  using functionT = void (*)(const void *, const void *, const uint64_t, const uint64_t);
   if (controller.is_allowed_callback(callback)) {
-    ((functionT) orig_func)(message, callback, source_timestamp);
+    ((functionT) orig_func)(message, callback, source_timestamp, message_timestamp);
   }
 
 #ifdef DEBUG_OUTPUT
   std::cerr << "dispatch_subscription_callback," <<
     message << "," <<
     callback << "," <<
-    source_timestamp << std::endl;
+    source_timestamp << "," <<
+    message_timestamp << std::endl;
 #endif
 }
 
 void ros_trace_dispatch_intra_process_subscription_callback(
   const void * message,
-  const void * callback)
+  const void * callback,
+  const uint64_t message_timestamp)
 {
   static auto & controller = Singleton<TracingController>::get_instance();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
-  using functionT = void (*)(const void *, const void *);
+  using functionT = void (*)(const void *, const void *, const uint64_t);
   if (controller.is_allowed_callback(callback)) {
-    ((functionT) orig_func)(message, callback);
+    ((functionT) orig_func)(message, callback, message_timestamp);
   }
 
 #ifdef DEBUG_OUTPUT
   std::cerr << "dispatch_intra_process_subscription_callback," <<
     message << "," <<
-    callback << std::endl;
+    callback << "," <<
+    message_timestamp << std::endl;
 #endif
 }
 
 #ifdef DEBUG_OUTPUT
 void ros_trace_rclcpp_publish(
   const void * publisher_handle,
-  const void * message)
+  const void * message,
+  const uint64_t message_timestamp)
 {
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
-  using functionT = void (*)(const void *, const void *);
-  ((functionT) orig_func)(publisher_handle, message);
+  using functionT = void (*)(const void *, const void *, const uint64_t);
+  ((functionT) orig_func)(publisher_handle, message, message_timestamp);
 
   std::cerr << "rclcpp_publish," <<
     publisher_handle << "," <<
-    message << std::endl;
+    message << "," <<
+    message_timestamp << std::endl;
 }
 #endif
 
 #ifdef DEBUG_OUTPUT
 void ros_trace_rclcpp_intra_publish(
   const void * publisher_handle,
-  const void * message)
+  const void * message,
+  const uint64_t message_timestamp)
 {
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
-  using functionT = void (*)(const void *, const void *);
-  ((functionT) orig_func)(publisher_handle, message);
+  using functionT = void (*)(const void *, const void *, const uint64_t message_timestamp);
+  ((functionT) orig_func)(publisher_handle, message, message_timestamp);
 
   std::cerr << "rclcpp_intra_publish," <<
     publisher_handle << "," <<
-    message << std::endl;
+    message << "," <<
+    message_timestamp << std::endl;
 }
 #endif
 
