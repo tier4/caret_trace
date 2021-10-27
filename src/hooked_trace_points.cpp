@@ -401,4 +401,177 @@ void SYMBOL_CONCAT_3(
     std::endl;
 #endif
 }
+
+// rclcpp::executors::SingleThreadedExecutor::SingleThreadedExecutor(rclcpp::ExecutorOptions const&)
+void _ZN6rclcpp9executors22SingleThreadedExecutorC1ERKNS_15ExecutorOptionsE(
+  void * obj,
+  const void * option)
+{
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(void *, const void *);
+  ((functionT) orig_func)(obj, option);
+
+  tracepoint(TRACEPOINT_PROVIDER, construct_executor, obj, "single_threaded_executor");
+#ifdef DEBUG_OUTPUT
+  std::cerr << "construct_executor," <<
+    "single_threaded_executor" << "," <<
+    obj << std::endl;
+#endif
+}
+
+// rclcpp::executors::MultiThreadedExecutor::MultiThreadedExecutor(
+// rclcpp::ExecutorOptions const&, unsigned long, bool,
+// std::chrono::duration<long, std::ratio<1l, 1000000000l> >)
+void
+SYMBOL_CONCAT_2(
+  _ZN6rclcpp9executors21MultiThreadedExecutor,
+  C1ERKNS_15ExecutorOptionsEmbNSt6chrono8durationIlSt5ratioILl1ELl1000000000EEEE)(
+  void * obj,
+  const void * option,
+  size_t number_of_thread,
+  bool yield_before_execute,
+  const void * timeout)
+{
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(void *, const void *, size_t, bool, const void *);
+  ((functionT) orig_func)(obj, option, number_of_thread, yield_before_execute, timeout);
+
+  tracepoint(TRACEPOINT_PROVIDER, construct_executor, obj, "multi_threaded_executor");
+#ifdef DEBUG_OUTPUT
+  std::cerr << "construct_executor," <<
+    "multi_threaded_executor" << "," <<
+    obj << std::endl;
+#endif
+}
+
+// rclcpp::executors::StaticSingleThreadedExecutor::StaticSingleThreadedExecutor(
+// rclcpp::ExecutorOptions const&)
+void _ZN6rclcpp9executors28StaticSingleThreadedExecutorC1ERKNS_15ExecutorOptionsE(
+  void * obj,
+  const void * option)
+{
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(void *, const void *);
+  ((functionT) orig_func)(obj, option);
+
+  tracepoint(TRACEPOINT_PROVIDER, construct_executor, obj, "static_single_threaded_executor");
+#ifdef DEBUG_OUTPUT
+  std::cerr << "construct_executor," <<
+    "static_single_threaded_executor" << "," <<
+    obj << std::endl;
+#endif
+}
+
+// rclcpp::Executor::add_callback_group_to_map(
+//   std::shared_ptr<rclcpp::CallbackGroup>,
+//   std::shared_ptr<rclcpp::node_interfaces::NodeBaseInterface>,
+//   std::map<std::weak_ptr<rclcpp::CallbackGroup>,
+//   std::weak_ptr<rclcpp::node_interfaces::NodeBaseInterface>,
+//   std::owner_less<std::weak_ptr<rclcpp::CallbackGroup> >,
+//   std::allocator<std::pair<std::weak_ptr<rclcpp::CallbackGroup> const,
+//   std::weak_ptr<rclcpp::node_interfaces::NodeBaseInterface> > > >&,
+//   bool)
+void SYMBOL_CONCAT_3(
+  _ZN6rclcpp8Executor25add_callback_group_to_map,
+  ESt10shared_ptrINS_13CallbackGroupEES1_INS_15node_interfaces17NodeBaseInterface,
+  EERSt3mapISt8weak_ptrIS2_ES8_IS5_ESt10owner_lessIS9_ESaISt4pairIKS9_SA_EEEb)(
+  void * obj,
+  rclcpp::CallbackGroup::SharedPtr group_ptr,
+  const void * node_ptr,
+  const void * weak_groups_to_nodes,
+  bool notify
+  )
+{
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(
+    void *,
+    rclcpp::CallbackGroup::SharedPtr,
+    const void *,
+    const void *,
+    bool);
+  auto group_addr = static_cast<const void *>(group_ptr.get());
+
+  ((functionT) orig_func)(obj, group_ptr, node_ptr, weak_groups_to_nodes, notify);
+
+  tracepoint(TRACEPOINT_PROVIDER, add_callback_group, obj, group_addr);
+#ifdef DEBUG_OUTPUT
+  std::cerr << "add_callback_group," << obj << "," << group_addr <<
+    std::endl;
+#endif
+}
+
+//  rclcpp::CallbackGroup::add_timer(std::shared_ptr<rclcpp::TimerBase>)
+void _ZN6rclcpp13CallbackGroup9add_timerESt10shared_ptrINS_9TimerBaseEE(
+  // ok
+  void * obj,
+  const rclcpp::TimerBase::SharedPtr timer_ptr)
+{
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(void *, const rclcpp::TimerBase::SharedPtr);
+
+  auto timer_handle = static_cast<const void *>(timer_ptr->get_timer_handle().get());
+  ((functionT) orig_func)(obj, timer_ptr);
+
+  tracepoint(TRACEPOINT_PROVIDER, callback_group_add_timer, obj, timer_handle);
+
+#ifdef DEBUG_OUTPUT
+  std::cerr << "callback_group_add_timer," << obj << "," << timer_handle << std::endl;
+#endif
+}
+
+// rclcpp::CallbackGroup::add_subscription(std::shared_ptr<rclcpp::SubscriptionBase>)
+void _ZN6rclcpp13CallbackGroup16add_subscriptionESt10shared_ptrINS_16SubscriptionBaseEE(
+  void * obj,
+  const rclcpp::SubscriptionBase::SharedPtr subscription_ptr
+)
+{
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(void *, const rclcpp::SubscriptionBase::SharedPtr);
+
+  auto subscription_handle = static_cast<const void *>(
+    subscription_ptr->get_subscription_handle().get());
+  ((functionT) orig_func)(obj, subscription_ptr);
+
+  tracepoint(TRACEPOINT_PROVIDER, callback_group_add_subscription, obj, subscription_handle);
+
+#ifdef DEBUG_OUTPUT
+  std::cerr << "callback_group_add_subscription," << obj << "," << subscription_handle << std::endl;
+#endif
+}
+
+// rclcpp::CallbackGroup::add_service(std::shared_ptr<rclcpp::ServiceBase>)
+void _ZN6rclcpp13CallbackGroup11add_serviceESt10shared_ptrINS_11ServiceBaseEE(
+  void * obj,
+  const rclcpp::ServiceBase::SharedPtr service_ptr)
+{
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(void *, const rclcpp::ServiceBase::SharedPtr);
+
+  auto service_handle = static_cast<const void *>(service_ptr->get_service_handle().get());
+  ((functionT) orig_func)(obj, service_ptr);
+
+  tracepoint(TRACEPOINT_PROVIDER, callback_group_add_service, obj, service_handle);
+
+#ifdef DEBUG_OUTPUT
+  std::cerr << "callback_group_add_service," << obj << "," << service_handle << std::endl;
+#endif
+}
+
+// rclcpp::CallbackGroup::add_client(std::shared_ptr<rclcpp::ClientBase>)
+void _ZN6rclcpp13CallbackGroup10add_clientESt10shared_ptrINS_10ClientBaseEE(
+  void * obj,
+  const rclcpp::ClientBase::SharedPtr client_ptr)
+{
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(void *, const rclcpp::ClientBase::SharedPtr);
+
+  auto client_handle = static_cast<const void *>(client_ptr->get_client_handle().get());
+  ((functionT) orig_func)(obj, client_ptr);
+
+  tracepoint(TRACEPOINT_PROVIDER, callback_group_add_client, obj, client_handle);
+
+#ifdef DEBUG_OUTPUT
+  std::cerr << "callback_group_add_client," << obj << "," << client_handle << std::endl;
+#endif
+}
 }
