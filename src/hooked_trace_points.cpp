@@ -410,11 +410,12 @@ void _ZN6rclcpp9executors22SingleThreadedExecutorC1ERKNS_15ExecutorOptionsE(
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(void *, const void *);
   ((functionT) orig_func)(obj, option);
+  const std::string executor_type_name = "single_threaded_executor";
 
-  tracepoint(TRACEPOINT_PROVIDER, construct_executor, obj, "single_threaded_executor");
+  tracepoint(TRACEPOINT_PROVIDER, construct_executor, obj, executor_type_name.c_str());
 #ifdef DEBUG_OUTPUT
   std::cerr << "construct_executor," <<
-    "single_threaded_executor" << "," <<
+    executor_type_name << "," <<
     obj << std::endl;
 #endif
 }
@@ -435,11 +436,12 @@ SYMBOL_CONCAT_2(
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(void *, const void *, size_t, bool, const void *);
   ((functionT) orig_func)(obj, option, number_of_thread, yield_before_execute, timeout);
+  const std::string executor_type_name = "single_threaded_executor";
 
-  tracepoint(TRACEPOINT_PROVIDER, construct_executor, obj, "multi_threaded_executor");
+  tracepoint(TRACEPOINT_PROVIDER, construct_executor, obj, executor_type_name.c_str());
 #ifdef DEBUG_OUTPUT
   std::cerr << "construct_executor," <<
-    "multi_threaded_executor" << "," <<
+    executor_type_name << "," <<
     obj << std::endl;
 #endif
 }

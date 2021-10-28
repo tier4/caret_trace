@@ -92,11 +92,11 @@ TRACEPOINT_EVENT(
   construct_executor,
   TP_ARGS(
     const void *, executor_addr_arg,
-    const char *, executor_name_arg
+    const char *, executor_type_name_arg
   ),
   TP_FIELDS(
     ctf_integer_hex(const void *, executor_addr, executor_addr_arg)
-    ctf_string(executor_name, executor_name_arg)
+    ctf_string(executor_type_name, executor_type_name_arg)
   )
 )
 
