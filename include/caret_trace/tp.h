@@ -102,6 +102,21 @@ TRACEPOINT_EVENT(
 
 TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
+  construct_static_executor,
+  TP_ARGS(
+    const void *, executor_addr_arg,
+    const void *, entities_collector_addr_arg,
+    const char *, executor_type_name_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, executor_addr, executor_addr_arg)
+    ctf_integer_hex(const void *, entities_collector_addr, entities_collector_addr_arg)
+    ctf_string(executor_type_name, executor_type_name_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
   add_callback_group,
   TP_ARGS(
     const void *, executor_addr_arg,
@@ -110,6 +125,21 @@ TRACEPOINT_EVENT(
   ),
   TP_FIELDS(
     ctf_integer_hex(const void *, executor_addr, executor_addr_arg)
+    ctf_integer_hex(const void *, callback_group_addr, callback_group_addr_arg)
+    ctf_string(group_type_name, group_type_name_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  add_callback_group_static_executor,
+  TP_ARGS(
+    const void *, entities_collector_addr_arg,
+    const void *, callback_group_addr_arg,
+    const char *, group_type_name_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, entities_collector_addr, entities_collector_addr_arg)
     ctf_integer_hex(const void *, callback_group_addr, callback_group_addr_arg)
     ctf_string(group_type_name, group_type_name_arg)
   )

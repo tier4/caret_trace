@@ -68,6 +68,101 @@ static void * ON_DATA_AVAILABLE;
 static void * SERIALIZE;
 }
 
+
+namespace rclcpp
+{
+namespace executors
+{
+class StaticSingleThreadedExecutorPublic : public rclcpp::Executor
+{
+public:
+  // RCLCPP_SMART_PTR_DEFINITIONS(StaticSingleThreadedExecutorStaticSingleThreadedExecutorPublic)
+  RCLCPP_PUBLIC
+  explicit StaticSingleThreadedExecutorPublic(
+    const rclcpp::ExecutorOptions & options = rclcpp::ExecutorOptions());
+  RCLCPP_PUBLIC
+  virtual ~StaticSingleThreadedExecutorPublic();
+
+  RCLCPP_PUBLIC
+  void
+  spin() override;
+
+  RCLCPP_PUBLIC
+  void
+  spin_some(std::chrono::nanoseconds max_duration = std::chrono::nanoseconds(0)) override;
+
+  RCLCPP_PUBLIC
+  void
+  spin_all(std::chrono::nanoseconds max_duration) override;
+
+  RCLCPP_PUBLIC
+  void
+  add_callback_group(
+    rclcpp::CallbackGroup::SharedPtr group_ptr,
+    rclcpp::node_interfaces::NodeBaseInterface::SharedPtr node_ptr,
+    bool notify = true) override;
+
+  RCLCPP_PUBLIC
+  void
+  remove_callback_group(
+    rclcpp::CallbackGroup::SharedPtr group_ptr,
+    bool notify = true) override;
+
+  RCLCPP_PUBLIC
+  void
+  add_node(
+    rclcpp::node_interfaces::NodeBaseInterface::SharedPtr node_ptr,
+    bool notify = true) override;
+
+  RCLCPP_PUBLIC
+  void
+  add_node(std::shared_ptr<rclcpp::Node> node_ptr, bool notify = true) override;
+
+  RCLCPP_PUBLIC
+  void
+  remove_node(
+    rclcpp::node_interfaces::NodeBaseInterface::SharedPtr node_ptr,
+    bool notify = true) override;
+
+  RCLCPP_PUBLIC
+  void
+  remove_node(std::shared_ptr<rclcpp::Node> node_ptr, bool notify = true) override;
+
+  RCLCPP_PUBLIC
+  std::vector<rclcpp::CallbackGroup::WeakPtr>
+  get_all_callback_groups() override;
+
+  RCLCPP_PUBLIC
+  std::vector<rclcpp::CallbackGroup::WeakPtr>
+  get_manually_added_callback_groups() override;
+
+  RCLCPP_PUBLIC
+  std::vector<rclcpp::CallbackGroup::WeakPtr>
+  get_automatically_added_callback_groups_from_nodes() override;
+
+// protected:
+  RCLCPP_PUBLIC
+  bool
+  execute_ready_executables(bool spin_once = false);
+
+  RCLCPP_PUBLIC
+  void
+  spin_some_impl(std::chrono::nanoseconds max_duration, bool exhaustive);
+
+  RCLCPP_PUBLIC
+  void
+  spin_once_impl(std::chrono::nanoseconds timeout) override;
+
+// private:
+  // RCLCPP_DISABLE_COPY(StaticSingleThreadedExecutor)
+
+  StaticExecutorEntitiesCollector::SharedPtr entities_collector_;
+};
+
+}  // namespace executors
+}  // namespace rclcpp
+
+
 extern "C" {
 // Get symbols from the DDS shared library
 // The dds-related-symbol, which is set by an environment variable, cannot be obtained by dlsym.
@@ -456,11 +551,20 @@ void _ZN6rclcpp9executors28StaticSingleThreadedExecutorC1ERKNS_15ExecutorOptions
   using functionT = void (*)(void *, const void *);
   ((functionT) orig_func)(obj, option);
 
-  tracepoint(TRACEPOINT_PROVIDER, construct_executor, obj, "static_single_threaded_executor");
+  using StaticSingleThreadedExecutorPublic = rclcpp::executors::StaticSingleThreadedExecutorPublic;
+  auto exec_ptr = reinterpret_cast<StaticSingleThreadedExecutorPublic *>(obj);
+
+  auto entities_collector_ptr = static_cast<const void *>(exec_ptr->entities_collector_.get());
+  tracepoint(
+    TRACEPOINT_PROVIDER,
+    construct_static_executor,
+    obj,
+    entities_collector_ptr,
+    "static_single_threaded_executor");
 #ifdef DEBUG_OUTPUT
-  std::cerr << "construct_executor," <<
+  std::cerr << "construct_static_executor," <<
     "static_single_threaded_executor" << "," <<
-    obj << std::endl;
+    obj << "," << entities_collector_ptr << std::endl;
 #endif
 }
 
@@ -507,6 +611,43 @@ void SYMBOL_CONCAT_3(
   std::cerr << "add_callback_group," << obj << "," << group_addr << "," <<
     group_type_name << std::endl;
 #endif
+}
+
+bool SYMBOL_CONCAT_3(
+  _ZN6rclcpp9executors31StaticExecutorEntitiesCollector18add_callback_groupESt10shared_ptr,
+  INS_13CallbackGroupEES2_INS_15node_interfaces17NodeBaseInterface,
+  EERSt3mapISt8weak_ptrIS3_ES9_IS6_ESt10owner_lessISA_ESaISt4pairIKSA_SB_EEE) (
+    void * obj,
+    rclcpp::CallbackGroup::SharedPtr group_ptr,
+    rclcpp::node_interfaces::NodeBaseInterface::SharedPtr node_ptr,
+    rclcpp::memory_strategy::MemoryStrategy::WeakCallbackGroupsToNodesMap & weak_groups_to_nodes)
+{
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = bool (*)(
+    void *,
+    rclcpp::CallbackGroup::SharedPtr,
+    rclcpp::node_interfaces::NodeBaseInterface::SharedPtr,
+    rclcpp::memory_strategy::MemoryStrategy::WeakCallbackGroupsToNodesMap &);
+
+  auto group_addr = static_cast<const void *>(group_ptr.get());
+  std::string  group_type_name = "unknown";
+  auto group_type = group_ptr->type();
+  if (group_type == rclcpp::CallbackGroupType::MutuallyExclusive){
+    group_type_name = "mutually_exclusive";
+  } else if (group_type == rclcpp::CallbackGroupType::Reentrant){
+    group_type_name = "reentrant";
+  }
+
+  auto ret = ((functionT) orig_func)(obj, group_ptr, node_ptr, weak_groups_to_nodes);
+
+  tracepoint(TRACEPOINT_PROVIDER, add_callback_group_static_executor,
+    obj, group_addr, group_type_name.c_str());
+#ifdef DEBUG_OUTPUT
+  std::cerr << "add_callback_group_static_executor," << obj << "," << group_addr << "," <<
+    group_type_name << std::endl;
+#endif
+
+  return ret;
 }
 
 //  rclcpp::CallbackGroup::add_timer(std::shared_ptr<rclcpp::TimerBase>)
