@@ -38,6 +38,9 @@ bool partial_match(std::unordered_set<std::string> set, std::string target_name)
 {
   for (auto & condition : set) {
     try {
+      if (condition == "*") {
+        return true;
+      }
       std::regex re(condition.c_str());
       if (std::regex_search(target_name, re)) {
         return true;
