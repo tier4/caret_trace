@@ -128,7 +128,6 @@ void ros_trace_rclcpp_subscription_callback_added(
   }
 }
 
-#ifdef DEBUG_OUTPUT
 void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void * callback)
 {
   static auto & controller = Singleton<TracingController>::get_instance();
@@ -139,12 +138,13 @@ void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void
   using functionT = void (*)(const void *, const void *);
   if (controller.is_allowed_callback(callback)) {
     ((functionT) orig_func)(timer_handle, callback);
-  }
-  std::cerr << "rclcpp_timer_callback_added," <<
-    timer_handle << "," <<
-    callback << std::endl;
-}
+#ifdef DEBUG_OUTPUT
+    std::cerr << "rclcpp_timer_callback_added," <<
+      timer_handle << "," <<
+      callback << std::endl;
 #endif
+  }
+}
 
 void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * node_handle)
 {
@@ -156,13 +156,12 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
   using functionT = void (*)(const void *, const void *);
   if (controller.is_allowed_node(node_handle)) {
     ((functionT) orig_func)(timer_handle, node_handle);
-  }
-
 #ifdef DEBUG_OUTPUT
-  std::cerr << "rclcpp_timer_link_node," <<
-    timer_handle << "," <<
-    node_handle << std::endl;
+    std::cerr << "rclcpp_timer_link_node," <<
+      timer_handle << "," <<
+      node_handle << std::endl;
 #endif
+  }
 }
 
 void ros_trace_callback_start(const void * callback, bool is_intra_process)
@@ -174,13 +173,12 @@ void ros_trace_callback_start(const void * callback, bool is_intra_process)
 
   if (controller.is_allowed_callback(callback)) {
     ((functionT) orig_func)(callback, is_intra_process);
-  }
-
 #ifdef DEBUG_OUTPUT
-  std::cerr << "callback_start," <<
-    callback << "," <<
-    is_intra_process << std::endl;
+    std::cerr << "callback_start," <<
+      callback << "," <<
+      is_intra_process << std::endl;
 #endif
+  }
 }
 
 void ros_trace_callback_end(const void * callback)
@@ -191,12 +189,12 @@ void ros_trace_callback_end(const void * callback)
   using functionT = void (*)(const void *);
   if (controller.is_allowed_callback(callback)) {
     ((functionT) orig_func)(callback);
-  }
 
 #ifdef DEBUG_OUTPUT
-  std::cerr << "callback_end," <<
-    callback << std::endl;
+    std::cerr << "callback_end," <<
+      callback << std::endl;
 #endif
+  }
 }
 
 void ros_trace_dispatch_subscription_callback(
@@ -211,15 +209,15 @@ void ros_trace_dispatch_subscription_callback(
   using functionT = void (*)(const void *, const void *, const uint64_t, const uint64_t);
   if (controller.is_allowed_callback(callback)) {
     ((functionT) orig_func)(message, callback, source_timestamp, message_timestamp);
-  }
 
 #ifdef DEBUG_OUTPUT
-  std::cerr << "dispatch_subscription_callback," <<
-    message << "," <<
-    callback << "," <<
-    source_timestamp << "," <<
-    message_timestamp << std::endl;
+    std::cerr << "dispatch_subscription_callback," <<
+      message << "," <<
+      callback << "," <<
+      source_timestamp << "," <<
+      message_timestamp << std::endl;
 #endif
+  }
 }
 
 void ros_trace_dispatch_intra_process_subscription_callback(
@@ -233,14 +231,14 @@ void ros_trace_dispatch_intra_process_subscription_callback(
   using functionT = void (*)(const void *, const void *, const uint64_t);
   if (controller.is_allowed_callback(callback)) {
     ((functionT) orig_func)(message, callback, message_timestamp);
-  }
 
 #ifdef DEBUG_OUTPUT
-  std::cerr << "dispatch_intra_process_subscription_callback," <<
-    message << "," <<
-    callback << "," <<
-    message_timestamp << std::endl;
+    std::cerr << "dispatch_intra_process_subscription_callback," <<
+      message << "," <<
+      callback << "," <<
+      message_timestamp << std::endl;
 #endif
+  }
 }
 
 void ros_trace_rclcpp_publish(
@@ -284,6 +282,7 @@ void ros_trace_rclcpp_intra_publish(
   }
 }
 
+#ifdef DEBUG_OUTPUT
 void ros_trace_rcl_timer_init(
   const void * timer_handle,
   int64_t period)
@@ -293,12 +292,11 @@ void ros_trace_rcl_timer_init(
   using functionT = void (*)(const void *, int64_t);
   ((functionT) orig_func)(timer_handle, period);
 
-#ifdef DEBUG_OUTPUT
   std::cerr << "rcl_timer_init," <<
     timer_handle << "," <<
     period << std::endl;
-#endif
 }
+#endif
 
 #ifdef DEBUG_OUTPUT
 void ros_trace_rcl_init(
@@ -312,6 +310,8 @@ void ros_trace_rcl_init(
     context_handle << std::endl;
 }
 #endif
+
+#ifdef DEBUG_OUTPUT
 
 void ros_trace_rcl_publisher_init(
   const void * publisher_handle,
@@ -337,15 +337,14 @@ void ros_trace_rcl_publisher_init(
     rmw_publisher_handle,
     topic_name,
     queue_depth);
-#ifdef DEBUG_OUTPUT
   std::cerr << "rcl_publisher_init," <<
     publisher_handle << "," <<
     node_handle << "," <<
     rmw_publisher_handle << "," <<
     topic_name << "," <<
     queue_depth << std::endl;
-#endif
 }
+#endif
 
 void ros_trace_rcl_publish(
   const void * publisher_handle,
