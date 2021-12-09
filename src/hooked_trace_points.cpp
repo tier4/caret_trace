@@ -154,7 +154,7 @@ public:
   spin_once_impl(std::chrono::nanoseconds timeout) override;
 
 // private:
-  // RCLCPP_DISABLE_COPY(StaticSingleThreadedExecutor)
+// RCLCPP_DISABLE_COPY(StaticSingleThreadedExecutor)
 
   StaticExecutorEntitiesCollector::SharedPtr entities_collector_;
 };
@@ -596,11 +596,11 @@ void SYMBOL_CONCAT_3(
     const void *,
     bool);
   auto group_addr = static_cast<const void *>(group_ptr.get());
-  std::string  group_type_name = "unknown";
+  std::string group_type_name = "unknown";
   auto group_type = group_ptr->type();
-  if (group_type == rclcpp::CallbackGroupType::MutuallyExclusive){
+  if (group_type == rclcpp::CallbackGroupType::MutuallyExclusive) {
     group_type_name = "mutually_exclusive";
-  } else if (group_type == rclcpp::CallbackGroupType::Reentrant){
+  } else if (group_type == rclcpp::CallbackGroupType::Reentrant) {
     group_type_name = "reentrant";
   }
 
@@ -617,10 +617,10 @@ bool SYMBOL_CONCAT_3(
   _ZN6rclcpp9executors31StaticExecutorEntitiesCollector18add_callback_groupESt10shared_ptr,
   INS_13CallbackGroupEES2_INS_15node_interfaces17NodeBaseInterface,
   EERSt3mapISt8weak_ptrIS3_ES9_IS6_ESt10owner_lessISA_ESaISt4pairIKSA_SB_EEE) (
-    void * obj,
-    rclcpp::CallbackGroup::SharedPtr group_ptr,
-    rclcpp::node_interfaces::NodeBaseInterface::SharedPtr node_ptr,
-    rclcpp::memory_strategy::MemoryStrategy::WeakCallbackGroupsToNodesMap & weak_groups_to_nodes)
+  void * obj,
+  rclcpp::CallbackGroup::SharedPtr group_ptr,
+  rclcpp::node_interfaces::NodeBaseInterface::SharedPtr node_ptr,
+  rclcpp::memory_strategy::MemoryStrategy::WeakCallbackGroupsToNodesMap & weak_groups_to_nodes)
 {
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = bool (*)(
@@ -630,17 +630,18 @@ bool SYMBOL_CONCAT_3(
     rclcpp::memory_strategy::MemoryStrategy::WeakCallbackGroupsToNodesMap &);
 
   auto group_addr = static_cast<const void *>(group_ptr.get());
-  std::string  group_type_name = "unknown";
+  std::string group_type_name = "unknown";
   auto group_type = group_ptr->type();
-  if (group_type == rclcpp::CallbackGroupType::MutuallyExclusive){
+  if (group_type == rclcpp::CallbackGroupType::MutuallyExclusive) {
     group_type_name = "mutually_exclusive";
-  } else if (group_type == rclcpp::CallbackGroupType::Reentrant){
+  } else if (group_type == rclcpp::CallbackGroupType::Reentrant) {
     group_type_name = "reentrant";
   }
 
   auto ret = ((functionT) orig_func)(obj, group_ptr, node_ptr, weak_groups_to_nodes);
 
-  tracepoint(TRACEPOINT_PROVIDER, add_callback_group_static_executor,
+  tracepoint(
+    TRACEPOINT_PROVIDER, add_callback_group_static_executor,
     obj, group_addr, group_type_name.c_str());
 #ifdef DEBUG_OUTPUT
   std::cerr << "add_callback_group_static_executor," << obj << "," << group_addr << "," <<

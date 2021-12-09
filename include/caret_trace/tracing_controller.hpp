@@ -37,10 +37,19 @@ public:
   void add_timer_handle(
     const void * node_handle, const void * timer_handle);
 
+  void add_publisher_handle(
+    const void * node_handle, const void * publisher_handle, std::string topic_name);
+
   void add_timer_callback(
     const void * timer_handle, const void * callback);
 
   bool is_allowed_callback(const void * callback);
+
+  bool is_allowed_node(const void * node_handle);
+
+  bool is_allowed_publisher_handle(const void * publisher_handle);
+
+  bool is_allowed_subscription_handle(const void * subscription_handle);
 
 private:
   std::shared_timed_mutex mutex_;
@@ -64,6 +73,10 @@ private:
   std::unordered_map<const void *, const void *> callback_to_timer_handles_;
   std::unordered_map<const void *, const void *> timer_handle_to_node_handles_;
   std::unordered_map<const void *, bool> allowed_callbacks_;
+
+  std::unordered_map<const void *, const void *> publisher_handle_to_node_handles_;
+  std::unordered_map<const void *, std::string> publisher_handle_to_topic_names_;
+  std::unordered_map<const void *, bool> allowed_publishers_;
 };
 
 #endif  // CARET_TRACE__TRACING_CONTROLLER_HPP_
