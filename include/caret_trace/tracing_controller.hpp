@@ -35,7 +35,7 @@ public:
     const void * subscription, const void * callback);
 
   void add_timer_handle(
-    const void * node_handle, const void * client_handle);
+    const void * node_handle, const void * timer_handle);
 
   void add_timer_callback(
     const void * timer_handle, const void * callback);
