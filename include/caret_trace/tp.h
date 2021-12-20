@@ -12,6 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Provide fake header guard for cpplint
+#undef CARET_TRACE__TP_H_
+#ifndef CARET_TRACE__TP_H_
+#define CARET_TRACE__TP_H_
+
 #undef TRACEPOINT_PROVIDER
 #define TRACEPOINT_PROVIDER ros2_caret
 
@@ -82,6 +87,118 @@ TRACEPOINT_EVENT(
   )
 )
 
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  construct_executor,
+  TP_ARGS(
+    const void *, executor_addr_arg,
+    const char *, executor_type_name_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, executor_addr, executor_addr_arg)
+    ctf_string(executor_type_name, executor_type_name_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  construct_static_executor,
+  TP_ARGS(
+    const void *, executor_addr_arg,
+    const void *, entities_collector_addr_arg,
+    const char *, executor_type_name_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, executor_addr, executor_addr_arg)
+    ctf_integer_hex(const void *, entities_collector_addr, entities_collector_addr_arg)
+    ctf_string(executor_type_name, executor_type_name_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  add_callback_group,
+  TP_ARGS(
+    const void *, executor_addr_arg,
+    const void *, callback_group_addr_arg,
+    const char *, group_type_name_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, executor_addr, executor_addr_arg)
+    ctf_integer_hex(const void *, callback_group_addr, callback_group_addr_arg)
+    ctf_string(group_type_name, group_type_name_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  add_callback_group_static_executor,
+  TP_ARGS(
+    const void *, entities_collector_addr_arg,
+    const void *, callback_group_addr_arg,
+    const char *, group_type_name_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, entities_collector_addr, entities_collector_addr_arg)
+    ctf_integer_hex(const void *, callback_group_addr, callback_group_addr_arg)
+    ctf_string(group_type_name, group_type_name_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  callback_group_add_timer,
+  TP_ARGS(
+    const void *, callback_group_addr_arg,
+    const void *, timer_handle_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, callback_group_addr, callback_group_addr_arg)
+    ctf_integer_hex(const void *, timer_handle, timer_handle_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  callback_group_add_subscription,
+  TP_ARGS(
+    const void *, callback_group_addr_arg,
+    const void *, subscription_handle_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, callback_group_addr, callback_group_addr_arg)
+    ctf_integer_hex(const void *, subscription_handle, subscription_handle_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  callback_group_add_service,
+  TP_ARGS(
+    const void *, callback_group_addr_arg,
+    const void *, service_handle_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, callback_group_addr, callback_group_addr_arg)
+    ctf_integer_hex(const void *, service_handle, service_handle_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  callback_group_add_client,
+  TP_ARGS(
+    const void *, callback_group_addr_arg,
+    const void *, client_handle_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, callback_group_addr, callback_group_addr_arg)
+    ctf_integer_hex(const void *, client_handle, client_handle_arg)
+  )
+)
+
 #endif /* _TP_H */
 
 #include <lttng/tracepoint-event.h>
+
+#endif  // CARET_TRACE__TP_H_
