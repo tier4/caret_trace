@@ -29,6 +29,7 @@ find_package(rcutils REQUIRED)
 find_package(rmw_implementation REQUIRED)
 find_package(rcpputils REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(CycloneDDS REQUIRED)
 find_package(fastrtps REQUIRED)
 find_package(rmw_fastrtps_shared_cpp REQUIRED)
@@ -48,6 +49,7 @@ ament_target_dependencies(caret
   rmw_implementation
   rcpputils
   std_msgs
+  geometry_msgs
   rmw_fastrtps_shared_cpp
   LTTngUST)
 
