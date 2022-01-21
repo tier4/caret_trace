@@ -188,7 +188,7 @@ bool TracingController::is_allowed_callback(const void * callback)
         allowed_callbacks_.insert(std::make_pair(callback, true));
         return true;
       }
-      if (selected_node_names_.size() == 0 && topic_name == "") { // allow timer callback
+      if (selected_node_names_.size() == 0 && topic_name == "") {  // allow timer callback
         allowed_callbacks_.insert(std::make_pair(callback, true));
         return true;
       }
@@ -290,8 +290,8 @@ bool TracingController::is_allowed_publisher_handle(const void * publisher_handl
       if (is_selected_topic && selected_topic_names_.size() > 0) {
         allowed_publishers_.insert(std::make_pair(publisher_handle, true));
         return true;
-
       }
+
       allowed_publishers_.insert(std::make_pair(publisher_handle, false));
       return false;
     } else if (ignore_enabled_) {

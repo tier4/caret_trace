@@ -27,6 +27,8 @@
 #define _TP_H
 
 #include <lttng/tracepoint.h>
+#include <lttng/tracepoint-event.h>
+
 
 TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
@@ -197,8 +199,17 @@ TRACEPOINT_EVENT(
   )
 )
 
-#endif /* _TP_H */
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  sim_time,
+  TP_ARGS(
+    const uint64_t, stamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer(const uint64_t, stamp, stamp_arg)
+  )
+)
 
-#include <lttng/tracepoint-event.h>
+#endif /* _TP_H */
 
 #endif  // CARET_TRACE__TP_H_

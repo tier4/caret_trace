@@ -33,8 +33,6 @@ find_package(fastrtps REQUIRED)
 find_package(rmw_fastrtps_shared_cpp REQUIRED)
 find_package(LTTngUST REQUIRED)
 
-include_directories(include)
-
 add_library(caret SHARED
   src/ros_trace_points.cpp
   src/hooked_trace_points.cpp
@@ -54,6 +52,13 @@ ament_target_dependencies(caret
   )
 
 target_link_libraries(caret CycloneDDS::ddsc fastrtps)
+
+add_executable(clock_recorder src/clock_recorder.cpp src/tp.c)
+ament_target_dependencies(clock_recorder rclcpp LTTngUST)
+
+install(TARGETS
+  clock_recorder
+  DESTINATION lib/${PROJECT_NAME})
 
 install(
   TARGETS caret

@@ -287,7 +287,7 @@ void ros_trace_rcl_timer_init(
   const void * timer_handle,
   int64_t period)
 {
-  // TODO: Add filtering of timer initialization using node_handle
+  // TODO(hsgwa): Add filtering of timer initialization using node_handle
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(const void *, int64_t);
   ((functionT) orig_func)(timer_handle, period);
@@ -328,7 +328,7 @@ void ros_trace_rcl_publisher_init(
   controller.add_publisher_handle(node_handle, publisher_handle, topic_name);
 
   using functionT = void (*)(const void *, const void *, const void *, const char *, const size_t);
-  // TODO: support topic_name filtering
+  // TODO(hsgwa): support topic_name filtering
   // It seems to be executed before the topic name and node name are known.
 
   ((functionT) orig_func)(

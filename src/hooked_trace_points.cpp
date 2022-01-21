@@ -21,6 +21,7 @@
 #include <iomanip>
 #include <string>
 #include <mutex>
+#include <vector>
 
 #include "rcl/rcl.h"
 #include "rmw/rmw.h"
