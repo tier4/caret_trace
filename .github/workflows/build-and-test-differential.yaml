@@ -33,6 +33,18 @@ jobs:
           sudo apt-get install -y python3-babeltrace python3-lttng
         shell: bash
 
+      - name: Install depend package
+        run: |
+          sudo apt install -y ros-galactic-ros2trace 
+          sudo apt install -y ros-galactic-ros2trace-analysis 
+          sudo apt install -y ros-galactic-tracetools 
+          sudo apt install -y ros-galactic-tracetools-analysis 
+          sudo apt install -y ros-galactic-tracetools-launch 
+          sudo apt install -y ros-galactic-tracetools-read 
+          sudo apt install -y ros-galactic-tracetools-test 
+          sudo apt install -y ros-galactic-tracetools-trace
+        shel: bash
+
       - name: Build
         if: ${{ steps.get-modified-packages.outputs.modified-packages != '' }}
         uses: autowarefoundation/autoware-github-actions/colcon-build@v1
