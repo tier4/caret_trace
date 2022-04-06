@@ -16,7 +16,7 @@
   <depend>rcpputils</depend>
   <depend>rcutils</depend>
   <depend>std_msgs</depend>
-  <depend>LTTngUST</depend>
+  <depend>lttng-ust</depend>
 
   <depend>cyclonedds</depend>
   <depend>fastrtps</depend>
