@@ -43,7 +43,7 @@ jobs:
           sudo apt install -y ros-galactic-tracetools-read 
           sudo apt install -y ros-galactic-tracetools-test 
           sudo apt install -y ros-galactic-tracetools-trace
-        shel: bash
+        shell: bash
 
       - name: Build
         if: ${{ steps.get-modified-packages.outputs.modified-packages != '' }}
