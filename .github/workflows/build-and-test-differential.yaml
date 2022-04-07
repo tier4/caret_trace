@@ -35,19 +35,19 @@ jobs:
 
       - name: Install depend packages
         run: |
-          sudo apt update
+          sudo apt-get update
 
-          sudo apt install -y build-essential 
-          sudo apt install -y cmake 
-          sudo apt install -y git 
-          sudo apt install -y python3-colcon-common-extensions 
-          sudo apt install -y python3-flake8 
-          sudo apt install -y python3-pip 
-          sudo apt install -y python3-pytest-cov 
-          sudo apt install -y python3-rosdep 
-          sudo apt install -y python3-setuptools 
-          sudo apt install -y python3-vcstool 
-          sudo apt install -y wget
+          sudo apt-get install -y build-essential 
+          sudo apt-get install -y cmake 
+          sudo apt-get install -y git 
+          sudo apt-get install -y python3-colcon-common-extensions 
+          sudo apt-get install -y python3-flake8 
+          sudo apt-get install -y python3-pip 
+          sudo apt-get install -y python3-pytest-cov 
+          sudo apt-get install -y python3-rosdep 
+          sudo apt-get install -y python3-setuptools 
+          sudo apt-get install -y python3-vcstool 
+          sudo apt-get install -y wget
 
           python3 -m pip install -U flake8-blind-except
           python3 -m pip install -U flake8-blind-except
@@ -64,10 +64,10 @@ jobs:
           python3 -m pip install -U setuptools
           python3 -m pip install -U colorcet
 
-          sudo apt install ros-galactic-desktop
+          sudo apt-get install ros-galactic-desktop
 
-          sudo apt install -y graphviz \
-          sudo apt install -y graphviz-dev
+          sudo apt-get install -y graphviz \
+          sudo apt-get install -y graphviz-dev
 
           python3 -m pip install -U pytest-mock
           python3 -m pip install -U pybind11
@@ -81,14 +81,14 @@ jobs:
 
       - name: Install Related package
         run: |
-          sudo apt install -y ros-galactic-ros2trace 
-          sudo apt install -y ros-galactic-ros2trace-analysis 
-          sudo apt install -y ros-galactic-tracetools 
-          sudo apt install -y ros-galactic-tracetools-analysis 
-          sudo apt install -y ros-galactic-tracetools-launch 
-          sudo apt install -y ros-galactic-tracetools-read 
-          sudo apt install -y ros-galactic-tracetools-test 
-          sudo apt install -y ros-galactic-tracetools-trace
+          sudo apt-get install -y ros-galactic-ros2trace 
+          sudo apt-get install -y ros-galactic-ros2trace-analysis 
+          sudo apt-get install -y ros-galactic-tracetools 
+          sudo apt-get install -y ros-galactic-tracetools-analysis 
+          sudo apt-get install -y ros-galactic-tracetools-launch 
+          sudo apt-get install -y ros-galactic-tracetools-read 
+          sudo apt-get install -y ros-galactic-tracetools-test 
+          sudo apt-get install -y ros-galactic-tracetools-trace
         shell: bash
 
       - name: Build
