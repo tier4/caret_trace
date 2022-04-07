@@ -80,8 +80,8 @@ jobs:
 
       - name: show pkg
         run: |
-          dpkg -l
-          grep lttng
+          dpkg -l | grep lttng
+
         shell: bash
 
 
