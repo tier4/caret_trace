@@ -78,6 +78,12 @@ jobs:
         shell: bash
 
 
+      - name: show pkg
+        run: |
+          dpkg -l
+          grep lttng
+        shell: bash
+
 
       - name: Install Related package
         run: |
