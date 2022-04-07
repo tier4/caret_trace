@@ -49,32 +49,32 @@ jobs:
           sudo apt-get install -y python3-vcstool 
           sudo apt-get install -y wget
 
-          python3 -m pip install -U flake8-blind-except
-          python3 -m pip install -U flake8-blind-except
-          python3 -m pip install -U flake8-builtins
-          python3 -m pip install -U flake8-class-newline
-          python3 -m pip install -U flake8-comprehensions
-          python3 -m pip install -U flake8-deprecated
-          python3 -m pip install -U flake8-docstrings
-          python3 -m pip install -U flake8-import-order
-          python3 -m pip install -U flake8-quotes
-          python3 -m pip install -U pytest-repeat
-          python3 -m pip install -U pytest-rerunfailures
-          python3 -m pip install -U pytest
-          python3 -m pip install -U setuptools
-          python3 -m pip install -U colorcet
+          # python3 -m pip install -U flake8-blind-except
+          # python3 -m pip install -U flake8-blind-except
+          # python3 -m pip install -U flake8-builtins
+          # python3 -m pip install -U flake8-class-newline
+          # python3 -m pip install -U flake8-comprehensions
+          # python3 -m pip install -U flake8-deprecated
+          # python3 -m pip install -U flake8-docstrings
+          # python3 -m pip install -U flake8-import-order
+          # python3 -m pip install -U flake8-quotes
+          # python3 -m pip install -U pytest-repeat
+          # python3 -m pip install -U pytest-rerunfailures
+          # python3 -m pip install -U pytest
+          # python3 -m pip install -U setuptools
+          # python3 -m pip install -U colorcet
 
-          sudo apt-get install ros-galactic-desktop
+          # sudo apt-get install ros-galactic-desktop
 
-          sudo apt-get install -y graphviz \
-          sudo apt-get install -y graphviz-dev
+          # sudo apt-get install -y graphviz \
+          # sudo apt-get install -y graphviz-dev
 
-          python3 -m pip install -U pytest-mock
-          python3 -m pip install -U pybind11
-          python3 -m pip install -U bokeh
-          python3 -m pip install -U pandas-bokeh
-          python3 -m pip install -U jupyterlab
-          python3 -m pip install -U graphviz
+          # python3 -m pip install -U pytest-mock
+          # python3 -m pip install -U pybind11
+          # python3 -m pip install -U bokeh
+          # python3 -m pip install -U pandas-bokeh
+          # python3 -m pip install -U jupyterlab
+          # python3 -m pip install -U graphviz
         shell: bash
 
 
