@@ -77,14 +77,6 @@ jobs:
           # python3 -m pip install -U graphviz
         shell: bash
 
-
-      - name: show pkg
-        run: |
-          dpkg -l | grep lttng
-
-        shell: bash
-
-
       - name: Install Related package
         run: |
           sudo apt-get install -y ros-galactic-ros2trace 
