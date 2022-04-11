@@ -55,7 +55,7 @@ target_link_libraries(caret CycloneDDS::ddsc fastrtps)
 
 add_executable(clock_recorder src/clock_recorder.cpp src/tp.c)
 ament_target_dependencies(clock_recorder rclcpp LTTngUST)
-target_link_libraries(clock_recorder LTTngUST)
+target_link_libraries(clock_recorder ${LTTNGUST_LIBRARIES})
 
 install(TARGETS
   clock_recorder
