@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.5)
 project(caret_trace)
 
 set(CMAKE_CXX_FLAGS "-fcf-protection=none")
-
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} --coverage")
+set(CMAKE_EXE_LINKER_FLAGS "--coverage")
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -32,6 +33,7 @@ find_package(CycloneDDS REQUIRED)
 find_package(fastrtps REQUIRED)
 find_package(rmw_fastrtps_shared_cpp REQUIRED)
 find_package(LTTngUST REQUIRED)
+#find_package(Gcov REQUIRED)
 
 add_library(caret SHARED
   src/ros_trace_points.cpp
@@ -55,7 +57,10 @@ target_link_libraries(caret CycloneDDS::ddsc fastrtps)
 
 add_executable(clock_recorder src/clock_recorder.cpp src/tp.c)
 ament_target_dependencies(clock_recorder rclcpp LTTngUST)
-target_link_libraries(clock_recorder ${LTTNGUST_LIBRARIES})
+target_link_libraries(clock_recorder 
+  ${LTTNGUST_LIBRARIES}
+  #${GCOV_LIBRARIES}
+)
 
 install(TARGETS
   clock_recorder
