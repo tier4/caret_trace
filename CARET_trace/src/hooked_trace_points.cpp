@@ -17,11 +17,16 @@
 
 #include <iostream>
 #include <memory>
-#include <unordered_set>
 #include <iomanip>
 #include <string>
 #include <mutex>
 #include <vector>
+#include <tuple>
+#include <utility>
+
+#include "caret_trace/thread_local.hpp"
+#include "caret_trace/keys_set.hpp"
+#include "caret_trace/virtual_member_variable.hpp"
 
 #include "rcl/rcl.h"
 #include "rmw/rmw.h"
@@ -30,6 +35,7 @@
 
 #define TRACEPOINT_DEFINE
 #include "caret_trace/tp.h"
+#include "caret_trace/debug.hpp"
 
 #include "rcpputils/shared_library.hpp"
 #include "rcpputils/get_env.hpp"
@@ -50,10 +56,16 @@
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "tf2/buffer_core.h"
+#include "tf2_ros/buffer.h"
+#include "tf2_ros/transform_listener.h"
 
 #define SYMBOL_CONCAT_2(x, y)  x ## y
 #define SYMBOL_CONCAT_3(x, y, z)  x ## y ## z
 
+#define FRAME_ID_COMPACT_SIZE 256
+
+static VirtualMemberVariables<std::string, uint32_t> tf_buffer_frame_id_compact_map;
+static std::unordered_map<void *, void *> tf_cache_to_buffer_core_map;
 
 // Declare a prototype in order to use the functions implemented in cyclonedds.
 rmw_ret_t rmw_get_gid_for_publisher(const rmw_publisher_t * publisher, rmw_gid_t * gid);
@@ -532,10 +544,55 @@ public:
   // (If another thread is not provided it will always timeout.)
   bool using_dedicated_thread_;
 };
+
 }
+namespace tf2_ros
+{
+class TransformBroadcasterPublic
+{
+public:
+  template<class NodeT, class AllocatorT = std::allocator<void>>
+  TransformBroadcasterPublic(
+    NodeT && node,
+    const rclcpp::QoS & qos = DynamicBroadcasterQoS(),
+    const rclcpp::PublisherOptionsWithAllocator<AllocatorT> & options = []() {
+      rclcpp::PublisherOptionsWithAllocator<AllocatorT> options;
+      options.qos_overriding_options = rclcpp::QosOverridingOptions{
+        rclcpp::QosPolicyKind::Depth,
+        rclcpp::QosPolicyKind::Durability,
+        rclcpp::QosPolicyKind::History,
+        rclcpp::QosPolicyKind::Reliability};
+      return options;
+    } ())
+  {
+    publisher_ = rclcpp::create_publisher<tf2_msgs::msg::TFMessage>(
+      node, "/tf", qos, options);
+  }
 
+  /** \brief Send a TransformStamped message
+   *
+   * The transform ʰTₐ added is from `child_frame_id`, `a` to `header.frame_id`,
+   * `h`. That is, position in `child_frame_id` ᵃp can be transformed to
+   * position in `header.frame_id` ʰp such that ʰp = ʰTₐ ᵃp .
+   *
+   */
+  TF2_ROS_PUBLIC
+  void sendTransform(const geometry_msgs::msg::TransformStamped & transform);
 
+  /** \brief Send a vector of TransformStamped messages
+   *
+   * The transforms ʰTₐ added are from `child_frame_id`, `a` to `header.frame_id`,
+   * `h`. That is, position in `child_frame_id` ᵃp can be transformed to
+   * position in `header.frame_id` ʰp such that ʰp = ʰTₐ ᵃp .
+   */
+  TF2_ROS_PUBLIC
+  void sendTransform(const std::vector<geometry_msgs::msg::TransformStamped> & transforms);
 
+public:
+  rclcpp::Publisher<tf2_msgs::msg::TFMessage>::SharedPtr publisher_;
+};
+
+}  // namespace tf2_ros
 
 extern "C" {
 // Get symbols from the DDS shared library
@@ -595,6 +652,24 @@ void update_dds_function_addr()
   }
 }
 
+static void * lib_tf2_handler;
+__attribute__((constructor))
+static void before_main(void)
+{
+  lib_tf2_handler = dlopen("libtf2_ros.so", RTLD_LAZY);
+
+  if (!lib_tf2_handler) {
+      std::cerr << "Failed to load libtf2_ros.so. " << dlerror() << std::endl;
+      exit(EXIT_FAILURE);
+  }
+}
+
+__attribute__((destructor))
+static void after_main(void)
+{
+  dlclose(lib_tf2_handler);
+}
+
 
 // for cyclonedds
 // bind : &ros_message -> source_timestamp
@@ -608,7 +683,11 @@ int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
 
   tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, data, tstamp);
 #ifdef DEBUG_OUTPUT
-  std::cerr << "dds_bind_addr_to_stamp," << data << "," << tstamp << std::endl;
+  debug.print(
+    "dds_bind_addr_to_stamp",
+    data,
+    std::to_string(tstamp)
+  );
 #endif
   return dds_return;
 }
@@ -635,7 +714,10 @@ static void on_data_available(dds_entity_t reader, void * arg)
   if (timestamp_ns != last_timestamp_ns) {
     tracepoint(TRACEPOINT_PROVIDER, on_data_available, timestamp_ns);
 #ifdef DEBUG_OUTPUT
-    std::cerr << "on_data_available," << timestamp_ns << std::endl;
+    debug.print(
+      "on_data_available",
+      timestamp_ns
+    );
 #endif
   }
   last_timestamp_ns = timestamp_ns;
@@ -708,7 +790,7 @@ dds_return_t dds_write(dds_entity_t writer, const void * data)
 
   tracepoint(TRACEPOINT_PROVIDER, dds_write, data);
 #ifdef DEBUG_OUTPUT
-  std::cerr << "dds_write," << data << std::endl;
+  debug.print("dds_write", data);
 #endif
   return ((functionT) orig_func)(writer, data);
 }
@@ -735,7 +817,7 @@ void _ZThn8_N11SubListener17on_data_availableEPN8eprosima7fastdds3dds10DataReade
       if (timestamp_ns != last_timestamp_ns) {
         tracepoint(TRACEPOINT_PROVIDER, on_data_available, timestamp_ns);
 #ifdef DEBUG_OUTPUT
-        std::cerr << "on_data_available," << timestamp_ns << std::endl;
+        debug.print("on_data_available", timestamp_ns);
 #endif
       }
       last_timestamp_ns = timestamp_ns;
@@ -755,7 +837,7 @@ bool _ZN8eprosima7fastdds3dds10DataWriter5writeEPv(void * obj, void * data)
 
   tracepoint(TRACEPOINT_PROVIDER, dds_write, ser_data->data);
 #ifdef DEBUG_OUTPUT
-  std::cerr << "dds_write," << ser_data->data << std::endl;
+  debug.print("dds_write", ser_data->data);
 #endif
 
   return ((functionT) orig_func)(obj, data);
@@ -774,7 +856,7 @@ bool _ZN8eprosima7fastdds3dds10DataWriter5writeEPvRNS_8fastrtps4rtps11WriteParam
 
   tracepoint(TRACEPOINT_PROVIDER, dds_write, ser_data->data);
 #ifdef DEBUG_OUTPUT
-  std::cerr << "dds_write," << ser_data->data << std::endl;
+  debug.print("dds_write", ser_data->data);
 #endif
   return ((functionT) orig_func)(obj, data, params);
 }
@@ -802,7 +884,11 @@ bool SYMBOL_CONCAT_2(
 
   tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_addr, ser_data->data, payload_ptr);
 #ifdef DEBUG_OUTPUT
-  std::cerr << "dds_bind_addr_to_addr," << ser_data->data << "," << payload_ptr << std::endl;
+  debug.print(
+    "dds_bind_addr_to_addr",
+    ser_data->data,
+    payload_ptr
+  );
 #endif
 
   return ret;
@@ -834,8 +920,11 @@ void SYMBOL_CONCAT_3(
 
   tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, payload_data_ptr, source_timestamp);
 #ifdef DEBUG_OUTPUT
-  std::cerr << "dds_bind_addr_to_stamp," << payload_data_ptr << "," << source_timestamp <<
-    std::endl;
+  debug.print(
+    "dds_bind_addr_to_stamp",
+    payload_data_ptr,
+    source_timestamp
+  );
 #endif
 }
 
@@ -866,8 +955,7 @@ void SYMBOL_CONCAT_3(
 
   tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, payload_data_ptr, source_timestamp);
 #ifdef DEBUG_OUTPUT
-  std::cerr << "dds_bind_addr_to_stamp," << payload_data_ptr << "," << source_timestamp <<
-    std::endl;
+  debug.print("dds_bind_addr_to_stamp", payload_data_ptr, source_timestamp);
 #endif
 }
 
@@ -883,9 +971,7 @@ void _ZN6rclcpp9executors22SingleThreadedExecutorC1ERKNS_15ExecutorOptionsE(
 
   tracepoint(TRACEPOINT_PROVIDER, construct_executor, obj, executor_type_name.c_str());
 #ifdef DEBUG_OUTPUT
-  std::cerr << "construct_executor," <<
-    executor_type_name << "," <<
-    obj << std::endl;
+  debug.print("construct_executor", executor_type_name, obj);
 #endif
 }
 
@@ -909,9 +995,7 @@ SYMBOL_CONCAT_2(
 
   tracepoint(TRACEPOINT_PROVIDER, construct_executor, obj, executor_type_name.c_str());
 #ifdef DEBUG_OUTPUT
-  std::cerr << "construct_executor," <<
-    executor_type_name << "," <<
-    obj << std::endl;
+  debug.print("construct_executor", executor_type_name, obj);
 #endif
 }
 
@@ -936,9 +1020,12 @@ void _ZN6rclcpp9executors28StaticSingleThreadedExecutorC1ERKNS_15ExecutorOptions
     entities_collector_ptr,
     "static_single_threaded_executor");
 #ifdef DEBUG_OUTPUT
-  std::cerr << "construct_static_executor," <<
-    "static_single_threaded_executor" << "," <<
-    obj << "," << entities_collector_ptr << std::endl;
+  debug.print(
+    "construct_static_executor",
+    "static_single_threaded_executor",
+    obj,
+    entities_collector_ptr
+  );
 #endif
 }
 
@@ -982,8 +1069,12 @@ void SYMBOL_CONCAT_3(
 
   tracepoint(TRACEPOINT_PROVIDER, add_callback_group, obj, group_addr, group_type_name.c_str());
 #ifdef DEBUG_OUTPUT
-  std::cerr << "add_callback_group," << obj << "," << group_addr << "," <<
-    group_type_name << std::endl;
+  debug.print(
+    "add_callback_group",
+    obj,
+    group_addr,
+    group_type_name
+  );
 #endif
 }
 
@@ -1018,8 +1109,12 @@ bool SYMBOL_CONCAT_3(
     TRACEPOINT_PROVIDER, add_callback_group_static_executor,
     obj, group_addr, group_type_name.c_str());
 #ifdef DEBUG_OUTPUT
-  std::cerr << "add_callback_group_static_executor," << obj << "," << group_addr << "," <<
-    group_type_name << std::endl;
+  debug.print(
+    "add_callback_group_static_executor",
+    obj,
+    group_addr,
+    group_type_name
+  );
 #endif
 
   return ret;
@@ -1040,7 +1135,11 @@ void _ZN6rclcpp13CallbackGroup9add_timerESt10shared_ptrINS_9TimerBaseEE(
   tracepoint(TRACEPOINT_PROVIDER, callback_group_add_timer, obj, timer_handle);
 
 #ifdef DEBUG_OUTPUT
-  std::cerr << "callback_group_add_timer," << obj << "," << timer_handle << std::endl;
+  debug.print(
+    "callback_group_add_timer",
+    obj,
+    timer_handle
+  );
 #endif
 }
 
@@ -1060,7 +1159,11 @@ void _ZN6rclcpp13CallbackGroup16add_subscriptionESt10shared_ptrINS_16Subscriptio
   tracepoint(TRACEPOINT_PROVIDER, callback_group_add_subscription, obj, subscription_handle);
 
 #ifdef DEBUG_OUTPUT
-  std::cerr << "callback_group_add_subscription," << obj << "," << subscription_handle << std::endl;
+  debug.print(
+    "callback_group_add_subscription",
+    obj,
+    subscription_handle
+  );
 #endif
 }
 
@@ -1078,7 +1181,11 @@ void _ZN6rclcpp13CallbackGroup11add_serviceESt10shared_ptrINS_11ServiceBaseEE(
   tracepoint(TRACEPOINT_PROVIDER, callback_group_add_service, obj, service_handle);
 
 #ifdef DEBUG_OUTPUT
-  std::cerr << "callback_group_add_service," << obj << "," << service_handle << std::endl;
+  debug.print(
+    "callback_group_add_service",
+    obj,
+    service_handle
+  );
 #endif
 }
 
@@ -1096,43 +1203,130 @@ void _ZN6rclcpp13CallbackGroup10add_clientESt10shared_ptrINS_10ClientBaseEE(
   tracepoint(TRACEPOINT_PROVIDER, callback_group_add_client, obj, client_handle);
 
 #ifdef DEBUG_OUTPUT
-  std::cerr << "callback_group_add_client," << obj << "," << client_handle << std::endl;
+  debug.print(
+    "callback_group_add_client",
+    obj,
+    client_handle
+  );
 #endif
 }
 
 //  tf2_ros::TransformBroadcaster::sendTransform(std::vector<geometry_msgs::msg::TransformStamped_<std::allocator<void> >, std::allocator<geometry_msgs::msg::TransformStamped_<std::allocator<void> > > > const&)
-void _ZN7tf2_ros20TransformBroadcaster13sendTransformERKSt6vectorIN13geometry_msgs3msg17TransformStamped_ISaIvEEESaIS6_EE
-(
+void
+_ZN7tf2_ros20TransformBroadcaster13sendTransformERKSt6vectorIN13geometry_msgs3msg17TransformStamped_ISaIvEEESaIS6_EE(
   void * obj,
-  std::vector<geometry_msgs::msg::TransformStamped> msg
+  const std::vector<geometry_msgs::msg::TransformStamped> &msgtf
 )
 {
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
-  using functionT = void (*)(void *, std::vector<geometry_msgs::msg::TransformStamped>);
+  using functionT = void (*)(void *, const std::vector<geometry_msgs::msg::TransformStamped> &);
 
-  for (std::vector<geometry_msgs::msg::TransformStamped>::const_iterator it = msg.begin();
-    it != msg.end(); ++it)
-  {
-    auto &t = *it;
-    std::cerr << "sendTransform:" <<
-      t.header.stamp.sec <<
-      t.header.stamp.nanosec << " " <<
-      t.header.frame_id << " " << t.child_frame_id << std::endl;
+  static KeysSet<void *, void *> transform_init_recorded;
+  auto obj_public = reinterpret_cast<tf2_ros::TransformBroadcasterPublic *>(obj);
+  auto pub_handle = obj_public->publisher_->get_publisher_handle().get();
+  if (!transform_init_recorded.has(obj, pub_handle)) {
+    transform_init_recorded.insert(obj, pub_handle);
+#ifdef DEBUG_OUTPUT
+    debug.print(
+      "init_bind_transform_broadcaster",
+      obj,
+      pub_handle
+    );
+#endif
+    tracepoint(
+      TRACEPOINT_PROVIDER,
+      init_bind_transform_broadcaster,
+      obj,
+      pub_handle
+    );
   }
 
-  // auto client_handle = static_cast<const void *>(client_ptr->get_client_handle().get());
-  ((functionT) orig_func)(obj, msg);
+  static KeysSet<void *, std::string, std::string> sendtransform_init_recorded;
 
-  // tracepoint(TRACEPOINT_PROVIDER, callback_group_add_client, obj, client_handle);
+  static VirtualMemberVariables<std::string, uint32_t> membar_vars;
+  auto &vars = membar_vars.get_vars(obj);
 
-// #ifdef DEBUG_OUTPUT
-  // std::cerr << "sendTransform," << obj << "," << client_handle << std::endl;
-// #endif
+  auto export_frame_id_compact = [&obj, &vars](const std::string &frame_id){
+      tracepoint(
+        TRACEPOINT_PROVIDER,
+        init_tf_broadcaster_frame_id_compact,
+        obj,
+        frame_id.c_str(),
+        vars.get(frame_id)
+      );
+#ifdef DEBUG_OUTPUT
+      debug.print(
+        "init_tf_broadcaster_frame_id",
+        obj,
+        frame_id.c_str(),
+        vars.get(frame_id)
+      );
+#endif
+  };
+
+  uint32_t frame_ids[FRAME_ID_COMPACT_SIZE] = {0};
+  uint32_t child_frame_ids[FRAME_ID_COMPACT_SIZE] = {0};
+  uint64_t stamps[FRAME_ID_COMPACT_SIZE] = {0};
+
+  for (size_t i=0 ; i<msgtf.size() ; i++) {
+    const auto & t = msgtf[i];
+
+    stamps[i] =  t.header.stamp.nanosec + t.header.stamp.sec * 1000000000L;
+    std::string frame_ids_[] = {t.header.frame_id, t.child_frame_id};
+    for (auto & frame_id_ : frame_ids_) {
+      if (!vars.has(frame_id_)) {
+        vars.set(frame_id_, vars.size());
+        export_frame_id_compact(frame_id_);
+      }
+    }
+    frame_ids[i] = vars.get(t.header.frame_id);
+    child_frame_ids[i] = vars.get(t.child_frame_id);
+
+    if (!sendtransform_init_recorded.has(obj, t.header.frame_id, t.child_frame_id)) {
+      sendtransform_init_recorded.insert(obj, t.header.frame_id, t.child_frame_id);
+      tracepoint(
+        TRACEPOINT_PROVIDER,
+        init_bind_transform_broadcaster_frames,
+        obj,
+        t.header.frame_id.c_str(),
+        t.child_frame_id.c_str()
+      );
+#ifdef DEBUG_OUTPUT
+      debug.print(
+        "init_bind_transform_broadcaster_frames",
+        obj,
+        t.header.frame_id,
+        t.child_frame_id
+      );
+#endif
+    }
+#ifdef DEBUG_OUTPUT
+    debug.print(
+      "send_transform",
+      obj,
+      std::to_string(stamps[i]),
+      std::to_string(frame_ids[i]),
+      std::to_string(child_frame_ids[i])
+    );
+#endif
+  }
+
+  tracepoint(
+    TRACEPOINT_PROVIDER,
+    send_transform,
+    obj,
+    stamps,
+    frame_ids,
+    child_frame_ids,
+    msgtf.size()
+  );
+
+  ((functionT) orig_func)(obj, msgtf);
 }
 
 // findClosest
-uint8_t _ZN3tf29TimeCache11findClosestERPNS_16TransformStorageES3_NSt6chrono10time_pointINS4_3_V212system_clockENS4_8durationIlSt5ratioILl1ELl1000000000EEEEEEPNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE
-(
+uint8_t
+_ZN3tf29TimeCache11findClosestERPNS_16TransformStorageES3_NSt6chrono10time_pointINS4_3_V212system_clockENS4_8durationIlSt5ratioILl1ELl1000000000EEEEEEPNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE(
   void * obj,
   tf2::TransformStorage * & one,
   tf2::TransformStorage * & two,
@@ -1140,7 +1334,7 @@ uint8_t _ZN3tf29TimeCache11findClosestERPNS_16TransformStorageES3_NSt6chrono10ti
   std::string * error_str
 )
 {
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  static void * orig_func = dlsym(lib_tf2_handler, __func__);
   using functionT = uint8_t (*)(
     void *,
     tf2::TransformStorage * &,
@@ -1149,43 +1343,113 @@ uint8_t _ZN3tf29TimeCache11findClosestERPNS_16TransformStorageES3_NSt6chrono10ti
     std::string *
   );
 
-  // auto client_handle = static_cast<const void *>(client_ptr->get_client_handle().get());
   uint8_t ret = ((functionT) orig_func)(obj, one, two, target_time, error_str);
-  std::cerr << "findClosest," <<
-            obj << " " << target_time.time_since_epoch().count() << " "
-            << one->frame_id_  << " " << one->stamp_.time_since_epoch().count()<< " "
-            << one->child_frame_id_ << " " << one->stamp_.time_since_epoch().count() << std::endl;
+  if (tf_cache_to_buffer_core_map.count(obj) > 0) {
+    auto buffer_core = tf_cache_to_buffer_core_map[obj];
+    if (ret == 1) {
+      tracepoint(
+        TRACEPOINT_PROVIDER,
+        tf_buffer_find_closest,
+        buffer_core,
+        one->frame_id_,
+        one->child_frame_id_,
+        one->stamp_.time_since_epoch().count(),
+        0,
+        0,
+        0);
+#ifdef DEBUG_OUTPUT
+      debug.print(
+        "tf_buffer_find_closest",
+        buffer_core,
+        one->frame_id_,
+        one->child_frame_id_,
+        std::to_string(one->stamp_.time_since_epoch().count()),
+        0,
+        0,
+        0);
+#endif
+    } else if (ret == 2) {
+      tracepoint(
+        TRACEPOINT_PROVIDER,
+        tf_buffer_find_closest,
+        buffer_core,
+        one->frame_id_,
+        one->child_frame_id_,
+        one->stamp_.time_since_epoch().count(),
+        two->frame_id_,
+        two->child_frame_id_,
+        two->stamp_.time_since_epoch().count()
+      );
+#ifdef DEBUG_OUTPUT
+      debug.print(
+        "tf_buffer_find_closest",
+        buffer_core,
+        one->frame_id_,
+        one->child_frame_id_,
+        std::to_string(one->stamp_.time_since_epoch().count()),
+        two->frame_id_,
+        two->child_frame_id_,
+        std::to_string(two->stamp_.time_since_epoch().count())
+      );
+#endif
+    }
+  }
 
   return ret;
 }
 
+
+
 // lookupOrInsertFrameNumber
-tf2::CompactFrameID  _ZN3tf210BufferCore25lookupOrInsertFrameNumberERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE
-(
+tf2::CompactFrameID
+_ZN3tf210BufferCore25lookupOrInsertFrameNumberERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE(
   void * obj,
   const std::string frameid_str
 )
 {
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
-  using functionT = uint8_t (*)(
+  static void * orig_func = dlsym(lib_tf2_handler, __func__);
+  using functionT = tf2::CompactFrameID (*)(
     void *,
     const std::string
   );
 
   tf2::CompactFrameID ret = ((functionT) orig_func)(obj, frameid_str);
-  std::cerr << "lookupOrInsertFrameNumber " << obj << " " << frameid_str << " " << ret << std::endl;
+
+  auto &map = tf_buffer_frame_id_compact_map.get_vars(obj);
+
+  if (map.has(frameid_str) == 0) {
+    map.set(frameid_str, ret);
+    tracepoint(
+      TRACEPOINT_PROVIDER,
+      init_tf_buffer_frame_id_compact,
+      obj,
+      frameid_str.c_str(),
+      ret
+    );
+#ifdef DEBUG_OUTPUT
+    debug.print(
+      "init_tf_buffer_frame_id_compact",
+      obj,
+      frameid_str,
+      ret
+    );
+#endif
+  }
+
   return ret;
 }
 
+
 // setTransform
-bool _ZN3tf210BufferCore12setTransformERKN13geometry_msgs3msg17TransformStamped_ISaIvEEERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEb(
+bool
+_ZN3tf210BufferCore12setTransformERKN13geometry_msgs3msg17TransformStamped_ISaIvEEERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEb(
   void * obj,
   const geometry_msgs::msg::TransformStamped & transform,
   const std::string & authority,
   bool is_static
 )
 {
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  static void * orig_func = dlsym(lib_tf2_handler, __func__);
   using functionT = uint8_t (*)(
     void *,
     const geometry_msgs::msg::TransformStamped &,
@@ -1193,18 +1457,55 @@ bool _ZN3tf210BufferCore12setTransformERKN13geometry_msgs3msg17TransformStamped_
     bool
   );
 
+  static KeysSet<void *> init_recorded_keys;
+  // transform.header.frame_id;
+  // transform.child_frame_id;
+  if (!init_recorded_keys.has(obj)) {
+    init_recorded_keys.insert(obj);
+    tracepoint(
+      TRACEPOINT_PROVIDER,
+      init_bind_tf_buffer_core,
+      obj,
+      get_callback()
+    );
+#ifdef DEBUG_OUTPUT
+    debug.print(
+      "init_bind_tf_buffer_core",
+      obj,
+      get_callback()
+    );
+#endif
+  }
+
   bool ret = ((functionT) orig_func)(obj, transform, authority, is_static);
-  std::cerr << "setTransform, "
-    << obj << " "
-    << transform.header.frame_id
-    << " " << transform.child_frame_id
-    << " " << transform.header.stamp.sec << transform.header.stamp.nanosec << std::endl;
-  return  ret;
+  uint64_t stamp = transform.header.stamp.sec * 1000000000L   + transform.header.stamp.nanosec;
+
+  auto &map = tf_buffer_frame_id_compact_map.get_vars(obj);
+
+  if (map.has(transform.header.frame_id) && map.has(transform.child_frame_id)) {
+#ifdef DEBUG_OUTPUT
+    debug.print(
+      "tf_set_transform",
+      obj,
+      stamp,
+      transform.header.frame_id,
+      transform.child_frame_id
+    );
+#endif
+    tracepoint(
+      TRACEPOINT_PROVIDER,
+      tf_set_transform,
+      obj,
+      stamp,
+      map.get(transform.header.frame_id),
+      map.get(transform.child_frame_id)
+    );
+  }
+  return ret;
 }
 
 geometry_msgs::msg::TransformStamped
-_ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERKNSt6chrono10time_pointINS9_3_V212system_clockENS9_8durationIlSt5ratioILl1ELl1000000000EEEEEES8_SJ_S8_
-(
+_ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERKNSt6chrono10time_pointINS9_3_V212system_clockENS9_8durationIlSt5ratioILl1ELl1000000000EEEEEES8_SJ_S8_(
   void * obj,
   const std::string & target_frame,
   const tf2::TimePoint & target_time,
@@ -1213,7 +1514,7 @@ _ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_trai
   const std::string & fixed_frame
 )
 {
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  static void * orig_func = dlsym(lib_tf2_handler, __func__);
   using functionT = geometry_msgs::msg::TransformStamped (*)(
     void *,
     const std::string &,
@@ -1223,11 +1524,15 @@ _ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_trai
     const std::string &
   );
 
-  std::cerr << "lookupTransform 1 " <<
-    obj << " " <<
-    target_frame << " " <<
-    source_frame << " " <<
-    target_time.time_since_epoch().count() << std::endl;
+#ifdef DEBUG_OUTPUT
+  debug.print(
+    "lookupTransform",
+    obj,
+    target_frame,
+    source_frame,
+    target_time.time_since_epoch().count()
+  );
+#endif
 
   geometry_msgs::msg::TransformStamped ret = ((functionT) orig_func)(
     obj,
@@ -1237,25 +1542,19 @@ _ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_trai
     source_time,
     fixed_frame
   );
-  // std::cerr << "setTransform, "
-  //   << obj << " "
-  //   << transform.header.frame_id
-  //   << " " << transform.child_frame_id
-  //   << " " << transform.header.stamp.sec << transform.header.stamp.nanosec << std::endl;
-  return  ret;
+  return ret;
 }
 
 
 geometry_msgs::msg::TransformStamped
-_ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_RKNSt6chrono10time_pointINS9_3_V212system_clockENS9_8durationIlSt5ratioILl1ELl1000000000EEEEEE
-(
+_ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_RKNSt6chrono10time_pointINS9_3_V212system_clockENS9_8durationIlSt5ratioILl1ELl1000000000EEEEEE(
   void * obj,
   const std::string & target_frame,
   const std::string & source_frame,
   const tf2::TimePoint & time
 )
 {
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  static void * orig_func = dlsym(lib_tf2_handler, __func__);
   using functionT = geometry_msgs::msg::TransformStamped (*)(
     void *,
     const std::string &,
@@ -1263,10 +1562,43 @@ _ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_trai
     const tf2::TimePoint &
   );
 
-  std::cerr << "lookupTransform 2"  << " " <<
-    obj << " " <<
-    target_frame << " " <<
-    source_frame << " " << std::endl;
+  auto &map = tf_buffer_frame_id_compact_map.get_vars(obj);
+  auto target_time = std::chrono::time_point_cast<std::chrono::nanoseconds>(time).time_since_epoch().count();
+
+  auto is_frame_id_compact_initialized =  map.has(target_frame) && map.has(source_frame);
+  static KeysSet<void*, uint32_t, uint32_t> tf_lookup_transform;
+  if (is_frame_id_compact_initialized) {
+    auto target_frame_id_compact = map.get(target_frame);
+    auto source_frame_id_compact = map.get(target_frame);
+
+    if (!tf_lookup_transform.has(obj, target_frame_id_compact, source_frame_id_compact)) {
+      tf_lookup_transform.insert(obj, target_frame_id_compact, source_frame_id_compact);
+      tracepoint(
+        TRACEPOINT_PROVIDER,
+        init_tf_buffer_lookup_transform,
+        obj,
+        target_frame_id_compact,
+        source_frame_id_compact
+      );
+    }
+    tracepoint(
+      TRACEPOINT_PROVIDER,
+      tf_lookup_transform_start,
+      obj,
+      target_time,
+      target_frame_id_compact,
+      source_frame_id_compact
+    );
+#ifdef DEBUG_OUTPUT
+    debug.print(
+      "tf_lookup_transform_start",
+      obj,
+      target_time,
+      target_frame,
+      source_frame
+    );
+#endif
+  }
 
   geometry_msgs::msg::TransformStamped ret = ((functionT) orig_func)(
     obj,
@@ -1275,12 +1607,21 @@ _ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_trai
     time
   );
 
-  // std::cerr << "setTransform, "
-  //   << obj << " "
-  //   << transform.header.frame_id
-  //   << " " << transform.child_frame_id
-  //   << " " << transform.header.stamp.sec << transform.header.stamp.nanosec << std::endl;
-  return  ret;
+  if (is_frame_id_compact_initialized) {
+    tracepoint(
+      TRACEPOINT_PROVIDER,
+      tf_lookup_transform_end,
+      obj
+    );
+#ifdef DEBUG_OUTPUT
+    debug.print(
+      "tf_lookup_transform_end",
+      obj
+    );
+#endif
+  }
+
+  return ret;
 }
 
 // getFrame
@@ -1289,7 +1630,7 @@ tf2::TimeCacheInterfacePtr _ZNK3tf210BufferCore8getFrameEj(
   tf2::CompactFrameID frame_id
 )
 {
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  static void * orig_func = dlsym(lib_tf2_handler, __func__);
   using functionT = tf2::TimeCacheInterfacePtr (*)(
     void *,
     tf2::CompactFrameID
@@ -1300,17 +1641,194 @@ tf2::TimeCacheInterfacePtr _ZNK3tf210BufferCore8getFrameEj(
     frame_id
   );
 
-  std::cerr << "getFrame"  << " " <<
-    obj << " " <<
-    frame_id << " " <<
-    ret.get() << std::endl;
+  auto time_cache =  ret.get();
+  if(time_cache != nullptr && tf_cache_to_buffer_core_map.count(time_cache) == 0) {
+    tf_cache_to_buffer_core_map[time_cache]= obj;
+  }
 
-
-  // std::cerr << "setTransform, "
-  //   << obj << " "
-  //   << transform.header.frame_id
-  //   << " " << transform.child_frame_id
-  //   << " " << transform.header.stamp.sec << transform.header.stamp.nanosec << std::endl;
-  return  ret;
+  return ret;
 }
+
+
+
+inline void tf2_ros_const_buffer(void * obj, rclcpp::Clock::SharedPtr & clock){
+  auto tf_buffer_core = get_tf_buffer_core();
+  tracepoint(
+    TRACEPOINT_PROVIDER,
+    construct_tf_buffer,
+    obj,
+    tf_buffer_core,
+    clock.get()
+  );
+#ifdef DEBUG_OUTPUT
+  debug.print(
+    "construct_tf_buffer",
+    obj,
+    tf_buffer_core,
+    clock.get()
+  );
+#endif
+}
+
+tf2_ros::Buffer *
+_ZN7tf2_ros6BufferC1ESt10shared_ptrIN6rclcpp5ClockEENSt6chrono8durationIlSt5ratioILl1ELl1000000000EEEES1_INS2_4NodeEE(
+  void * obj,
+  rclcpp::Clock::SharedPtr clock,
+  tf2::Duration cache_time,
+  rclcpp::Node::SharedPtr node
+)
+{
+  static void * orig_func = dlsym(lib_tf2_handler, __func__);
+  using functionT = tf2_ros::Buffer * (*)(
+    void *,
+    rclcpp::Clock::SharedPtr,
+    tf2::Duration,
+    rclcpp::Node::SharedPtr
+  );
+
+  auto ret = ((functionT) orig_func)(
+    obj,
+    clock,
+    cache_time,
+    node
+  );
+
+  tf2_ros_const_buffer(obj, clock);
+
+  return ret;
+}
+// tf2_ros::Buffer constructor
+tf2_ros::Buffer *
+_ZN7tf2_ros6BufferC2ESt10shared_ptrIN6rclcpp5ClockEENSt6chrono8durationIlSt5ratioILl1ELl1000000000EEEES1_INS2_4NodeEE(
+  void * obj,
+  rclcpp::Clock::SharedPtr clock,
+  tf2::Duration cache_time,
+  rclcpp::Node::SharedPtr node
+)
+{
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = tf2_ros::Buffer * (*)(
+    void *,
+    rclcpp::Clock::SharedPtr,
+    tf2::Duration,
+    rclcpp::Node::SharedPtr
+  );
+
+  auto ret = ((functionT) orig_func)(
+    obj,
+    clock,
+    cache_time,
+    node
+  );
+
+  tf2_ros_const_buffer(obj, clock);
+
+  return ret;
+}
+
+// tf2::BufferCore constructor
+tf2::BufferCore *
+_ZN3tf210BufferCoreC2ENSt6chrono8durationIlSt5ratioILl1ELl1000000000EEEE(
+  void * obj,
+  tf2::Duration cache_time
+)
+{
+  static void * orig_func = dlsym(lib_tf2_handler, __func__);
+  using functionT = tf2_ros::Buffer * (*)(
+    void *,
+    tf2::Duration
+  );
+
+  auto ret = ((functionT) orig_func)(
+    obj,
+    cache_time
+  );
+
+  // tracepoint(
+  //   TRACEPOINT_PROVIDER,
+  //   construct_tf_buffer_core,
+  //   obj
+  // );
+  // debug.print(
+  //   "construct_tf_buffer_core",
+  //   obj
+  // );
+  set_tf_buffer_core(obj);
+
+  return ret;
+}
+// _ZN7tf2_ros6BufferC2ESt10shared_ptrIN6rclcpp5ClockEENSt6chrono8durationIlSt5ratioILl1ELl1000000000EEEES1_INS2_4NodeEE
+
+rclcpp::Node *
+_ZN6rclcpp4NodeC1ERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_RKNS_11NodeOptionsE(
+  rclcpp::Node * obj,
+  const std::string & node_name,
+  const std::string & namespace_,
+  const rclcpp::NodeOptions & options
+)
+{
+  static void * orig_func = dlsym(lib_tf2_handler, __func__);
+  using functionT = rclcpp::Node * (*)(
+    void *,
+    const std::string &,
+    const std::string &,
+    const rclcpp::NodeOptions &
+  );
+
+  auto ret = ((functionT) orig_func)(
+    obj,
+    node_name,
+    namespace_,
+    options
+  );
+
+  auto node_handle = obj->get_node_base_interface()->get_rcl_node_handle();
+  tracepoint(
+    TRACEPOINT_PROVIDER,
+    construct_node_hook,
+    node_handle,
+    obj->get_clock().get()
+  );
+#ifdef DEBUG_OUTPUT
+  debug.print(
+    "construct_node_hook_impl",
+    node_handle,
+    obj->get_clock().get()
+  );
+#endif
+
+  return ret;
+}
+
+// tf2_ros::TransformListener *
+// _ZN7tf2_ros17TransformListenerC2ERN3tf210BufferCoreEb(
+//   void * obj,
+//   tf2::BufferCore & buffer,
+//   bool spin_thread
+// )
+// {
+//   static void * orig_func = dlsym(RTLD_NEXT, __func__);
+//   using functionT = tf2_ros::TransformListener* (*)(
+//     void * ,
+//     tf2::BufferCore & ,
+//     bool
+//   );
+
+//   auto ret = ((functionT) orig_func)(
+//     obj,
+//     buffer,
+//     spin_thread
+//   );
+
+//   size_t a = sizeof(tf2_ros::BufferInterface);
+//   size_t b = sizeof(tf2_ros::AsyncBufferInterface);
+//   void * orig = (char*) &buffer - a - b; // アドレスを戻す。
+//   debug.print(
+// "TransformListener const",
+// obj, orig, &buffer
+//   );
+
+//   return  ret;
+// }
+
 }

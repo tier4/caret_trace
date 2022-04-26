@@ -210,6 +210,207 @@ TRACEPOINT_EVENT(
   )
 )
 
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  init_bind_transform_broadcaster,
+  TP_ARGS(
+    const void *, tf_broadcaster_arg,
+    const void *, publisher_handle_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, tf_broadcaster, tf_broadcaster_arg)
+    ctf_integer_hex(const void *, publisher_handle, publisher_handle_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  init_bind_transform_broadcaster_frames,
+  TP_ARGS(
+    const void *, tf_broadcaster_arg,
+    const char *, frame_id_arg,
+    const char *, child_frame_id_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, tf_broadcaster, tf_broadcaster_arg)
+    ctf_string(frame_id, frame_id_arg)
+    ctf_string(child_frame_id, child_frame_id_arg)
+  )
+)
+
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  init_tf_broadcaster_frame_id_compact,
+  TP_ARGS(
+    const void *, tf_broadcaster_arg,
+    const char *, frame_id_arg,
+    const uint32_t, frame_id_compact_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, tf_broadcaster, tf_broadcaster_arg)
+    ctf_string(frame_id, frame_id_arg)
+    ctf_integer(const uint32_t, frame_id_compact, frame_id_compact_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  send_transform,
+  TP_ARGS(
+    const void *, tf_broadcaster_arg,
+    uint64_t *, stamps_arg,
+    uint32_t *, frame_ids_compact_arg,
+    uint32_t *, child_frame_ids_compact_arg,
+    size_t, size_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, tf_broadcaster, tf_broadcaster_arg)
+    ctf_sequence_hex(uint64_t, stamps, stamps_arg, size_t, size_arg)
+    ctf_sequence(uint32_t, frame_ids_compact, frame_ids_compact_arg, size_t, size_arg)
+    ctf_sequence(uint32_t, child_frame_ids_compact, child_frame_ids_compact_arg, size_t, size_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  construct_tf_buffer,
+  TP_ARGS(
+    const void *, tf_buffer_arg,
+    const void *, tf_buffer_core_arg,
+    const void *, clock_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, tf_buffer, tf_buffer_arg)
+    ctf_integer_hex(const void *, tf_buffer_core, tf_buffer_core_arg)
+    ctf_integer_hex(const void *, clock, clock_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  init_bind_tf_buffer_core,
+  TP_ARGS(
+    const void *, tf_buffer_core_arg,
+    const void *, callback
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, tf_buffer_core, tf_buffer_core_arg)
+    ctf_integer_hex(const void *, callback, callback)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  construct_node_hook,
+  TP_ARGS(
+    const void *, node_handle_arg,
+    const void *, clock_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, node_handle, node_handle_arg)
+    ctf_integer_hex(const void *, clock, clock_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  tf_lookup_transform_start,
+  TP_ARGS(
+    const void *, tf_buffer_core_arg,
+    const uint64_t, target_time_arg,
+    const uint32_t, frame_id_compact_arg,
+    const uint32_t, child_frame_id_compact_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, tf_buffer_core, tf_buffer_core_arg)
+    ctf_integer(const uint64_t, target_time, target_time_arg)
+    ctf_integer(const uint32_t, frame_id_compact, frame_id_compact_arg)
+    ctf_integer(const uint32_t, child_frame_id_compact, child_frame_id_compact_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  init_tf_buffer_lookup_transform,
+  TP_ARGS(
+    const void *, tf_buffer_core_arg,
+    const uint32_t, frame_id_compact_arg,
+    const uint32_t, child_frame_id_compact_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, tf_buffer_core, tf_buffer_core_arg)
+    ctf_integer(const uint32_t, frame_id_compact, frame_id_compact_arg)
+    ctf_integer(const uint32_t, child_frame_id_compact, child_frame_id_compact_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  tf_lookup_transform_end,
+  TP_ARGS(
+    const void *, tf_buffer_core_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, tf_buffer_core, tf_buffer_core_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  init_tf_buffer_frame_id_compact,
+  TP_ARGS(
+    const void *, tf_buffer_core_arg,
+    const char *, frame_id_arg,
+    const uint32_t, frame_id_compact_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, tf_buffer_core, tf_buffer_core_arg)
+    ctf_string(frame_id, frame_id_arg)
+    ctf_integer(const uint32_t, frame_id_compact, frame_id_compact_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  tf_buffer_find_closest,
+  TP_ARGS(
+    const void *, tf_buffer_core_arg,
+    const uint32_t, frame_id_compact_arg,
+    const uint32_t, child_frame_id_compact_arg,
+    const uint64_t, stamp_arg,
+    const uint32_t, frame_id_compact_arg_,
+    const uint32_t, child_frame_id_compact_arg_,
+    const uint64_t, stamp_arg_
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, tf_buffer_core, tf_buffer_core_arg)
+    ctf_integer(const uint32_t, frame_id_compact, frame_id_compact_arg)
+    ctf_integer(const uint32_t, child_frame_id_compact, child_frame_id_compact_arg)
+    ctf_integer(const uint64_t, stamp, stamp_arg)
+    ctf_integer(const uint32_t, frame_id_compact_, frame_id_compact_arg_)
+    ctf_integer(const uint32_t, child_frame_id_compact_, child_frame_id_compact_arg_)
+    ctf_integer(const uint64_t, stamp_, stamp_arg_)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  tf_set_transform,
+  TP_ARGS(
+    const void *, tf_buffer_core_arg,
+    const uint64_t, stamp_arg,
+    const uint32_t, frame_id_compact_arg,
+    const uint32_t, child_frame_id_compact_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, tf_buffer_core, tf_buffer_core_arg)
+    ctf_integer(const uint64_t, stamp, stamp_arg)
+    ctf_integer(const uint32_t, frame_id_compact, frame_id_compact_arg)
+    ctf_integer(const uint32_t, child_frame_id_compact, child_frame_id_compact_arg)
+  )
+)
+
 #endif /* _TP_H */
 
 #endif  // CARET_TRACE__TP_H_

@@ -18,10 +18,15 @@
 #include <memory>
 #include <iomanip>
 #include <string>
+#include <mutex>
 
 #include "caret_trace/tracing_controller.hpp"
 #include "caret_trace/singleton.hpp"
+#include "caret_trace/debug.hpp"
+#include "caret_trace/thread_local.hpp"
 
+
+std::mutex debug_mutex;
 // #define DEBUG_OUTPUT
 
 extern "C" {
@@ -49,11 +54,13 @@ void ros_trace_rcl_node_init(
     ((functionT) orig_func)(node_handle, rmw_handle, node_name, node_namespace);
 
 #ifdef DEBUG_OUTPUT
-    std::cerr << "rcl_node_init," <<
-      node_handle << "," <<
-      rmw_handle << "," <<
-      node_name << "," <<
-      node_namespace << std::endl;
+    debug.print(
+      "rcl_node_init",
+      node_handle,
+      rmw_handle,
+      node_name,
+      node_namespace
+    );
 #endif
   }
 }
@@ -78,12 +85,14 @@ void ros_trace_rcl_subscription_init(
       subscription_handle, node_handle, rmw_subscription_handle, topic_name,
       queue_depth);
 #ifdef DEBUG_OUTPUT
-    std::cerr << "rcl_subscription_init," <<
-      subscription_handle << "," <<
-      node_handle << "," <<
-      rmw_subscription_handle << "," <<
-      topic_name << "," <<
-      queue_depth << std::endl;
+    debug.print(
+      "rcl_subscription_init",
+      subscription_handle,
+      node_handle,
+      rmw_subscription_handle,
+      topic_name,
+      queue_depth
+    );
 #endif
   }
 }
@@ -101,9 +110,11 @@ void ros_trace_rclcpp_subscription_init(
   if (controller.is_allowed_subscription_handle(subscription_handle)) {
     ((functionT) orig_func)(subscription_handle, subscription);
 #ifdef DEBUG_OUTPUT
-    std::cerr << "rclcpp_subscription_init," <<
-      subscription_handle << "," <<
-      subscription << std::endl;
+    debug.print(
+      "rclcpp_subscription_init",
+      subscription_handle,
+      subscription
+    );
 #endif
   }
 }
@@ -121,9 +132,11 @@ void ros_trace_rclcpp_subscription_callback_added(
   if (controller.is_allowed_callback(callback)) {
     ((functionT) orig_func)(subscription, callback);
 #ifdef DEBUG_OUTPUT
-    std::cerr << "rclcpp_subscription_callback_added," <<
-      subscription << "," <<
-      callback << std::endl;
+    debug.print(
+      "rclcpp_subscription_callback_added",
+      subscription,
+      callback
+    );
 #endif
   }
 }
@@ -139,9 +152,11 @@ void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void
   if (controller.is_allowed_callback(callback)) {
     ((functionT) orig_func)(timer_handle, callback);
 #ifdef DEBUG_OUTPUT
-    std::cerr << "rclcpp_timer_callback_added," <<
-      timer_handle << "," <<
-      callback << std::endl;
+    debug.print(
+      "rclcpp_timer_callback_added",
+      timer_handle,
+      callback
+    );
 #endif
   }
 }
@@ -157,9 +172,11 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
   if (controller.is_allowed_node(node_handle)) {
     ((functionT) orig_func)(timer_handle, node_handle);
 #ifdef DEBUG_OUTPUT
-    std::cerr << "rclcpp_timer_link_node," <<
-      timer_handle << "," <<
-      node_handle << std::endl;
+    debug.print(
+      "rclcpp_timer_link_node",
+      timer_handle,
+      node_handle
+    );
 #endif
   }
 }
@@ -171,12 +188,15 @@ void ros_trace_callback_start(const void * callback, bool is_intra_process)
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(const void *, bool);
 
+  set_callback(callback);
   if (controller.is_allowed_callback(callback)) {
     ((functionT) orig_func)(callback, is_intra_process);
 #ifdef DEBUG_OUTPUT
-    std::cerr << "callback_start," <<
-      callback << "," <<
-      is_intra_process << std::endl;
+    debug.print(
+      "callback_start",
+      callback,
+      is_intra_process
+    );
 #endif
   }
 }
@@ -186,13 +206,16 @@ void ros_trace_callback_end(const void * callback)
   static auto & controller = Singleton<TracingController>::get_instance();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
+  unset_callback();
   using functionT = void (*)(const void *);
   if (controller.is_allowed_callback(callback)) {
     ((functionT) orig_func)(callback);
 
 #ifdef DEBUG_OUTPUT
-    std::cerr << "callback_end," <<
-      callback << std::endl;
+    debug.print(
+      "callback_end",
+      callback
+    );
 #endif
   }
 }
@@ -211,11 +234,11 @@ void ros_trace_dispatch_subscription_callback(
     ((functionT) orig_func)(message, callback, source_timestamp, message_timestamp);
 
 #ifdef DEBUG_OUTPUT
-    std::cerr << "dispatch_subscription_callback," <<
-      message << "," <<
-      callback << "," <<
-      source_timestamp << "," <<
-      message_timestamp << std::endl;
+    debug.print(
+      "dispatch_subscription_callback",
+      std::to_string(source_timestamp),
+      std::to_string(message_timestamp)
+    );
 #endif
   }
 }
@@ -233,13 +256,19 @@ void ros_trace_dispatch_intra_process_subscription_callback(
     ((functionT) orig_func)(message, callback, message_timestamp);
 
 #ifdef DEBUG_OUTPUT
-    std::cerr << "dispatch_intra_process_subscription_callback," <<
-      message << "," <<
-      callback << "," <<
-      message_timestamp << std::endl;
+    debug.print(
+      "dispatch_intra_process_subscription_callback",
+      message,
+      callback,
+      message_timestamp
+    );
 #endif
   }
 }
+
+
+std::unordered_map<void *, std::unordered_set<void *>> recorded_publisher;
+
 
 void ros_trace_rclcpp_publish(
   const void * publisher_handle,
@@ -251,12 +280,28 @@ void ros_trace_rclcpp_publish(
 
   using functionT = void (*)(const void *, const void *, const uint64_t);
   if (controller.is_allowed_publisher_handle(publisher_handle)) {
+
     ((functionT) orig_func)(publisher_handle, message, message_timestamp);
+
 #ifdef DEBUG_OUTPUT
-    std::cerr << "rclcpp_publish," <<
-      publisher_handle << "," <<
-      message << "," <<
-      message_timestamp << std::endl;
+    auto cb = get_callback();
+
+    auto publisher_handle_ = const_cast<void *>(publisher_handle);
+    auto & cb_map = recorded_publisher.find(publisher_handle_)->second;
+    if (cb_map.count(cb) == 0 && cb != 0) {
+      debug.print(
+        "bind_callback_and_publisher",
+        cb,
+        publisher_handle
+      );
+      cb_map.insert(cb);
+    }
+    debug.print(
+      "rclcpp_publish",
+      publisher_handle,
+      message,
+      message_timestamp
+    );
 #endif
   }
 }
@@ -274,10 +319,17 @@ void ros_trace_rclcpp_intra_publish(
   if (controller.is_allowed_publisher_handle(publisher_handle)) {
     ((functionT) orig_func)(publisher_handle, message, message_timestamp);
 #ifdef DEBUG_OUTPUT
-    std::cerr << "rclcpp_intra_publish," <<
-      publisher_handle << "," <<
-      message << "," <<
-      message_timestamp << std::endl;
+    debug.print(
+      "bind_callback_and_publisher",
+      get_callback(),
+      publisher_handle
+    );
+    debug.print(
+      "rclcpp_intra_publish",
+      publisher_handle,
+      message,
+      message_timestamp
+    );
 #endif
   }
 }
@@ -292,9 +344,11 @@ void ros_trace_rcl_timer_init(
   using functionT = void (*)(const void *, int64_t);
   ((functionT) orig_func)(timer_handle, period);
 
-  std::cerr << "rcl_timer_init," <<
-    timer_handle << "," <<
-    period << std::endl;
+  debug.print(
+    "rcl_timer_init",
+    timer_handle,
+    period
+  );
 }
 #endif
 
@@ -306,12 +360,11 @@ void ros_trace_rcl_init(
   using functionT = void (*)(const void *);
   ((functionT) orig_func)(context_handle);
 
-  std::cerr << "rcl_init," <<
-    context_handle << std::endl;
+  debug.print(
+    "rcl_init", context_handle
+  );
 }
 #endif
-
-#ifdef DEBUG_OUTPUT
 
 void ros_trace_rcl_publisher_init(
   const void * publisher_handle,
@@ -327,6 +380,11 @@ void ros_trace_rcl_publisher_init(
 
   controller.add_publisher_handle(node_handle, publisher_handle, topic_name);
 
+  auto publisher_handle_ = const_cast<void *>(publisher_handle);
+  recorded_publisher.insert(
+    std::make_pair(publisher_handle_, std::unordered_set<void *>())
+  );
+
   using functionT = void (*)(const void *, const void *, const void *, const char *, const size_t);
   // TODO(hsgwa): support topic_name filtering
   // It seems to be executed before the topic name and node name are known.
@@ -337,14 +395,17 @@ void ros_trace_rcl_publisher_init(
     rmw_publisher_handle,
     topic_name,
     queue_depth);
-  std::cerr << "rcl_publisher_init," <<
-    publisher_handle << "," <<
-    node_handle << "," <<
-    rmw_publisher_handle << "," <<
-    topic_name << "," <<
-    queue_depth << std::endl;
-}
+#ifdef DEBUG_OUTPUT
+  debug.print(
+    "rcl_publisher_init",
+    publisher_handle,
+    node_handle,
+    rmw_publisher_handle,
+    topic_name,
+    queue_depth
+  );
 #endif
+}
 
 void ros_trace_rcl_publish(
   const void * publisher_handle,
@@ -357,9 +418,11 @@ void ros_trace_rcl_publish(
   if (controller.is_allowed_publisher_handle(publisher_handle)) {
     ((functionT) orig_func)(publisher_handle, message);
 #ifdef DEBUG_OUTPUT
-    std::cerr << "rcl_publish," <<
-      publisher_handle << "," <<
-      message << std::endl;
+    debug.print(
+      "rcl_publish",
+      publisher_handle,
+      message
+    );
 #endif
   }
 }
@@ -375,11 +438,13 @@ void ros_trace_rcl_service_init(
   using functionT = void (*)(const void *, const void *, const void *, const char *);
   ((functionT) orig_func)(service_handle, node_handle, rmw_service_handle, service_name);
 
-  std::cerr << "rcl_service_init," <<
-    service_handle << "," <<
-    node_handle << "," <<
-    rmw_service_handle << "," <<
-    service_name << std::endl;
+  std::lock_guard<std::mutex> lock(debug_mutex);
+  debug.print(
+    "rcl_service_init",
+    service_handle,
+    node_handle,
+    rmw_service_handle,
+    service_name);
 }
 #endif
 
@@ -392,9 +457,11 @@ void ros_trace_rclcpp_service_callback_added(
   using functionT = void (*)(const void *, const void *);
   ((functionT) orig_func)(service_handle, callback);
 
-  std::cerr << "rclcpp_service_callback_added," <<
-    service_handle << "," <<
-    callback << std::endl;
+  debug.print(
+    "rclcpp_service_callback_added",
+    service_handle,
+    callback
+  );
 }
 #endif
 
@@ -409,11 +476,7 @@ void ros_trace_rcl_client_init(
   using functionT = void (*)(const void *, const void *, const void *, const char *);
   ((functionT) orig_func)(client_handle, node_handle, rmw_client_handle, service_name);
 
-  std::cerr << "rcl_client_init," <<
-    client_handle << "," <<
-    node_handle << "," <<
-    rmw_client_handle << "," <<
-    service_name << std::endl;
+  debug.print("rcl_client_init", client_handle, node_handle, rmw_client_handle, service_name);
 }
 #endif
 
@@ -427,9 +490,11 @@ void ros_trace_rclcpp_callback_register(
   if (controller.is_allowed_callback(callback)) {
     ((functionT) orig_func)(callback, symbol);
 #ifdef DEBUG_OUTPUT
-    std::cerr << "rclcpp_callback_register," <<
-      callback << "," <<
-      symbol << std::endl;
+    debug.print(
+      "rclcpp_callback_register",
+      callback,
+      symbol
+    );
 #endif
   }
 }
@@ -443,9 +508,10 @@ void ros_trace_rcl_lifecycle_state_machine_init(
   using functionT = void (*)(const void *, const void *);
   ((functionT) orig_func)(node_handle, state_machine);
 
-  std::cerr << "rcl_lifecycle_state_machine_init," <<
-    node_handle << "," <<
-    state_machine << std::endl;
+  debug.print(
+    "rcl_lifecycle_state_machine_init",
+    node_handle,
+    state_machine);
 }
 #endif
 
@@ -459,10 +525,7 @@ void ros_trace_rcl_lifecycle_transition(
   using functionT = void (*)(const void *, const char *, const char *);
   ((functionT) orig_func)(state_machine, start_label, goal_label);
 
-  std::cerr << "rcl_lifecycle_transition," <<
-    state_machine << "," <<
-    start_label << "," <<
-    goal_label << "," << std::endl;
+  debug.print("rcl_lifecycle_transition", state_machine, start_label, goal_label);
 }
 #endif
 
@@ -475,9 +538,8 @@ void ros_trace_message_construct(
   using functionT = void (*)(const void *, const void *);
   ((functionT) orig_func)(original_message, constructed_message);
 
-  std::cerr << "message_construct," <<
-    original_message << "," <<
-    constructed_message << std::endl;
+
+  debug.print("message_construct", original_message, constructed_message);
 }
 #endif
 }
