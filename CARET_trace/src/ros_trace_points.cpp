@@ -106,6 +106,8 @@ void ros_trace_rclcpp_subscription_init(
 
   controller.add_subscription(subscription_handle, subscription);
 
+  set_subscription_handle(subscription_handle);
+
   using functionT = void (*)(const void *, const void *);
   if (controller.is_allowed_subscription_handle(subscription_handle)) {
     ((functionT) orig_func)(subscription_handle, subscription);
@@ -127,6 +129,7 @@ void ros_trace_rclcpp_subscription_callback_added(
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
   controller.add_subscription_callback(subscription, callback);
+  unset_subscription_handle();
 
   using functionT = void (*)(const void *, const void *);
   if (controller.is_allowed_callback(callback)) {

@@ -411,6 +411,62 @@ TRACEPOINT_EVENT(
   )
 )
 
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  construct_ipm,
+  TP_ARGS(
+    const void *, ipm_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, ipm, ipm_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  ipm_add_publisher,
+  TP_ARGS(
+    const void *, ipm_arg,
+    const void *, publisher_handle_arg,
+    const uint32_t, id_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, ipm, ipm_arg)
+    ctf_integer_hex(const void *, publisher_handle, publisher_handle_arg)
+    ctf_integer(const uint32_t, id, id_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  ipm_add_subscription,
+  TP_ARGS(
+    const void *, ipm_arg,
+    const void *, subscription_handle_arg,
+    const uint32_t, id_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, ipm, ipm_arg)
+    ctf_integer_hex(const void *, subscription_handle, subscription_handle_arg)
+    ctf_integer(const uint32_t, id, id_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  ipm_insert_sub_id_for_pub,
+  TP_ARGS(
+    const void *, ipm_arg,
+    const uint32_t, sub_id_arg,
+    const uint32_t, pub_id_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, ipm, ipm_arg)
+    ctf_integer(const uint32_t, sub_id, sub_id_arg)
+    ctf_integer(const uint32_t, pub_id, pub_id_arg)
+  )
+)
+
 #endif /* _TP_H */
 
 #endif  // CARET_TRACE__TP_H_

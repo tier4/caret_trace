@@ -40,8 +40,10 @@
 #include "rcpputils/shared_library.hpp"
 #include "rcpputils/get_env.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp/experimental/intra_process_manager.hpp"
 
-// #define DEBUG_OUTPUT
+
+#define DEBUG_OUTPUT
 
 #define STRINGIFY_(s) #s
 #define STRINGIFY(s) STRINGIFY_(s)
@@ -1800,35 +1802,78 @@ _ZN6rclcpp4NodeC1ERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_RKNS_
   return ret;
 }
 
-// tf2_ros::TransformListener *
-// _ZN7tf2_ros17TransformListenerC2ERN3tf210BufferCoreEb(
-//   void * obj,
-//   tf2::BufferCore & buffer,
-//   bool spin_thread
-// )
-// {
-//   static void * orig_func = dlsym(RTLD_NEXT, __func__);
-//   using functionT = tf2_ros::TransformListener* (*)(
-//     void * ,
-//     tf2::BufferCore & ,
-//     bool
-//   );
 
-//   auto ret = ((functionT) orig_func)(
-//     obj,
-//     buffer,
-//     spin_thread
-//   );
+// construct IntraProcessManager
+void _ZN6rclcpp12experimental19IntraProcessManagerC1Ev(
+  void * obj
+)
+{
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(void *);
+  ((functionT) orig_func)(obj);
 
-//   size_t a = sizeof(tf2_ros::BufferInterface);
-//   size_t b = sizeof(tf2_ros::AsyncBufferInterface);
-//   void * orig = (char*) &buffer - a - b; // アドレスを戻す。
-//   debug.print(
-// "TransformListener const",
-// obj, orig, &buffer
-//   );
+  tracepoint(TRACEPOINT_PROVIDER, construct_ipm, obj);
+#ifdef DEBUG_OUTPUT
+  debug.print("construct_ipm", obj);
+#endif
+}
 
-//   return  ret;
-// }
+// ipm add_publisher
+uint64_t _ZN6rclcpp12experimental19IntraProcessManager13add_publisherESt10shared_ptrINS_13PublisherBaseEE
+(
+  void * obj,
+  rclcpp::PublisherBase::SharedPtr publisher
+)
+{
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = uint64_t (*)(void *, rclcpp::PublisherBase::SharedPtr);
+  uint64_t ret =  ((functionT) orig_func)(obj, publisher);
+
+  auto publisher_handle = publisher->get_publisher_handle().get();
+  tracepoint(TRACEPOINT_PROVIDER, ipm_add_publisher, obj, publisher_handle, ret);
+
+#ifdef DEBUG_OUTPUT
+  debug.print("ipm_add_publisher", obj, publisher_handle, ret);
+#endif
+  return ret;
+}
+
+// ipm add_subscription
+uint64_t _ZN6rclcpp12experimental19IntraProcessManager16add_subscriptionESt10shared_ptrINS0_28SubscriptionIntraProcessBaseEE
+(
+  void * obj,
+  rclcpp::experimental::SubscriptionIntraProcessBase::SharedPtr subscription
+)
+{
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = uint64_t (*)(void *, rclcpp::experimental::SubscriptionIntraProcessBase::SharedPtr);
+  uint64_t ret =  ((functionT) orig_func)(obj, subscription);
+
+  auto subscription_handle = get_subscription_handle();
+
+  tracepoint(TRACEPOINT_PROVIDER, ipm_add_subscription, obj, subscription_handle, ret);
+
+#ifdef DEBUG_OUTPUT
+  debug.print("ipm_add_subscription", obj, subscription_handle, ret);
+#endif
+  return ret;
+}
+
+// ipm insert_sub_id_for_pub
+void _ZN6rclcpp12experimental19IntraProcessManager21insert_sub_id_for_pubEmmb
+(
+  void * obj,
+  uint64_t sub_id,
+  uint64_t pub_id,
+  bool use_take_shared_method
+){
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(void *, uint64_t, uint64_t, bool);
+  ((functionT) orig_func)(obj, sub_id, pub_id, use_take_shared_method);
+
+#ifdef DEBUG_OUTPUT
+  debug.print("ipm_insert_sub_id_for_pub", obj, sub_id, pub_id, use_take_shared_method);
+#endif
+}
 
 }
