@@ -1876,4 +1876,31 @@ void _ZN6rclcpp12experimental19IntraProcessManager21insert_sub_id_for_pubEmmb
 #endif
 }
 
+rcl_ret_t rcl_timer_cancel(rcl_timer_t * timer)
+{
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = rcl_ret_t (*)(rcl_timer_t *);
+  rcl_ret_t ret = ((functionT) orig_func)(timer);
+
+  tracepoint(TRACEPOINT_PROVIDER, rcl_timer_cancel, timer);
+
+#ifdef DEBUG_OUTPUT
+  debug.print("rcl_timer_cancel", timer);
+#endif
+
+  return ret;
+}
+
+rcl_ret_t rcl_timer_reset(rcl_timer_t * timer) {
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = rcl_ret_t (*)(rcl_timer_t *);
+  rcl_ret_t ret = ((functionT) orig_func)(timer);
+
+  tracepoint(TRACEPOINT_PROVIDER, rcl_timer_reset, timer);
+
+#ifdef DEBUG_OUTPUT
+  debug.print("rcl_timer_reset", timer);
+#endif
+  return ret;
+}
 }

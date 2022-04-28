@@ -478,6 +478,28 @@ TRACEPOINT_EVENT(
   )
 )
 
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rcl_timer_cancel,
+  TP_ARGS(
+    const void *, timer_handle_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, timer_handle, timer_handle_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rcl_timer_reset,
+  TP_ARGS(
+    const void *, timer_handle_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, timer_handle, timer_handle_arg)
+  )
+)
+
 #endif /* _TP_H */
 
 #endif  // CARET_TRACE__TP_H_
