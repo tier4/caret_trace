@@ -20,6 +20,7 @@
 #include <string>
 #include <mutex>
 
+#include "caret_trace/tp.h"
 #include "caret_trace/tracing_controller.hpp"
 #include "caret_trace/singleton.hpp"
 #include "caret_trace/debug.hpp"
@@ -355,7 +356,6 @@ void ros_trace_rcl_timer_init(
 }
 #endif
 
-#ifdef DEBUG_OUTPUT
 void ros_trace_rcl_init(
   const void * context_handle)
 {
@@ -363,11 +363,14 @@ void ros_trace_rcl_init(
   using functionT = void (*)(const void *);
   ((functionT) orig_func)(context_handle);
 
+  tracepoint(TRACEPOINT_PROVIDER, rcl_init_caret);
+
+#ifdef DEBUG_OUTPUT
   debug.print(
-    "rcl_init", context_handle
+    "rcl_init", context_handle, LIB_CARET_VERSION
   );
-}
 #endif
+}
 
 void ros_trace_rcl_publisher_init(
   const void * publisher_handle,

@@ -23,6 +23,8 @@
 #undef TRACEPOINT_INCLUDE
 #define TRACEPOINT_INCLUDE "caret_trace/tp.h"
 
+#define LIB_CARET_VERSION "0.3"
+
 #if !defined(_TP_H) || defined(TRACEPOINT_HEADER_MULTI_READ)
 #define _TP_H
 
@@ -464,6 +466,15 @@ TRACEPOINT_EVENT(
     ctf_integer_hex(const void *, ipm, ipm_arg)
     ctf_integer(const uint32_t, sub_id, sub_id_arg)
     ctf_integer(const uint32_t, pub_id, pub_id_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rcl_init_caret,
+  TP_ARGS(),
+  TP_FIELDS(
+    ctf_string(lib_caret_version, LIB_CARET_VERSION)
   )
 )
 
