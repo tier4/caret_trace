@@ -460,12 +460,14 @@ TRACEPOINT_EVENT(
   TP_ARGS(
     const void *, ipm_arg,
     const uint32_t, sub_id_arg,
-    const uint32_t, pub_id_arg
+    const uint32_t, pub_id_arg,
+    const int, use_take_shared_method_arg
   ),
   TP_FIELDS(
     ctf_integer_hex(const void *, ipm, ipm_arg)
     ctf_integer(const uint32_t, sub_id, sub_id_arg)
     ctf_integer(const uint32_t, pub_id, pub_id_arg)
+    ctf_integer(const uint32_t, use_take_shared_method, use_take_shared_method_arg)
   )
 )
 

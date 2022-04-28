@@ -1908,6 +1908,9 @@ void _ZN6rclcpp12experimental19IntraProcessManager21insert_sub_id_for_pubEmmb
   using functionT = void (*)(void *, uint64_t, uint64_t, bool);
   ((functionT) orig_func)(obj, sub_id, pub_id, use_take_shared_method);
 
+  tracepoint(
+    TRACEPOINT_PROVIDER, ipm_insert_sub_id_for_pub, obj, sub_id, pub_id, use_take_shared_method);
+
 #ifdef DEBUG_OUTPUT
   debug.print("ipm_insert_sub_id_for_pub", obj, sub_id, pub_id, use_take_shared_method);
 #endif
