@@ -26,6 +26,8 @@
 
 #include "caret_trace/thread_local.hpp"
 #include "caret_trace/keys_set.hpp"
+#include "caret_trace/tracing_controller.hpp"
+#include "caret_trace/singleton.hpp"
 #include "caret_trace/virtual_member_variable.hpp"
 
 #include "rcl/rcl.h"
@@ -1223,105 +1225,110 @@ _ZN7tf2_ros20TransformBroadcaster13sendTransformERKSt6vectorIN13geometry_msgs3ms
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(void *, const std::vector<geometry_msgs::msg::TransformStamped> &);
 
+  static auto & controller = Singleton<TracingController>::get_instance();
+
   static KeysSet<void *, void *> transform_init_recorded;
   auto obj_public = reinterpret_cast<tf2_ros::TransformBroadcasterPublic *>(obj);
   auto pub_handle = obj_public->publisher_->get_publisher_handle().get();
-  if (!transform_init_recorded.has(obj, pub_handle)) {
-    transform_init_recorded.insert(obj, pub_handle);
+
+  if (controller.is_tf_allowed()) {
+    if (!transform_init_recorded.has(obj, pub_handle)) {
+      transform_init_recorded.insert(obj, pub_handle);
 #ifdef DEBUG_OUTPUT
-    debug.print(
-      "init_bind_transform_broadcaster",
-      obj,
-      pub_handle
-    );
+      debug.print(
+        "init_bind_transform_broadcaster",
+        obj,
+        pub_handle
+      );
 #endif
+      tracepoint(
+        TRACEPOINT_PROVIDER,
+        init_bind_transform_broadcaster,
+        obj,
+        pub_handle
+      );
+    }
+
+    static KeysSet<void *, std::string, std::string> sendtransform_init_recorded;
+
+    static VirtualMemberVariables<std::string, uint32_t> membar_vars;
+    auto &vars = membar_vars.get_vars(obj);
+
+    auto export_frame_id_compact = [&obj, &vars](const std::string &frame_id){
+        tracepoint(
+          TRACEPOINT_PROVIDER,
+          init_tf_broadcaster_frame_id_compact,
+          obj,
+          frame_id.c_str(),
+          vars.get(frame_id)
+        );
+#ifdef DEBUG_OUTPUT
+        debug.print(
+          "init_tf_broadcaster_frame_id",
+          obj,
+          frame_id.c_str(),
+          vars.get(frame_id)
+        );
+#endif
+    };
+
+    uint32_t frame_ids[FRAME_ID_COMPACT_SIZE] = {0};
+    uint32_t child_frame_ids[FRAME_ID_COMPACT_SIZE] = {0};
+    uint64_t stamps[FRAME_ID_COMPACT_SIZE] = {0};
+
+    for (size_t i=0 ; i<msgtf.size() ; i++) {
+      const auto & t = msgtf[i];
+
+      stamps[i] =  t.header.stamp.nanosec + t.header.stamp.sec * 1000000000L;
+      std::string frame_ids_[] = {t.header.frame_id, t.child_frame_id};
+      for (auto & frame_id_ : frame_ids_) {
+        if (!vars.has(frame_id_)) {
+          vars.set(frame_id_, vars.size());
+          export_frame_id_compact(frame_id_);
+        }
+      }
+      frame_ids[i] = vars.get(t.header.frame_id);
+      child_frame_ids[i] = vars.get(t.child_frame_id);
+
+      if (!sendtransform_init_recorded.has(obj, t.header.frame_id, t.child_frame_id)) {
+        sendtransform_init_recorded.insert(obj, t.header.frame_id, t.child_frame_id);
+        tracepoint(
+          TRACEPOINT_PROVIDER,
+          init_bind_transform_broadcaster_frames,
+          obj,
+          t.header.frame_id.c_str(),
+          t.child_frame_id.c_str()
+        );
+#ifdef DEBUG_OUTPUT
+        debug.print(
+          "init_bind_transform_broadcaster_frames",
+          obj,
+          t.header.frame_id,
+          t.child_frame_id
+        );
+#endif
+      }
+#ifdef DEBUG_OUTPUT
+      debug.print(
+        "send_transform",
+        obj,
+        std::to_string(stamps[i]),
+        std::to_string(frame_ids[i]),
+        std::to_string(child_frame_ids[i])
+      );
+#endif
+    }
+
     tracepoint(
       TRACEPOINT_PROVIDER,
-      init_bind_transform_broadcaster,
+      send_transform,
       obj,
-      pub_handle
+      stamps,
+      frame_ids,
+      child_frame_ids,
+      msgtf.size()
     );
   }
-
-  static KeysSet<void *, std::string, std::string> sendtransform_init_recorded;
-
-  static VirtualMemberVariables<std::string, uint32_t> membar_vars;
-  auto &vars = membar_vars.get_vars(obj);
-
-  auto export_frame_id_compact = [&obj, &vars](const std::string &frame_id){
-      tracepoint(
-        TRACEPOINT_PROVIDER,
-        init_tf_broadcaster_frame_id_compact,
-        obj,
-        frame_id.c_str(),
-        vars.get(frame_id)
-      );
-#ifdef DEBUG_OUTPUT
-      debug.print(
-        "init_tf_broadcaster_frame_id",
-        obj,
-        frame_id.c_str(),
-        vars.get(frame_id)
-      );
-#endif
-  };
-
-  uint32_t frame_ids[FRAME_ID_COMPACT_SIZE] = {0};
-  uint32_t child_frame_ids[FRAME_ID_COMPACT_SIZE] = {0};
-  uint64_t stamps[FRAME_ID_COMPACT_SIZE] = {0};
-
-  for (size_t i=0 ; i<msgtf.size() ; i++) {
-    const auto & t = msgtf[i];
-
-    stamps[i] =  t.header.stamp.nanosec + t.header.stamp.sec * 1000000000L;
-    std::string frame_ids_[] = {t.header.frame_id, t.child_frame_id};
-    for (auto & frame_id_ : frame_ids_) {
-      if (!vars.has(frame_id_)) {
-        vars.set(frame_id_, vars.size());
-        export_frame_id_compact(frame_id_);
-      }
-    }
-    frame_ids[i] = vars.get(t.header.frame_id);
-    child_frame_ids[i] = vars.get(t.child_frame_id);
-
-    if (!sendtransform_init_recorded.has(obj, t.header.frame_id, t.child_frame_id)) {
-      sendtransform_init_recorded.insert(obj, t.header.frame_id, t.child_frame_id);
-      tracepoint(
-        TRACEPOINT_PROVIDER,
-        init_bind_transform_broadcaster_frames,
-        obj,
-        t.header.frame_id.c_str(),
-        t.child_frame_id.c_str()
-      );
-#ifdef DEBUG_OUTPUT
-      debug.print(
-        "init_bind_transform_broadcaster_frames",
-        obj,
-        t.header.frame_id,
-        t.child_frame_id
-      );
-#endif
-    }
-#ifdef DEBUG_OUTPUT
-    debug.print(
-      "send_transform",
-      obj,
-      std::to_string(stamps[i]),
-      std::to_string(frame_ids[i]),
-      std::to_string(child_frame_ids[i])
-    );
-#endif
-  }
-
-  tracepoint(
-    TRACEPOINT_PROVIDER,
-    send_transform,
-    obj,
-    stamps,
-    frame_ids,
-    child_frame_ids,
-    msgtf.size()
-  );
 
   ((functionT) orig_func)(obj, msgtf);
 }
@@ -1345,55 +1352,60 @@ _ZN3tf29TimeCache11findClosestERPNS_16TransformStorageES3_NSt6chrono10time_point
     std::string *
   );
 
+  static auto & controller = Singleton<TracingController>::get_instance();
+
   uint8_t ret = ((functionT) orig_func)(obj, one, two, target_time, error_str);
-  if (tf_cache_to_buffer_core_map.count(obj) > 0) {
-    auto buffer_core = tf_cache_to_buffer_core_map[obj];
-    if (ret == 1) {
-      tracepoint(
-        TRACEPOINT_PROVIDER,
-        tf_buffer_find_closest,
-        buffer_core,
-        one->frame_id_,
-        one->child_frame_id_,
-        one->stamp_.time_since_epoch().count(),
-        0,
-        0,
-        0);
+
+  if (controller.is_tf_allowed()) {
+    if (tf_cache_to_buffer_core_map.count(obj) > 0) {
+      auto buffer_core = tf_cache_to_buffer_core_map[obj];
+      if (ret == 1) {
+        tracepoint(
+          TRACEPOINT_PROVIDER,
+          tf_buffer_find_closest,
+          buffer_core,
+          one->frame_id_,
+          one->child_frame_id_,
+          one->stamp_.time_since_epoch().count(),
+          0,
+          0,
+          0);
 #ifdef DEBUG_OUTPUT
-      debug.print(
-        "tf_buffer_find_closest",
-        buffer_core,
-        one->frame_id_,
-        one->child_frame_id_,
-        std::to_string(one->stamp_.time_since_epoch().count()),
-        0,
-        0,
-        0);
+        debug.print(
+          "tf_buffer_find_closest",
+          buffer_core,
+          one->frame_id_,
+          one->child_frame_id_,
+          std::to_string(one->stamp_.time_since_epoch().count()),
+          0,
+          0,
+          0);
 #endif
-    } else if (ret == 2) {
-      tracepoint(
-        TRACEPOINT_PROVIDER,
-        tf_buffer_find_closest,
-        buffer_core,
-        one->frame_id_,
-        one->child_frame_id_,
-        one->stamp_.time_since_epoch().count(),
-        two->frame_id_,
-        two->child_frame_id_,
-        two->stamp_.time_since_epoch().count()
-      );
+      } else if (ret == 2) {
+        tracepoint(
+          TRACEPOINT_PROVIDER,
+          tf_buffer_find_closest,
+          buffer_core,
+          one->frame_id_,
+          one->child_frame_id_,
+          one->stamp_.time_since_epoch().count(),
+          two->frame_id_,
+          two->child_frame_id_,
+          two->stamp_.time_since_epoch().count()
+        );
 #ifdef DEBUG_OUTPUT
-      debug.print(
-        "tf_buffer_find_closest",
-        buffer_core,
-        one->frame_id_,
-        one->child_frame_id_,
-        std::to_string(one->stamp_.time_since_epoch().count()),
-        two->frame_id_,
-        two->child_frame_id_,
-        std::to_string(two->stamp_.time_since_epoch().count())
-      );
+        debug.print(
+          "tf_buffer_find_closest",
+          buffer_core,
+          one->frame_id_,
+          one->child_frame_id_,
+          std::to_string(one->stamp_.time_since_epoch().count()),
+          two->frame_id_,
+          two->child_frame_id_,
+          std::to_string(two->stamp_.time_since_epoch().count())
+        );
 #endif
+      }
     }
   }
 
@@ -1415,27 +1427,31 @@ _ZN3tf210BufferCore25lookupOrInsertFrameNumberERKNSt7__cxx1112basic_stringIcSt11
     const std::string
   );
 
+  static auto & controller = Singleton<TracingController>::get_instance();
+
   tf2::CompactFrameID ret = ((functionT) orig_func)(obj, frameid_str);
 
-  auto &map = tf_buffer_frame_id_compact_map.get_vars(obj);
+  if (controller.is_tf_allowed()) {
+    auto &map = tf_buffer_frame_id_compact_map.get_vars(obj);
 
-  if (map.has(frameid_str) == 0) {
-    map.set(frameid_str, ret);
-    tracepoint(
-      TRACEPOINT_PROVIDER,
-      init_tf_buffer_frame_id_compact,
-      obj,
-      frameid_str.c_str(),
-      ret
-    );
+    if (map.has(frameid_str) == 0) {
+      map.set(frameid_str, ret);
+      tracepoint(
+        TRACEPOINT_PROVIDER,
+        init_tf_buffer_frame_id_compact,
+        obj,
+        frameid_str.c_str(),
+        ret
+      );
 #ifdef DEBUG_OUTPUT
-    debug.print(
-      "init_tf_buffer_frame_id_compact",
-      obj,
-      frameid_str,
-      ret
-    );
+      debug.print(
+        "init_tf_buffer_frame_id_compact",
+        obj,
+        frameid_str,
+        ret
+      );
 #endif
+    }
   }
 
   return ret;
@@ -1460,49 +1476,57 @@ _ZN3tf210BufferCore12setTransformERKN13geometry_msgs3msg17TransformStamped_ISaIv
   );
 
   static KeysSet<void *> init_recorded_keys;
-  // transform.header.frame_id;
-  // transform.child_frame_id;
-  if (!init_recorded_keys.has(obj)) {
-    init_recorded_keys.insert(obj);
-    tracepoint(
-      TRACEPOINT_PROVIDER,
-      init_bind_tf_buffer_core,
-      obj,
-      get_callback()
-    );
-#ifdef DEBUG_OUTPUT
-    debug.print(
-      "init_bind_tf_buffer_core",
-      obj,
-      get_callback()
-    );
-#endif
+
+  static auto & controller = Singleton<TracingController>::get_instance();
+
+  if (controller.is_tf_allowed()) {
+    // transform.header.frame_id;
+    // transform.child_frame_id;
+    if (!init_recorded_keys.has(obj)) {
+      init_recorded_keys.insert(obj);
+      tracepoint(
+        TRACEPOINT_PROVIDER,
+        init_bind_tf_buffer_core,
+        obj,
+        get_callback()
+      );
+  #ifdef DEBUG_OUTPUT
+      debug.print(
+        "init_bind_tf_buffer_core",
+        obj,
+        get_callback()
+      );
+  #endif
+    }
   }
 
   bool ret = ((functionT) orig_func)(obj, transform, authority, is_static);
-  uint64_t stamp = transform.header.stamp.sec * 1000000000L   + transform.header.stamp.nanosec;
 
-  auto &map = tf_buffer_frame_id_compact_map.get_vars(obj);
+  if (controller.is_tf_allowed()) {
+    uint64_t stamp = transform.header.stamp.sec * 1000000000L   + transform.header.stamp.nanosec;
+    auto &map = tf_buffer_frame_id_compact_map.get_vars(obj);
 
-  if (map.has(transform.header.frame_id) && map.has(transform.child_frame_id)) {
+    if (map.has(transform.header.frame_id) && map.has(transform.child_frame_id)) {
 #ifdef DEBUG_OUTPUT
-    debug.print(
-      "tf_set_transform",
-      obj,
-      stamp,
-      transform.header.frame_id,
-      transform.child_frame_id
-    );
+      debug.print(
+        "tf_set_transform",
+        obj,
+        stamp,
+        transform.header.frame_id,
+        transform.child_frame_id
+      );
 #endif
-    tracepoint(
-      TRACEPOINT_PROVIDER,
-      tf_set_transform,
-      obj,
-      stamp,
-      map.get(transform.header.frame_id),
-      map.get(transform.child_frame_id)
-    );
+      tracepoint(
+        TRACEPOINT_PROVIDER,
+        tf_set_transform,
+        obj,
+        stamp,
+        map.get(transform.header.frame_id),
+        map.get(transform.child_frame_id)
+      );
+    }
   }
+
   return ret;
 }
 
@@ -1526,15 +1550,18 @@ _ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_trai
     const std::string &
   );
 
+  static auto & controller = Singleton<TracingController>::get_instance();
+  if (controller.is_tf_allowed()) {
 #ifdef DEBUG_OUTPUT
-  debug.print(
-    "lookupTransform",
-    obj,
-    target_frame,
-    source_frame,
-    target_time.time_since_epoch().count()
-  );
+    debug.print(
+      "lookupTransform",
+      obj,
+      target_frame,
+      source_frame,
+      target_time.time_since_epoch().count()
+    );
 #endif
+  }
 
   geometry_msgs::msg::TransformStamped ret = ((functionT) orig_func)(
     obj,
@@ -1564,42 +1591,46 @@ _ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_trai
     const tf2::TimePoint &
   );
 
+  static auto & controller = Singleton<TracingController>::get_instance();
+
   auto &map = tf_buffer_frame_id_compact_map.get_vars(obj);
   auto target_time = std::chrono::time_point_cast<std::chrono::nanoseconds>(time).time_since_epoch().count();
 
   auto is_frame_id_compact_initialized =  map.has(target_frame) && map.has(source_frame);
-  static KeysSet<void*, uint32_t, uint32_t> tf_lookup_transform;
-  if (is_frame_id_compact_initialized) {
-    auto target_frame_id_compact = map.get(target_frame);
-    auto source_frame_id_compact = map.get(target_frame);
+  if (controller.is_tf_allowed()) {
+    static KeysSet<void*, uint32_t, uint32_t> tf_lookup_transform;
+    if (is_frame_id_compact_initialized) {
+      auto target_frame_id_compact = map.get(target_frame);
+      auto source_frame_id_compact = map.get(target_frame);
 
-    if (!tf_lookup_transform.has(obj, target_frame_id_compact, source_frame_id_compact)) {
-      tf_lookup_transform.insert(obj, target_frame_id_compact, source_frame_id_compact);
+      if (!tf_lookup_transform.has(obj, target_frame_id_compact, source_frame_id_compact)) {
+        tf_lookup_transform.insert(obj, target_frame_id_compact, source_frame_id_compact);
+        tracepoint(
+          TRACEPOINT_PROVIDER,
+          init_tf_buffer_lookup_transform,
+          obj,
+          target_frame_id_compact,
+          source_frame_id_compact
+        );
+      }
       tracepoint(
         TRACEPOINT_PROVIDER,
-        init_tf_buffer_lookup_transform,
+        tf_lookup_transform_start,
         obj,
+        target_time,
         target_frame_id_compact,
         source_frame_id_compact
       );
-    }
-    tracepoint(
-      TRACEPOINT_PROVIDER,
-      tf_lookup_transform_start,
-      obj,
-      target_time,
-      target_frame_id_compact,
-      source_frame_id_compact
-    );
 #ifdef DEBUG_OUTPUT
-    debug.print(
-      "tf_lookup_transform_start",
-      obj,
-      target_time,
-      target_frame,
-      source_frame
-    );
+      debug.print(
+        "tf_lookup_transform_start",
+        obj,
+        target_time,
+        target_frame,
+        source_frame
+      );
 #endif
+    }
   }
 
   geometry_msgs::msg::TransformStamped ret = ((functionT) orig_func)(
@@ -1609,18 +1640,20 @@ _ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_trai
     time
   );
 
-  if (is_frame_id_compact_initialized) {
-    tracepoint(
-      TRACEPOINT_PROVIDER,
-      tf_lookup_transform_end,
-      obj
-    );
+  if (controller.is_tf_allowed()) {
+    if (is_frame_id_compact_initialized) {
+      tracepoint(
+        TRACEPOINT_PROVIDER,
+        tf_lookup_transform_end,
+        obj
+      );
 #ifdef DEBUG_OUTPUT
-    debug.print(
-      "tf_lookup_transform_end",
-      obj
-    );
+      debug.print(
+        "tf_lookup_transform_end",
+        obj
+      );
 #endif
+    }
   }
 
   return ret;
@@ -1654,22 +1687,26 @@ tf2::TimeCacheInterfacePtr _ZNK3tf210BufferCore8getFrameEj(
 
 
 inline void tf2_ros_const_buffer(void * obj, rclcpp::Clock::SharedPtr & clock){
-  auto tf_buffer_core = get_tf_buffer_core();
-  tracepoint(
-    TRACEPOINT_PROVIDER,
-    construct_tf_buffer,
-    obj,
-    tf_buffer_core,
-    clock.get()
-  );
+  static auto & controller = Singleton<TracingController>::get_instance();
+
+  if (controller.is_tf_allowed()) {
+    auto tf_buffer_core = get_tf_buffer_core();
+    tracepoint(
+      TRACEPOINT_PROVIDER,
+      construct_tf_buffer,
+      obj,
+      tf_buffer_core,
+      clock.get()
+    );
 #ifdef DEBUG_OUTPUT
-  debug.print(
-    "construct_tf_buffer",
-    obj,
-    tf_buffer_core,
-    clock.get()
-  );
+    debug.print(
+      "construct_tf_buffer",
+      obj,
+      tf_buffer_core,
+      clock.get()
+    );
 #endif
+  }
 }
 
 tf2_ros::Buffer *

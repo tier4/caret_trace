@@ -154,10 +154,22 @@ TracingController::TracingController()
     }
   }
 
+  if (select_enabled_) {
+      is_tf_allowed_ = partial_match(selected_topic_names_, "/tf");
+  } else if (ignore_enabled_) {
+      is_tf_allowed_ = !partial_match(ignored_topic_names_, "/tf");
+  } else {
+    is_tf_allowed_ = true;
+  }
+
   check_condition_set(selected_node_names_);
   check_condition_set(ignored_node_names_);
   check_condition_set(selected_topic_names_);
   check_condition_set(ignored_topic_names_);
+}
+
+bool TracingController::is_tf_allowed() {
+  return is_tf_allowed_;
 }
 
 bool TracingController::is_allowed_callback(const void * callback)

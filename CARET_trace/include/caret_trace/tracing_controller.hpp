@@ -51,6 +51,8 @@ public:
 
   bool is_allowed_subscription_handle(const void * subscription_handle);
 
+  bool is_tf_allowed();
+
 private:
   std::shared_timed_mutex mutex_;
   std::string to_node_name(const void * callback);
@@ -63,6 +65,8 @@ private:
 
   const bool select_enabled_;
   const bool ignore_enabled_;
+
+  bool is_tf_allowed_;
 
   std::unordered_map<const void *, const void *> subscription_handle_to_node_handles_;
   std::unordered_map<const void *, std::string> subscription_handle_to_topic_names_;
