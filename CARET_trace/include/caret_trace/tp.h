@@ -430,12 +430,12 @@ TRACEPOINT_EVENT(
   TP_ARGS(
     const void *, ipm_arg,
     const void *, publisher_handle_arg,
-    const uint32_t, id_arg
+    const uint32_t, pub_id_arg
   ),
   TP_FIELDS(
     ctf_integer_hex(const void *, ipm, ipm_arg)
     ctf_integer_hex(const void *, publisher_handle, publisher_handle_arg)
-    ctf_integer(const uint32_t, id, id_arg)
+    ctf_integer(const uint32_t, pub_id, pub_id_arg)
   )
 )
 
@@ -445,12 +445,12 @@ TRACEPOINT_EVENT(
   TP_ARGS(
     const void *, ipm_arg,
     const void *, subscription_handle_arg,
-    const uint32_t, id_arg
+    const uint32_t, sub_id_arg
   ),
   TP_FIELDS(
     ctf_integer_hex(const void *, ipm, ipm_arg)
     ctf_integer_hex(const void *, subscription_handle, subscription_handle_arg)
-    ctf_integer(const uint32_t, id, id_arg)
+    ctf_integer(const uint32_t, sub_id, sub_id_arg)
   )
 )
 

@@ -1601,7 +1601,7 @@ _ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_trai
     static KeysSet<void*, uint32_t, uint32_t> tf_lookup_transform;
     if (is_frame_id_compact_initialized) {
       auto target_frame_id_compact = map.get(target_frame);
-      auto source_frame_id_compact = map.get(target_frame);
+      auto source_frame_id_compact = map.get(source_frame);
 
       if (!tf_lookup_transform.has(obj, target_frame_id_compact, source_frame_id_compact)) {
         tf_lookup_transform.insert(obj, target_frame_id_compact, source_frame_id_compact);
