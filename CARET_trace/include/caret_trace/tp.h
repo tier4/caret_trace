@@ -327,8 +327,19 @@ TRACEPOINT_EVENT(
   TP_FIELDS(
     ctf_integer_hex(const void *, tf_buffer_core, tf_buffer_core_arg)
     ctf_integer(const uint64_t, target_time, target_time_arg)
-    ctf_integer(const uint32_t, frame_id_compact, frame_id_compact_arg)
-    ctf_integer(const uint32_t, child_frame_id_compact, child_frame_id_compact_arg)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  init_tf_buffer_set_transform,
+  TP_ARGS(
+    const void *, tf_buffer_core_arg,
+    const char *, frame_id_arg,
+    const char *, child_frame_id_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, tf_buffer_core, tf_buffer_core_arg)
+    ctf_string(frame_id, frame_id_arg)
+    ctf_string(child_frame_id, child_frame_id_arg)
   )
 )
 
