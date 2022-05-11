@@ -1294,14 +1294,14 @@ _ZN7tf2_ros20TransformBroadcaster13sendTransformERKSt6vectorIN13geometry_msgs3ms
         sendtransform_init_recorded.insert(obj, t.header.frame_id, t.child_frame_id);
         tracepoint(
           TRACEPOINT_PROVIDER,
-          init_bind_transform_broadcaster_frames,
+          init_bind_tf_broadcaster_send_transform,
           obj,
           t.header.frame_id.c_str(),
           t.child_frame_id.c_str()
         );
 #ifdef DEBUG_OUTPUT
         debug.print(
-          "init_bind_transform_broadcaster_frames",
+          "init_bind_tf_broadcaster_send_transform",
           obj,
           t.header.frame_id,
           t.child_frame_id
@@ -1506,7 +1506,24 @@ _ZN3tf210BufferCore12setTransformERKN13geometry_msgs3msg17TransformStamped_ISaIv
     uint64_t stamp = transform.header.stamp.sec * 1000000000L   + transform.header.stamp.nanosec;
     auto &map = tf_buffer_frame_id_compact_map.get_vars(obj);
 
-    if (map.has(transform.header.frame_id) && map.has(transform.child_frame_id)) {
+    auto is_frame_id_compact_initialized =  map.has(transform.header.frame_id) && map.has(transform.child_frame_id);
+    if (is_frame_id_compact_initialized) {
+      static KeysSet<void *, std::string, std::string> tf_set_transform;
+
+      const auto &frame_id = transform.header.frame_id;
+      const auto &child_frame_id = transform.child_frame_id;
+
+      if(!tf_set_transform.has(obj, frame_id, child_frame_id)) {
+        tf_set_transform.insert(obj, frame_id, child_frame_id);
+        tracepoint(
+          TRACEPOINT_PROVIDER,
+          init_tf_buffer_set_transform,
+          obj,
+          frame_id.c_str(),
+          child_frame_id.c_str()
+        );
+      }
+
 #ifdef DEBUG_OUTPUT
       debug.print(
         "tf_set_transform",
@@ -1598,19 +1615,19 @@ _ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_trai
 
   auto is_frame_id_compact_initialized =  map.has(target_frame) && map.has(source_frame);
   if (controller.is_tf_allowed()) {
-    static KeysSet<void*, uint32_t, uint32_t> tf_lookup_transform;
+    static KeysSet<void*, std::string, std::string> tf_lookup_transform;
     if (is_frame_id_compact_initialized) {
-      auto target_frame_id_compact = map.get(target_frame);
-      auto source_frame_id_compact = map.get(source_frame);
+      auto &target_frame_id_compact = map.get(target_frame);
+      auto &source_frame_id_compact = map.get(source_frame);
 
-      if (!tf_lookup_transform.has(obj, target_frame_id_compact, source_frame_id_compact)) {
-        tf_lookup_transform.insert(obj, target_frame_id_compact, source_frame_id_compact);
+      if (!tf_lookup_transform.has(obj, target_frame, source_frame)) {
+        tf_lookup_transform.insert(obj, target_frame, source_frame);
         tracepoint(
           TRACEPOINT_PROVIDER,
           init_tf_buffer_lookup_transform,
           obj,
-          target_frame_id_compact,
-          source_frame_id_compact
+          target_frame.c_str(),
+          source_frame.c_str()
         );
       }
       tracepoint(

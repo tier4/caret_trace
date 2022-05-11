@@ -227,7 +227,7 @@ TRACEPOINT_EVENT(
 
 TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
-  init_bind_transform_broadcaster_frames,
+  init_bind_tf_broadcaster_send_transform,
   TP_ARGS(
     const void *, tf_broadcaster_arg,
     const char *, frame_id_arg,
@@ -321,12 +321,16 @@ TRACEPOINT_EVENT(
   TP_ARGS(
     const void *, tf_buffer_core_arg,
     const uint64_t, target_time_arg,
-    const uint32_t, frame_id_compact_arg,
-    const uint32_t, child_frame_id_compact_arg
+    const uint32_t, target_frame_id_compact_arg,
+    const uint32_t, source_frame_id_compact_arg
   ),
   TP_FIELDS(
     ctf_integer_hex(const void *, tf_buffer_core, tf_buffer_core_arg)
     ctf_integer(const uint64_t, target_time, target_time_arg)
+    ctf_integer(const uint32_t, target_frame_id_compact, target_frame_id_compact_arg)
+    ctf_integer(const uint32_t, source_frame_id_compact, source_frame_id_compact_arg)
+  )
+)
 
 TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
@@ -348,13 +352,13 @@ TRACEPOINT_EVENT(
   init_tf_buffer_lookup_transform,
   TP_ARGS(
     const void *, tf_buffer_core_arg,
-    const uint32_t, frame_id_compact_arg,
-    const uint32_t, child_frame_id_compact_arg
+    const char *, target_frame_id_arg,
+    const char *, source_frame_id_arg
   ),
   TP_FIELDS(
     ctf_integer_hex(const void *, tf_buffer_core, tf_buffer_core_arg)
-    ctf_integer(const uint32_t, frame_id_compact, frame_id_compact_arg)
-    ctf_integer(const uint32_t, child_frame_id_compact, child_frame_id_compact_arg)
+    ctf_string(target_frame_id, target_frame_id_arg)
+    ctf_string(source_frame_id, source_frame_id_arg)
   )
 )
 
