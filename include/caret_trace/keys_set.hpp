@@ -1,3 +1,19 @@
+// Copyright 2021 Research Institute of Systems Planning, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#ifndef CARET_TRACE__KEYS_SET_HPP_
+
 #include <iostream>
 #include <functional>
 #include <unordered_set>
@@ -7,7 +23,7 @@ template<typename T1, typename T2 = std::false_type, typename T3 = std::false_ty
 class HashableKeys
 {
 public:
-  HashableKeys(T1 key1)
+  explicit HashableKeys(T1 key1)
   : key1_(key1)
   {}
 
@@ -73,7 +89,7 @@ struct equal_to<HashableKeys<T1, T2, T3>>
     return t.equal_to(t_);
   }
 };
-}
+}  // namespace std
 
 
 template<typename T1, typename T2 = std::false_type, typename T3 = std::false_type>
@@ -115,3 +131,6 @@ public:
 private:
   std::unordered_set<HashableKeys<T1, T2, T3>> keys_;
 };
+
+#endif  // CARET_TRACE__KEYS_SET_HPP_
+#define CARET_TRACE__KEYS_SET_HPP_

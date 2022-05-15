@@ -155,9 +155,9 @@ TracingController::TracingController()
   }
 
   if (select_enabled_) {
-      is_tf_allowed_ = partial_match(selected_topic_names_, "/tf");
+    is_tf_allowed_ = partial_match(selected_topic_names_, "/tf");
   } else if (ignore_enabled_) {
-      is_tf_allowed_ = !partial_match(ignored_topic_names_, "/tf");
+    is_tf_allowed_ = !partial_match(ignored_topic_names_, "/tf");
   } else {
     is_tf_allowed_ = true;
   }
@@ -168,7 +168,8 @@ TracingController::TracingController()
   check_condition_set(ignored_topic_names_);
 }
 
-bool TracingController::is_tf_allowed() {
+bool TracingController::is_tf_allowed()
+{
   return is_tf_allowed_;
 }
 

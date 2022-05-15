@@ -23,6 +23,9 @@
 #include <vector>
 #include <tuple>
 #include <utility>
+#include <unordered_map>
+#include <unordered_set>
+#include <map>
 
 #include "caret_trace/thread_local.hpp"
 #include "caret_trace/keys_set.hpp"
@@ -550,7 +553,7 @@ public:
   bool using_dedicated_thread_;
 };
 
-}
+}  // namespace tf2
 namespace tf2_ros
 {
 class TransformBroadcasterPublic
@@ -664,8 +667,8 @@ static void before_main(void)
   lib_tf2_handler = dlopen("libtf2_ros.so", RTLD_LAZY);
 
   if (!lib_tf2_handler) {
-      std::cerr << "Failed to load libtf2_ros.so. " << dlerror() << std::endl;
-      exit(EXIT_FAILURE);
+    std::cerr << "Failed to load libtf2_ros.so. " << dlerror() << std::endl;
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -1224,11 +1227,16 @@ void _ZN6rclcpp13CallbackGroup10add_clientESt10shared_ptrINS_10ClientBaseEE(
 #endif
 }
 
-//  tf2_ros::TransformBroadcaster::sendTransform(std::vector<geometry_msgs::msg::TransformStamped_<std::allocator<void> >, std::allocator<geometry_msgs::msg::TransformStamped_<std::allocator<void> > > > const&)
+//  tf2_ros::TransformBroadcaster::sendTransform(
+// std::vector<geometry_msgs::msg::TransformStamped_<std::allocator<void> >,
+// std::allocator<geometry_msgs::msg::TransformStamped_<std::allocator<void> > > > const&)
 void
-_ZN7tf2_ros20TransformBroadcaster13sendTransformERKSt6vectorIN13geometry_msgs3msg17TransformStamped_ISaIvEEESaIS6_EE(
+SYMBOL_CONCAT_2(
+  _ZN7tf2_ros20TransformBroadcaster13sendTransformERKSt6vectorIN13,
+  geometry_msgs3msg17TransformStamped_ISaIvEEESaIS6_EE
+)(
   void * obj,
-  const std::vector<geometry_msgs::msg::TransformStamped> &msgtf
+  const std::vector<geometry_msgs::msg::TransformStamped>&msgtf
 )
 {
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
@@ -1261,9 +1269,9 @@ _ZN7tf2_ros20TransformBroadcaster13sendTransformERKSt6vectorIN13geometry_msgs3ms
     static KeysSet<void *, std::string, std::string> sendtransform_init_recorded;
 
     static VirtualMemberVariables<std::string, uint32_t> membar_vars;
-    auto &vars = membar_vars.get_vars(obj);
+    auto & vars = membar_vars.get_vars(obj);
 
-    auto export_frame_id_compact = [&obj, &vars](const std::string &frame_id){
+    auto export_frame_id_compact = [&obj, &vars](const std::string & frame_id) {
         tracepoint(
           TRACEPOINT_PROVIDER,
           init_tf_broadcaster_frame_id_compact,
@@ -1279,16 +1287,16 @@ _ZN7tf2_ros20TransformBroadcaster13sendTransformERKSt6vectorIN13geometry_msgs3ms
           vars.get(frame_id)
         );
 #endif
-    };
+      };
 
     uint32_t frame_ids[FRAME_ID_COMPACT_SIZE] = {0};
     uint32_t child_frame_ids[FRAME_ID_COMPACT_SIZE] = {0};
     uint64_t stamps[FRAME_ID_COMPACT_SIZE] = {0};
 
-    for (size_t i=0 ; i<msgtf.size() ; i++) {
+    for (size_t i = 0; i < msgtf.size(); i++) {
       const auto & t = msgtf[i];
 
-      stamps[i] =  t.header.stamp.nanosec + t.header.stamp.sec * 1000000000L;
+      stamps[i] = t.header.stamp.nanosec + t.header.stamp.sec * 1000000000L;
       std::string frame_ids_[] = {t.header.frame_id, t.child_frame_id};
       for (auto & frame_id_ : frame_ids_) {
         if (!vars.has(frame_id_)) {
@@ -1344,10 +1352,14 @@ _ZN7tf2_ros20TransformBroadcaster13sendTransformERKSt6vectorIN13geometry_msgs3ms
 
 // findClosest
 uint8_t
-_ZN3tf29TimeCache11findClosestERPNS_16TransformStorageES3_NSt6chrono10time_pointINS4_3_V212system_clockENS4_8durationIlSt5ratioILl1ELl1000000000EEEEEEPNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE(
+SYMBOL_CONCAT_3(
+  _ZN3tf29TimeCache11findClosestERPNS_16TransformStorage,
+  ES3_NSt6chrono10time_pointINS4_3_V212system_clockENS4_8,
+  durationIlSt5ratioILl1ELl1000000000EEEEEEPNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE
+)(
   void * obj,
-  tf2::TransformStorage * & one,
-  tf2::TransformStorage * & two,
+  tf2::TransformStorage * &one,
+  tf2::TransformStorage * &two,
   tf2::TimePoint target_time,
   std::string * error_str
 )
@@ -1422,10 +1434,12 @@ _ZN3tf29TimeCache11findClosestERPNS_16TransformStorageES3_NSt6chrono10time_point
 }
 
 
-
 // lookupOrInsertFrameNumber
 tf2::CompactFrameID
-_ZN3tf210BufferCore25lookupOrInsertFrameNumberERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE(
+SYMBOL_CONCAT_2(
+  _ZN3tf210BufferCore25lookupOrInsertFrameNumber,
+  ERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE
+)(
   void * obj,
   const std::string frameid_str
 )
@@ -1441,7 +1455,7 @@ _ZN3tf210BufferCore25lookupOrInsertFrameNumberERKNSt7__cxx1112basic_stringIcSt11
   tf2::CompactFrameID ret = ((functionT) orig_func)(obj, frameid_str);
 
   if (controller.is_tf_allowed()) {
-    auto &map = tf_buffer_frame_id_compact_map.get_vars(obj);
+    auto & map = tf_buffer_frame_id_compact_map.get_vars(obj);
 
     if (map.has(frameid_str) == 0) {
       map.set(frameid_str, ret);
@@ -1469,7 +1483,10 @@ _ZN3tf210BufferCore25lookupOrInsertFrameNumberERKNSt7__cxx1112basic_stringIcSt11
 
 // setTransform
 bool
-_ZN3tf210BufferCore12setTransformERKN13geometry_msgs3msg17TransformStamped_ISaIvEEERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEb(
+SYMBOL_CONCAT_2(
+  _ZN3tf210BufferCore12setTransformERKN13geometry_msgs3msg17TransformStamped,
+  _ISaIvEEERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEb
+)(
   void * obj,
   const geometry_msgs::msg::TransformStamped & transform,
   const std::string & authority,
@@ -1512,17 +1529,18 @@ _ZN3tf210BufferCore12setTransformERKN13geometry_msgs3msg17TransformStamped_ISaIv
   bool ret = ((functionT) orig_func)(obj, transform, authority, is_static);
 
   if (controller.is_tf_allowed()) {
-    uint64_t stamp = transform.header.stamp.sec * 1000000000L   + transform.header.stamp.nanosec;
-    auto &map = tf_buffer_frame_id_compact_map.get_vars(obj);
+    uint64_t stamp = transform.header.stamp.sec * 1000000000L + transform.header.stamp.nanosec;
+    auto & map = tf_buffer_frame_id_compact_map.get_vars(obj);
 
-    auto is_frame_id_compact_initialized =  map.has(transform.header.frame_id) && map.has(transform.child_frame_id);
+    auto is_frame_id_compact_initialized = map.has(transform.header.frame_id) && map.has(
+      transform.child_frame_id);
     if (is_frame_id_compact_initialized) {
       static KeysSet<void *, std::string, std::string> tf_set_transform;
 
-      const auto &frame_id = transform.header.frame_id;
-      const auto &child_frame_id = transform.child_frame_id;
+      const auto & frame_id = transform.header.frame_id;
+      const auto & child_frame_id = transform.child_frame_id;
 
-      if(!tf_set_transform.has(obj, frame_id, child_frame_id)) {
+      if (!tf_set_transform.has(obj, frame_id, child_frame_id)) {
         tf_set_transform.insert(obj, frame_id, child_frame_id);
         tracepoint(
           TRACEPOINT_PROVIDER,
@@ -1557,7 +1575,11 @@ _ZN3tf210BufferCore12setTransformERKN13geometry_msgs3msg17TransformStamped_ISaIv
 }
 
 geometry_msgs::msg::TransformStamped
-_ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERKNSt6chrono10time_pointINS9_3_V212system_clockENS9_8durationIlSt5ratioILl1ELl1000000000EEEEEES8_SJ_S8_(
+SYMBOL_CONCAT_3(
+  _ZNK3tf210BufferCore15lookupTransform,
+  ERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERKNSt6chrono10k,
+  time_pointINS9_3_V212system_clockENS9_8durationIlSt5ratioILl1ELl1000000000EEEEEES8_SJ_S8_
+)(
   void * obj,
   const std::string & target_frame,
   const tf2::TimePoint & target_time,
@@ -1602,7 +1624,11 @@ _ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_trai
 
 
 geometry_msgs::msg::TransformStamped
-_ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_RKNSt6chrono10time_pointINS9_3_V212system_clockENS9_8durationIlSt5ratioILl1ELl1000000000EEEEEE(
+SYMBOL_CONCAT_3(
+  _ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_string,
+  IcSt11char_traitsIcESaIcEEES8_RKNSt6chrono10time_pointINS9_3_V212system_clock,
+  ENS9_8durationIlSt5ratioILl1ELl1000000000EEEEEE
+)(
   void * obj,
   const std::string & target_frame,
   const std::string & source_frame,
@@ -1619,14 +1645,14 @@ _ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_trai
 
   static auto & controller = Singleton<TracingController>::get_instance();
 
-  auto &map = tf_buffer_frame_id_compact_map.get_vars(obj);
+  auto & map = tf_buffer_frame_id_compact_map.get_vars(obj);
 
-  auto is_frame_id_compact_initialized =  map.has(target_frame) && map.has(source_frame);
+  auto is_frame_id_compact_initialized = map.has(target_frame) && map.has(source_frame);
   if (controller.is_tf_allowed()) {
-    static KeysSet<void*, std::string, std::string> tf_lookup_transform;
+    static KeysSet<void *, std::string, std::string> tf_lookup_transform;
     if (is_frame_id_compact_initialized) {
-      auto &target_frame_id_compact = map.get(target_frame);
-      auto &source_frame_id_compact = map.get(source_frame);
+      auto & target_frame_id_compact = map.get(target_frame);
+      auto & source_frame_id_compact = map.get(source_frame);
 
       if (!tf_lookup_transform.has(obj, target_frame, source_frame)) {
         tf_lookup_transform.insert(obj, target_frame, source_frame);
@@ -1643,7 +1669,7 @@ _ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_trai
       set_source_frame_id(source_frame_id_compact);
 #ifdef DEBUG_OUTPUT
       auto target_time = std::chrono::time_point_cast<std::chrono::nanoseconds>(
-          time).time_since_epoch().count();
+        time).time_since_epoch().count();
       debug.print(
         "tf_lookup_transform_start",
         obj,
@@ -1701,17 +1727,17 @@ tf2::TimeCacheInterfacePtr _ZNK3tf210BufferCore8getFrameEj(
     frame_id
   );
 
-  auto time_cache =  ret.get();
-  if(time_cache != nullptr && tf_cache_to_buffer_core_map.count(time_cache) == 0) {
-    tf_cache_to_buffer_core_map[time_cache]= obj;
+  auto time_cache = ret.get();
+  if (time_cache != nullptr && tf_cache_to_buffer_core_map.count(time_cache) == 0) {
+    tf_cache_to_buffer_core_map[time_cache] = obj;
   }
 
   return ret;
 }
 
 
-
-inline void tf2_ros_const_buffer(void * obj, rclcpp::Clock::SharedPtr & clock){
+inline void tf2_ros_const_buffer(void * obj, rclcpp::Clock::SharedPtr & clock)
+{
   static auto & controller = Singleton<TracingController>::get_instance();
 
   if (controller.is_tf_allowed()) {
@@ -1735,7 +1761,10 @@ inline void tf2_ros_const_buffer(void * obj, rclcpp::Clock::SharedPtr & clock){
 }
 
 tf2_ros::Buffer *
-_ZN7tf2_ros6BufferC1ESt10shared_ptrIN6rclcpp5ClockEENSt6chrono8durationIlSt5ratioILl1ELl1000000000EEEES1_INS2_4NodeEE(
+SYMBOL_CONCAT_2(
+  _ZN7tf2_ros6BufferC1ESt10shared_ptrIN6rclcpp5,
+  ClockEENSt6chrono8durationIlSt5ratioILl1ELl1000000000EEEES1_INS2_4NodeEE
+)(
   void * obj,
   rclcpp::Clock::SharedPtr clock,
   tf2::Duration cache_time,
@@ -1763,7 +1792,10 @@ _ZN7tf2_ros6BufferC1ESt10shared_ptrIN6rclcpp5ClockEENSt6chrono8durationIlSt5rati
 }
 // tf2_ros::Buffer constructor
 tf2_ros::Buffer *
-_ZN7tf2_ros6BufferC2ESt10shared_ptrIN6rclcpp5ClockEENSt6chrono8durationIlSt5ratioILl1ELl1000000000EEEES1_INS2_4NodeEE(
+SYMBOL_CONCAT_2(
+  _ZN7tf2_ros6BufferC2ESt10shared_ptrIN6rclcpp5Clock,
+  EENSt6chrono8durationIlSt5ratioILl1ELl1000000000EEEES1_INS2_4NodeEE
+)(
   void * obj,
   rclcpp::Clock::SharedPtr clock,
   tf2::Duration cache_time,
@@ -1881,15 +1913,15 @@ void _ZN6rclcpp12experimental19IntraProcessManagerC1Ev(
 }
 
 // ipm add_publisher
-uint64_t _ZN6rclcpp12experimental19IntraProcessManager13add_publisherESt10shared_ptrINS_13PublisherBaseEE
-(
+uint64_t
+_ZN6rclcpp12experimental19IntraProcessManager13add_publisherESt10shared_ptrINS_13PublisherBaseEE(
   void * obj,
   rclcpp::PublisherBase::SharedPtr publisher
 )
 {
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = uint64_t (*)(void *, rclcpp::PublisherBase::SharedPtr);
-  uint64_t ret =  ((functionT) orig_func)(obj, publisher);
+  uint64_t ret = ((functionT) orig_func)(obj, publisher);
 
   auto publisher_handle = publisher->get_publisher_handle().get();
   tracepoint(TRACEPOINT_PROVIDER, ipm_add_publisher, obj, publisher_handle, ret);
@@ -1901,15 +1933,19 @@ uint64_t _ZN6rclcpp12experimental19IntraProcessManager13add_publisherESt10shared
 }
 
 // ipm add_subscription
-uint64_t _ZN6rclcpp12experimental19IntraProcessManager16add_subscriptionESt10shared_ptrINS0_28SubscriptionIntraProcessBaseEE
-(
+uint64_t
+SYMBOL_CONCAT_2(
+  _ZN6rclcpp12experimental19IntraProcessManager16add_subscriptionESt10,
+  shared_ptrINS0_28SubscriptionIntraProcessBaseEE
+) (
   void * obj,
   rclcpp::experimental::SubscriptionIntraProcessBase::SharedPtr subscription
 )
 {
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
-  using functionT = uint64_t (*)(void *, rclcpp::experimental::SubscriptionIntraProcessBase::SharedPtr);
-  uint64_t ret =  ((functionT) orig_func)(obj, subscription);
+  using functionT =
+    uint64_t (*)(void *, rclcpp::experimental::SubscriptionIntraProcessBase::SharedPtr);
+  uint64_t ret = ((functionT) orig_func)(obj, subscription);
 
   auto subscription_handle = get_subscription_handle();
 
@@ -1922,13 +1958,13 @@ uint64_t _ZN6rclcpp12experimental19IntraProcessManager16add_subscriptionESt10sha
 }
 
 // ipm insert_sub_id_for_pub
-void _ZN6rclcpp12experimental19IntraProcessManager21insert_sub_id_for_pubEmmb
-(
+void _ZN6rclcpp12experimental19IntraProcessManager21insert_sub_id_for_pubEmmb(
   void * obj,
   uint64_t sub_id,
   uint64_t pub_id,
   bool use_take_shared_method
-){
+)
+{
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(void *, uint64_t, uint64_t, bool);
   ((functionT) orig_func)(obj, sub_id, pub_id, use_take_shared_method);
@@ -1956,7 +1992,8 @@ rcl_ret_t rcl_timer_cancel(rcl_timer_t * timer)
   return ret;
 }
 
-rcl_ret_t rcl_timer_reset(rcl_timer_t * timer) {
+rcl_ret_t rcl_timer_reset(rcl_timer_t * timer)
+{
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = rcl_ret_t (*)(rcl_timer_t *);
   rcl_ret_t ret = ((functionT) orig_func)(timer);

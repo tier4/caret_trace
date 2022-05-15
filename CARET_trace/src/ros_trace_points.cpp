@@ -19,6 +19,9 @@
 #include <iomanip>
 #include <string>
 #include <mutex>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
 
 #include "caret_trace/tp.h"
 #include "caret_trace/tracing_controller.hpp"
@@ -191,10 +194,8 @@ void ros_trace_callback_start(const void * callback, bool is_intra_process)
 {
   static auto & controller = Singleton<TracingController>::get_instance();
 
-
   set_callback(callback);
   if (controller.is_allowed_callback(callback)) {
-
     set_callback_start(trace_clock_read64_monotonic());
     set_is_intra_process(is_intra_process);
 #ifdef DEBUG_OUTPUT
@@ -483,13 +484,13 @@ void ros_trace_ring_buffer_enqueue(
   if (controller.is_allowed_publisher_handle(publisher_handle)) {
     ((functionT) orig_func)(buffer, message, size, is_full);
 #ifdef DEBUG_OUTPUT
-  debug.print(
-    "ring_buffer_enqueue",
-    buffer,
-    message,
-    size,
-    is_full
-  );
+    debug.print(
+      "ring_buffer_enqueue",
+      buffer,
+      message,
+      size,
+      is_full
+    );
 #endif
   }
 }
@@ -637,8 +638,6 @@ void ros_trace_message_construct(
   const void * original_message,
   const void * constructed_message)
 {
-
-
   debug.print("message_construct", original_message, constructed_message);
 }
 #endif
