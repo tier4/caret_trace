@@ -23,6 +23,7 @@
 #include "caret_trace/tp.h"
 #include "caret_trace/tracing_controller.hpp"
 #include "caret_trace/singleton.hpp"
+#include "caret_trace/clock.hpp"
 #include "caret_trace/debug.hpp"
 #include "caret_trace/thread_local.hpp"
 
@@ -185,16 +186,17 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
   }
 }
 
+
 void ros_trace_callback_start(const void * callback, bool is_intra_process)
 {
   static auto & controller = Singleton<TracingController>::get_instance();
 
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
-  using functionT = void (*)(const void *, bool);
 
   set_callback(callback);
   if (controller.is_allowed_callback(callback)) {
-    ((functionT) orig_func)(callback, is_intra_process);
+
+    set_callback_start(trace_clock_read64_monotonic());
+    set_is_intra_process(is_intra_process);
 #ifdef DEBUG_OUTPUT
     debug.print(
       "callback_start",
@@ -208,12 +210,37 @@ void ros_trace_callback_start(const void * callback, bool is_intra_process)
 void ros_trace_callback_end(const void * callback)
 {
   static auto & controller = Singleton<TracingController>::get_instance();
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  // static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
   unset_callback();
-  using functionT = void (*)(const void *);
+  auto callback_end = trace_clock_read64_monotonic();
+
   if (controller.is_allowed_callback(callback)) {
-    ((functionT) orig_func)(callback);
+    if (get_is_intra_process()) {
+      tracepoint(
+        TRACEPOINT_PROVIDER,
+        intra_callback_duration,
+        callback,
+        get_callback_start(),
+        callback_end,
+        get_message_stamp()
+      );
+    } else {
+      tracepoint(
+        TRACEPOINT_PROVIDER,
+        inter_callback_duration,
+        callback,
+        get_callback_start(),
+        callback_end,
+        get_source_stamp(),
+        get_message_stamp()
+      );
+    }
+
+    set_callback_start(0);
+    set_source_stamp(0);
+    set_message_stamp(0);
+    set_is_intra_process(false);
 
 #ifdef DEBUG_OUTPUT
     debug.print(
@@ -230,12 +257,12 @@ void ros_trace_dispatch_subscription_callback(
   const uint64_t source_timestamp,
   const uint64_t message_timestamp)
 {
+  (void) message;
   static auto & controller = Singleton<TracingController>::get_instance();
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
-  using functionT = void (*)(const void *, const void *, const uint64_t, const uint64_t);
   if (controller.is_allowed_callback(callback)) {
-    ((functionT) orig_func)(message, callback, source_timestamp, message_timestamp);
+    set_source_stamp(source_timestamp);
+    set_message_stamp(message_timestamp);
 
 #ifdef DEBUG_OUTPUT
     debug.print(
@@ -252,12 +279,11 @@ void ros_trace_dispatch_intra_process_subscription_callback(
   const void * callback,
   const uint64_t message_timestamp)
 {
+  (void) message;
   static auto & controller = Singleton<TracingController>::get_instance();
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
-  using functionT = void (*)(const void *, const void *, const uint64_t);
   if (controller.is_allowed_callback(callback)) {
-    ((functionT) orig_func)(message, callback, message_timestamp);
+    set_message_stamp(message_timestamp);
 
 #ifdef DEBUG_OUTPUT
     debug.print(
@@ -279,13 +305,15 @@ void ros_trace_rclcpp_publish(
   const void * message,
   const uint64_t message_timestamp)
 {
+  (void) message;
+  (void) message_timestamp;
+
   static auto & controller = Singleton<TracingController>::get_instance();
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  set_publisher_handle(publisher_handle);
 
-  using functionT = void (*)(const void *, const void *, const uint64_t);
   if (controller.is_allowed_publisher_handle(publisher_handle)) {
-
-    ((functionT) orig_func)(publisher_handle, message, message_timestamp);
+    set_rclcpp_publish(trace_clock_read64_monotonic());
+    set_message_stamp(message_timestamp);
 
 #ifdef DEBUG_OUTPUT
     auto cb = get_callback();
@@ -315,13 +343,19 @@ void ros_trace_rclcpp_intra_publish(
   const void * message,
   const uint64_t message_timestamp)
 {
+  (void) message;
+  (void) message_timestamp;
   static auto & controller = Singleton<TracingController>::get_instance();
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
-  using functionT = void (*)(const void *, const void *, const uint64_t message_timestamp);
+  set_publisher_handle(publisher_handle);
 
   if (controller.is_allowed_publisher_handle(publisher_handle)) {
-    ((functionT) orig_func)(publisher_handle, message, message_timestamp);
+    tracepoint(
+      TRACEPOINT_PROVIDER,
+      rclcpp_intra_publish,
+      publisher_handle,
+      message_timestamp
+    );
 #ifdef DEBUG_OUTPUT
     debug.print(
       "bind_callback_and_publisher",
@@ -417,12 +451,11 @@ void ros_trace_rcl_publish(
   const void * publisher_handle,
   const void * message)
 {
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  (void) message;
   static auto & controller = Singleton<TracingController>::get_instance();
 
-  using functionT = void (*)(const void *, const void *);
   if (controller.is_allowed_publisher_handle(publisher_handle)) {
-    ((functionT) orig_func)(publisher_handle, message);
+    set_rcl_publish(trace_clock_read64_monotonic());
 #ifdef DEBUG_OUTPUT
     debug.print(
       "rcl_publish",
@@ -432,6 +465,70 @@ void ros_trace_rcl_publish(
 #endif
   }
 }
+
+void ros_trace_ring_buffer_enqueue(
+  const void * buffer,
+  const void * message,
+  const size_t size,
+  const bool is_full
+)
+{
+  (void) buffer;
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+
+  const auto & publisher_handle = get_publisher_handle();
+  static auto & controller = Singleton<TracingController>::get_instance();
+  using functionT = void (*)(const void *, const void *, size_t, bool);
+
+  if (controller.is_allowed_publisher_handle(publisher_handle)) {
+    ((functionT) orig_func)(buffer, message, size, is_full);
+#ifdef DEBUG_OUTPUT
+  debug.print(
+    "ring_buffer_enqueue",
+    buffer,
+    message,
+    size,
+    is_full
+  );
+#endif
+  }
+}
+
+#ifdef DEBUG_OUTPUT
+void ros_trace_ring_buffer_dequeue(
+  const void * buffer,
+  const void * message,
+  const size_t size
+)
+{
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(const void *, const void *, size_t);
+  ((functionT) orig_func)(buffer, message, size);
+
+  debug.print(
+    "ring_buffer_dequeue",
+    buffer,
+    message,
+    size
+  );
+}
+#endif
+
+#ifdef DEBUG_OUTPUT
+void ros_trace_ring_buffer_clear(
+  const void * buffer
+)
+{
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(const void *);
+  ((functionT) orig_func)(buffer);
+
+  debug.print(
+    "ring_buffer_clear",
+    buffer
+  );
+}
+#endif
 
 #ifdef DEBUG_OUTPUT
 void ros_trace_rcl_service_init(
@@ -540,9 +637,6 @@ void ros_trace_message_construct(
   const void * original_message,
   const void * constructed_message)
 {
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
-  using functionT = void (*)(const void *, const void *);
-  ((functionT) orig_func)(original_message, constructed_message);
 
 
   debug.print("message_construct", original_message, constructed_message);

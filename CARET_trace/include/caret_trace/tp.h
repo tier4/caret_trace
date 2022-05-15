@@ -43,42 +43,6 @@ TRACEPOINT_EVENT(
   )
 )
 
-TRACEPOINT_EVENT(
-  TRACEPOINT_PROVIDER,
-  dds_write,
-  TP_ARGS(
-    const void *, message_arg
-  ),
-  TP_FIELDS(
-    ctf_integer_hex(const void *, message, message_arg)
-  )
-)
-
-TRACEPOINT_EVENT(
-  TRACEPOINT_PROVIDER,
-  dds_bind_addr_to_stamp,
-  TP_ARGS(
-    const void *, addr_arg,
-    const uint64_t, source_stamp_arg
-  ),
-  TP_FIELDS(
-    ctf_integer_hex(const void *, addr, addr_arg)
-    ctf_integer(const uint64_t *, source_stamp, source_stamp_arg)
-  )
-)
-
-TRACEPOINT_EVENT(
-  TRACEPOINT_PROVIDER,
-  dds_bind_addr_to_addr,
-  TP_ARGS(
-    const void *, addr_from_arg,
-    const void *, addr_to_arg
-  ),
-  TP_FIELDS(
-    ctf_integer_hex(const void *, addr_from, addr_from_arg)
-    ctf_integer_hex(const void *, addr_to, addr_to_arg)
-  )
-)
 
 TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
@@ -315,22 +279,6 @@ TRACEPOINT_EVENT(
   )
 )
 
-TRACEPOINT_EVENT(
-  TRACEPOINT_PROVIDER,
-  tf_lookup_transform_start,
-  TP_ARGS(
-    const void *, tf_buffer_core_arg,
-    const uint64_t, target_time_arg,
-    const uint32_t, target_frame_id_compact_arg,
-    const uint32_t, source_frame_id_compact_arg
-  ),
-  TP_FIELDS(
-    ctf_integer_hex(const void *, tf_buffer_core, tf_buffer_core_arg)
-    ctf_integer(const uint64_t, target_time, target_time_arg)
-    ctf_integer(const uint32_t, target_frame_id_compact, target_frame_id_compact_arg)
-    ctf_integer(const uint32_t, source_frame_id_compact, source_frame_id_compact_arg)
-  )
-)
 
 TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
@@ -364,12 +312,18 @@ TRACEPOINT_EVENT(
 
 TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
-  tf_lookup_transform_end,
+  tf_lookup_transform,
   TP_ARGS(
-    const void *, tf_buffer_core_arg
+    const void *, tf_buffer_core_arg,
+    const uint64_t, lookup_transform_start_raw_arg,
+    const uint32_t, target_frame_id_compact_arg,
+    const uint32_t, source_frame_id_compact_arg
   ),
   TP_FIELDS(
     ctf_integer_hex(const void *, tf_buffer_core, tf_buffer_core_arg)
+    ctf_integer(const uint64_t, lookup_transform_start_raw, lookup_transform_start_raw_arg)
+    ctf_integer(const uint32_t, target_frame_id_compact, target_frame_id_compact_arg)
+    ctf_integer(const uint32_t, source_frame_id_compact, source_frame_id_compact_arg)
   )
 )
 
@@ -514,6 +468,76 @@ TRACEPOINT_EVENT(
   ),
   TP_FIELDS(
     ctf_integer_hex(const void *, timer_handle, timer_handle_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  inter_callback_duration,
+  TP_ARGS(
+    const void *, callback_arg,
+    const uint64_t, callback_start_raw_arg,
+    const uint64_t, callback_end_raw_arg,
+    const uint64_t, source_timestamp_arg,
+    const uint64_t, message_stamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, callback, callback_arg)
+    ctf_integer(const uint64_t, callback_start_raw, callback_start_raw_arg)
+    ctf_integer(const uint64_t, callback_end_raw, callback_end_raw_arg)
+    ctf_integer(const uint64_t, source_timestamp, source_timestamp_arg)
+    ctf_integer(const uint64_t, message_stamp, message_stamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  intra_callback_duration,
+  TP_ARGS(
+    const void *, callback_arg,
+    const uint64_t, callback_start_raw_arg,
+    const uint64_t, callback_end_raw_arg,
+    const uint64_t, message_stamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, callback, callback_arg)
+    ctf_integer(const uint64_t, callback_start_raw, callback_start_raw_arg)
+    ctf_integer(const uint64_t, callback_end_raw, callback_end_raw_arg)
+    ctf_integer(const uint64_t, message_stamp, message_stamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  inter_publish,
+  TP_ARGS(
+    const void *, publisher_handle_arg,
+    const uint64_t, message_stamp_arg,
+    const uint64_t, rclcpp_publish_raw_arg,
+    const uint64_t, rcl_publish_raw_arg,
+    const uint64_t, dds_write_raw_arg,
+    const uint64_t, source_stamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, publisher_handle, publisher_handle_arg)
+    ctf_integer(const uint64_t, message_stamp, message_stamp_arg)
+    ctf_integer(const uint64_t, rclcpp_publish_raw, rclcpp_publish_raw_arg)
+    ctf_integer(const uint64_t, rcl_publish_raw, rcl_publish_raw_arg)
+    ctf_integer(const uint64_t, dds_write_raw, dds_write_raw_arg)
+    ctf_integer(const uint64_t, source_stamp, source_stamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rclcpp_intra_publish,
+  TP_ARGS(
+    const void *, publisher_handle_arg,
+    const uint64_t, message_stamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, publisher_handle, publisher_handle_arg)
+    ctf_integer(const uint64_t, message_stamp, message_stamp_arg)
   )
 )
 

@@ -29,6 +29,7 @@
 #include "caret_trace/tracing_controller.hpp"
 #include "caret_trace/singleton.hpp"
 #include "caret_trace/virtual_member_variable.hpp"
+#include "caret_trace/clock.hpp"
 
 #include "rcl/rcl.h"
 #include "rmw/rmw.h"
@@ -45,7 +46,7 @@
 #include "rclcpp/experimental/intra_process_manager.hpp"
 
 
-#define DEBUG_OUTPUT
+// #define DEBUG_OUTPUT
 
 #define STRINGIFY_(s) #s
 #define STRINGIFY(s) STRINGIFY_(s)
@@ -685,14 +686,29 @@ int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
   }
   int dds_return = ((functionT) CYCLONEDDS::DDS_WRITE_IMPL)(wr, data, tstamp, action);
 
-  tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, data, tstamp);
+  const auto & publisher_handle = get_publisher_handle();
+  static auto & controller = Singleton<TracingController>::get_instance();
+
+  if (publisher_handle != 0 && controller.is_allowed_publisher_handle(publisher_handle)) {
+    tracepoint(
+      TRACEPOINT_PROVIDER,
+      inter_publish,
+      publisher_handle,
+      get_message_stamp(),
+      get_rclcpp_publish(),
+      get_rcl_publish(),
+      get_dds_write(),
+      tstamp
+    );
+
 #ifdef DEBUG_OUTPUT
-  debug.print(
-    "dds_bind_addr_to_stamp",
-    data,
-    std::to_string(tstamp)
-  );
+    debug.print(
+      "dds_bind_addr_to_stamp",
+      data,
+      std::to_string(tstamp)
+    );
 #endif
+  }
   return dds_return;
 }
 
@@ -792,7 +808,7 @@ dds_return_t dds_write(dds_entity_t writer, const void * data)
   using functionT = dds_return_t (*)(dds_entity_t, const void *);
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
-  tracepoint(TRACEPOINT_PROVIDER, dds_write, data);
+  set_dds_write(trace_clock_read64_monotonic());
 #ifdef DEBUG_OUTPUT
   debug.print("dds_write", data);
 #endif
@@ -819,7 +835,7 @@ void _ZThn8_N11SubListener17on_data_availableEPN8eprosima7fastdds3dds10DataReade
       // Omit the output of a tracepoint for the same message.
       // This is to reduce the output, so it does not need to be strict.
       if (timestamp_ns != last_timestamp_ns) {
-        tracepoint(TRACEPOINT_PROVIDER, on_data_available, timestamp_ns);
+        // tracepoint(TRACEPOINT_PROVIDER, on_data_available, timestamp_ns);
 #ifdef DEBUG_OUTPUT
         debug.print("on_data_available", timestamp_ns);
 #endif
@@ -837,10 +853,10 @@ bool _ZN8eprosima7fastdds3dds10DataWriter5writeEPv(void * obj, void * data)
 {
   using functionT = bool (*)(void *, void *);
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
-  auto ser_data = static_cast<rmw_fastrtps_shared_cpp::SerializedData *>(data);
 
-  tracepoint(TRACEPOINT_PROVIDER, dds_write, ser_data->data);
+  set_dds_write(trace_clock_read64_monotonic());
 #ifdef DEBUG_OUTPUT
+  auto ser_data = static_cast<rmw_fastrtps_shared_cpp::SerializedData *>(data);
   debug.print("dds_write", ser_data->data);
 #endif
 
@@ -856,47 +872,15 @@ bool _ZN8eprosima7fastdds3dds10DataWriter5writeEPvRNS_8fastrtps4rtps11WriteParam
 {
   using functionT = bool (*)(void *, void *, eprosima::fastrtps::rtps::WriteParams &);
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
-  auto ser_data = static_cast<rmw_fastrtps_shared_cpp::SerializedData *>(data);
 
-  tracepoint(TRACEPOINT_PROVIDER, dds_write, ser_data->data);
+  set_dds_write(trace_clock_read64_monotonic());
 #ifdef DEBUG_OUTPUT
+  auto ser_data = static_cast<rmw_fastrtps_shared_cpp::SerializedData *>(data);
   debug.print("dds_write", ser_data->data);
 #endif
   return ((functionT) orig_func)(obj, data, params);
 }
 
-
-// In fastrtps, there is no place for ros_message and source_timestamp to be in the same function.
-// In order to bind ros_message and source_timestamp, the address of payload is used.
-// The bind from &payload to source_timestamp is done by unsent_change_added_to_history.
-// bind: &ros_message -> &payload
-// rmw_fastrtps_shared_cpp::TypeSupport::serialize(void*, eprosima::fastrtps::rtps::SerializedPayload_t*)   // NOLINT
-bool SYMBOL_CONCAT_2(
-  _ZN23rmw_fastrtps_shared_cpp11TypeSupport9serialize,
-  EPvPN8eprosima8fastrtps4rtps19SerializedPayload_tE)(
-  // NOLINT
-  void * obj, void * data, eprosima::fastrtps::rtps::SerializedPayload_t * payload)
-{
-  using functionT = bool (*)(void *, void *, eprosima::fastrtps::rtps::SerializedPayload_t *);
-
-  auto ser_data = static_cast<rmw_fastrtps_shared_cpp::SerializedData *>(data);
-  auto payload_ptr = static_cast<void *>(payload->data);
-  if (FASTDDS::SERIALIZE == nullptr) {
-    update_dds_function_addr();
-  }
-  auto ret = ((functionT) FASTDDS::SERIALIZE)(obj, data, payload);
-
-  tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_addr, ser_data->data, payload_ptr);
-#ifdef DEBUG_OUTPUT
-  debug.print(
-    "dds_bind_addr_to_addr",
-    ser_data->data,
-    payload_ptr
-  );
-#endif
-
-  return ret;
-}
 
 // for fastrtps
 // bind: &payload -> source_timestamp
@@ -917,13 +901,26 @@ void SYMBOL_CONCAT_3(
     const std::chrono::time_point<std::chrono::steady_clock> &);
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
-  auto payload_data_ptr = static_cast<void *>(change->serializedPayload.data);
   auto source_timestamp = change->sourceTimestamp.to_ns();
 
   ((functionT) orig_func)(obj, change, max_blocking_time);
 
-  tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, payload_data_ptr, source_timestamp);
+  static auto & controller = Singleton<TracingController>::get_instance();
+  const auto & publisher_handle = get_publisher_handle();
+  if (publisher_handle != 0 && controller.is_allowed_publisher_handle(publisher_handle)) {
+    tracepoint(
+      TRACEPOINT_PROVIDER,
+      inter_publish,
+      publisher_handle,
+      get_message_stamp(),
+      get_rclcpp_publish(),
+      get_rcl_publish(),
+      get_dds_write(),
+      source_timestamp
+    );
+  }
 #ifdef DEBUG_OUTPUT
+  auto payload_data_ptr = static_cast<void *>(change->serializedPayload.data);
   debug.print(
     "dds_bind_addr_to_stamp",
     payload_data_ptr,
@@ -952,13 +949,25 @@ void SYMBOL_CONCAT_3(
     const std::chrono::time_point<std::chrono::steady_clock> &);
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
-  auto payload_data_ptr = static_cast<void *>(change->serializedPayload.data);
   auto source_timestamp = change->sourceTimestamp.to_ns();
 
   ((functionT) orig_func)(obj, change, max_blocking_time);
 
-  tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, payload_data_ptr, source_timestamp);
+  static auto & controller = Singleton<TracingController>::get_instance();
+  const auto & publisher_handle = get_publisher_handle();
+  if (publisher_handle != 0 && controller.is_allowed_publisher_handle(publisher_handle)) {
+    tracepoint(
+      TRACEPOINT_PROVIDER,
+      inter_publish,
+      publisher_handle,
+      get_message_stamp(),
+      get_rclcpp_publish(),
+      get_rcl_publish(),
+      get_dds_write(),
+      source_timestamp);
+  }
 #ifdef DEBUG_OUTPUT
+  auto payload_data_ptr = static_cast<void *>(change->serializedPayload.data);
   debug.print("dds_bind_addr_to_stamp", payload_data_ptr, source_timestamp);
 #endif
 }
@@ -1611,7 +1620,6 @@ _ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_trai
   static auto & controller = Singleton<TracingController>::get_instance();
 
   auto &map = tf_buffer_frame_id_compact_map.get_vars(obj);
-  auto target_time = std::chrono::time_point_cast<std::chrono::nanoseconds>(time).time_since_epoch().count();
 
   auto is_frame_id_compact_initialized =  map.has(target_frame) && map.has(source_frame);
   if (controller.is_tf_allowed()) {
@@ -1630,15 +1638,12 @@ _ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_trai
           source_frame.c_str()
         );
       }
-      tracepoint(
-        TRACEPOINT_PROVIDER,
-        tf_lookup_transform_start,
-        obj,
-        target_time,
-        target_frame_id_compact,
-        source_frame_id_compact
-      );
+      set_lookup_transform_start(trace_clock_read64_monotonic());
+      set_target_frame_id(target_frame_id_compact);
+      set_source_frame_id(source_frame_id_compact);
 #ifdef DEBUG_OUTPUT
+      auto target_time = std::chrono::time_point_cast<std::chrono::nanoseconds>(
+          time).time_since_epoch().count();
       debug.print(
         "tf_lookup_transform_start",
         obj,
@@ -1661,8 +1666,11 @@ _ZNK3tf210BufferCore15lookupTransformERKNSt7__cxx1112basic_stringIcSt11char_trai
     if (is_frame_id_compact_initialized) {
       tracepoint(
         TRACEPOINT_PROVIDER,
-        tf_lookup_transform_end,
-        obj
+        tf_lookup_transform,
+        obj,
+        get_lookup_transform_start(),
+        get_target_frame_id(),
+        get_source_frame_id()
       );
 #ifdef DEBUG_OUTPUT
       debug.print(
