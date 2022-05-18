@@ -21,7 +21,7 @@
   <depend>fastrtps</depend>
 
   <!-- <depend>python3-babeltrace</depend> -->
-  <depend>python3-lttng</depend>
+  <!-- <depend>python3-lttng</depend> -->
   <depend>lttng-tools</depend>
   <depend>liblttng-ust-dev</depend>
 
