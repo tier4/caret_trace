@@ -20,10 +20,8 @@
   <depend>cyclonedds</depend>
   <depend>fastrtps</depend>
 
-  <!-- <depend>python3-babeltrace</depend> -->
-  <!-- <depend>python3-lttng</depend> -->
   <!-- <depend>lttng-tools</depend> -->
-  <!-- <depend>liblttng-ust-dev</depend> -->
+  <depend>liblttng-ust-dev</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
