@@ -20,7 +20,6 @@
   <depend>cyclonedds</depend>
   <depend>fastrtps</depend>
 
-  <!-- <depend>lttng-tools</depend> -->
   <depend>liblttng-ust-dev</depend>
   
   <test_depend>ament_lint_auto</test_depend>
