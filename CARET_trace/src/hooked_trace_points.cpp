@@ -59,7 +59,6 @@ namespace CYCLONEDDS
 {
 void * DDS_WRITE_IMPL;
 static dds_listener_t * LISTENER;
-static uint8_t DUMMY_BUF[] = {0};  // Dummy buffer for retrieving message info
 }
 
 // fortrtps用
@@ -240,91 +239,9 @@ int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
   return dds_return;
 }
 
-// For cyclone_dds
-// measure the time when the DDS communication is completed.
-static void on_data_available(dds_entity_t reader, void * arg)
-{
-  (void) on_data_available;
-  (void) arg;
-  static uint64_t last_timestamp_ns;
-  dds_sample_info_t si;
-  void * buf_ptr[] = {&CYCLONEDDS::DUMMY_BUF};
 
-  // cyclonedds does not have an API to get only message info.
-  // Therefore, we use a dummy message buffer to get the message.
-  // However, an error will occur when deserializing.
-  // I also added a hook to avoid this error.
-  dds_read(reader, reinterpret_cast<void **>(&buf_ptr), &si, 1, 1);
-  uint64_t timestamp_ns = si.source_timestamp;
-
-  // Omit the output of the trace points for the same message.
-  // This is to reduce the output, so it does not need to be strict.
-  if (timestamp_ns != last_timestamp_ns) {
-    tracepoint(TRACEPOINT_PROVIDER, on_data_available, timestamp_ns);
-#ifdef DEBUG_OUTPUT
-    std::cerr << "on_data_available," << timestamp_ns << std::endl;
-#endif
-  }
-  last_timestamp_ns = timestamp_ns;
-}
-
-// Configuration to run on_data_available
-// By setting the listener to the parent, the child entities will inherit it.
-dds_entity_t dds_create_subscriber(
-  dds_entity_t participant,
-  const dds_qos_t * qos,
-  const dds_listener_t * listener
-)
-{
-  using functionT = dds_entity_t (*)(
-    const dds_domainid_t, const dds_qos_t *,
-    const dds_listener_t *);
-
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
-
-  if (listener) {
-    RCLCPP_WARN(
-      rclcpp::get_logger("caret"),
-      "dds_create_participant passes non-null listener."
-      "caret implementation assumes listener = nullptr.");
-  }
-
-  CYCLONEDDS::LISTENER = dds_create_listener(nullptr);
-
-  // disable on_data_available hook
-  // dds_lset_data_available(CYCLONEDDS::LISTENER, &on_data_available);
-
-  return ((functionT) orig_func)(participant, qos, CYCLONEDDS::LISTENER);
-}
-
-// For CycloneDDS
-// Configuration to run on_data_available.
-dds_return_t dds_waitset_attach(
-  dds_entity_t waitset,
-  dds_entity_t entity,
-  dds_attach_t x)
-{
-  using functionT = dds_return_t (*)(dds_entity_t, dds_entity_t, dds_attach_t);
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
-
-  // disable on_data_available hook
-  // dds_set_status_mask(entity, DDS_DATA_AVAILABLE_STATUS);
-
-  return ((functionT) orig_func)(waitset, entity, x);
-}
-
-// Skip deserialize when a dummy buffer for getting message info is received.
-bool ddsi_serdata_to_sample(
-  const struct ddsi_serdata * d, void * sample, void ** bufptr,
-  void * buflim)
 {
   using functionT = bool (*)(const struct ddsi_serdata *, void *, void **, void *);
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
-  if (sample == &CYCLONEDDS::DUMMY_BUF) {
-    return true;
-  }
-  return ((functionT) orig_func)(d, sample, bufptr, buflim);
-}
 
 // for cyclonedds
 // For measuring rcl layers.
@@ -338,38 +255,6 @@ dds_return_t dds_write(dds_entity_t writer, const void * data)
   std::cerr << "dds_write," << data << std::endl;
 #endif
   return ((functionT) orig_func)(writer, data);
-}
-
-// for fstartps
-// measure the time when the DDS communication is completed.
-// SubListener::on_data_available(eprosima::fastdds::dds::DataReader*)
-void _ZThn8_N11SubListener17on_data_availableEPN8eprosima7fastdds3dds10DataReaderE(
-  void * obj,
-  eprosima::fastdds::dds::DataReader * reader)
-{
-  static uint64_t last_timestamp_ns;
-  using functionT = void (*)(void *, eprosima::fastdds::dds::DataReader *);
-
-  eprosima::fastdds::dds::SampleInfo sinfo;
-  ((functionT) FASTDDS::ON_DATA_AVAILABLE)(obj, reader);
-
-  // fastrps has an API to get the info directly, so use it.
-  if (reader->get_first_untaken_info(&sinfo) == ReturnCode_t::RETCODE_OK) {
-    if (sinfo.valid_data) {
-      uint64_t timestamp_ns = sinfo.source_timestamp.to_ns();
-      // Omit the output of a tracepoint for the same message.
-      // This is to reduce the output, so it does not need to be strict.
-      if (timestamp_ns != last_timestamp_ns) {
-        tracepoint(TRACEPOINT_PROVIDER, on_data_available, timestamp_ns);
-#ifdef DEBUG_OUTPUT
-        std::cerr << "on_data_available," << timestamp_ns << std::endl;
-#endif
-      }
-      last_timestamp_ns = timestamp_ns;
-    } else {
-      RCLCPP_WARN(rclcpp::get_logger("caret"), "failed to get message info");
-    }
-  }
 }
 
 // for fastrtps
