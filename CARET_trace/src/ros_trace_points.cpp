@@ -19,6 +19,7 @@
 #include <iomanip>
 #include <string>
 
+#include "caret_trace/tp.h"
 #include "caret_trace/tracing_controller.hpp"
 #include "caret_trace/singleton.hpp"
 
@@ -480,4 +481,15 @@ void ros_trace_message_construct(
     constructed_message << std::endl;
 }
 #endif
+void ros_trace_rmw_publish(
+  const void * message
+)
+{
+  tracepoint(TRACEPOINT_PROVIDER, dds_write, message);
+#ifdef DEBUG_OUTPUT
+  std::cerr << "rmw_publish," <<
+    message << "," << std::endl;
+#endif
+}
+
 }

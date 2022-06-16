@@ -37,16 +37,10 @@
 
 // #define DEBUG_OUTPUT
 
+#include "fastdds/rtps/common/CacheChange.h"
+
 #define STRINGIFY_(s) #s
 #define STRINGIFY(s) STRINGIFY_(s)
-
-// for fastrtps
-#include "fastdds/rtps/common/WriteParams.h"
-#include "fastdds/dds/subscriber/DataReader.hpp"
-#include "rmw_fastrtps_shared_cpp/TypeSupport.hpp"
-
-// for cyclonedds
-#include "dds/dds.h"
 
 #define SYMBOL_CONCAT_2(x, y)  x ## y
 #define SYMBOL_CONCAT_3(x, y, z)  x ## y ## z
@@ -58,14 +52,12 @@ rmw_ret_t rmw_get_gid_for_publisher(const rmw_publisher_t * publisher, rmw_gid_t
 namespace CYCLONEDDS
 {
 void * DDS_WRITE_IMPL;
-static dds_listener_t * LISTENER;
 }
 
 // fortrtps用
 namespace FASTDDS
 {
-static void * ON_DATA_AVAILABLE;
-static void * SERIALIZE;
+static void * SET_FRAGMENTS;
 }
 
 
@@ -209,13 +201,9 @@ void update_dds_function_addr()
   tracepoint(TRACEPOINT_PROVIDER, rmw_implementation, env_var.c_str());
 
   if (env_var == "rmw_fastrtps_cpp") {
-    // SubListener::on_data_available(eprosima::fastdds::dds::DataReader*)
-    FASTDDS::ON_DATA_AVAILABLE = lib->get_symbol(
-      "_ZThn8_N11SubListener17on_data_availableEPN8eprosima7fastdds3dds10DataReaderE");
-
-    // rmw_fastrtps_shared_cpp::TypeSupport::serialize(void*, eprosima::fastrtps::rtps::SerializedPayload_t*)  // NOLINT
-    FASTDDS::SERIALIZE = lib->get_symbol(
-      "_ZN23rmw_fastrtps_shared_cpp11TypeSupport9serializeEPvPN8eprosima8fastrtps4rtps19SerializedPayload_tE");  // NOLINT
+    // // rmw_fastrtps_shared_cpp::TypeSupport::serialize(void*, eprosima::fastrtps::rtps::SerializedPayload_t*)  // NOLINT
+    FASTDDS::SET_FRAGMENTS = lib->get_symbol(
+      "_ZN8eprosima8fastrtps4rtps13WriterHistory13set_fragmentsEPNS1_13CacheChange_tE");  // NOLINT
   } else if (env_var == "rmw_cyclonedds_cpp") {
     CYCLONEDDS::DDS_WRITE_IMPL = lib->get_symbol("dds_write_impl");
   }
@@ -240,145 +228,18 @@ int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
 }
 
 
+// for fastdds
+// bind : &ros_message -> source_timestamp
+bool _ZN8eprosima8fastrtps4rtps13WriterHistory13set_fragmentsEPNS1_13CacheChange_tE (
+  void *obj, eprosima::fastrtps::rtps::CacheChange_t* change)
 {
-  using functionT = bool (*)(const struct ddsi_serdata *, void *, void **, void *);
-
-// for cyclonedds
-// For measuring rcl layers.
-dds_return_t dds_write(dds_entity_t writer, const void * data)
-{
-  using functionT = dds_return_t (*)(dds_entity_t, const void *);
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(void *, eprosima::fastrtps::rtps::CacheChange_t*);
+  ((functionT) orig_func)(obj, change);
 
-  tracepoint(TRACEPOINT_PROVIDER, dds_write, data);
+  tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, nullptr, change->sourceTimestamp.to_ns());
 #ifdef DEBUG_OUTPUT
-  std::cerr << "dds_write," << data << std::endl;
-#endif
-  return ((functionT) orig_func)(writer, data);
-}
-
-// for fastrtps
-// For measuring rcl layers.
-bool _ZN8eprosima7fastdds3dds10DataWriter5writeEPv(void * obj, void * data)
-{
-  using functionT = bool (*)(void *, void *);
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
-  auto ser_data = static_cast<rmw_fastrtps_shared_cpp::SerializedData *>(data);
-
-  tracepoint(TRACEPOINT_PROVIDER, dds_write, ser_data->data);
-#ifdef DEBUG_OUTPUT
-  std::cerr << "dds_write," << ser_data->data << std::endl;
-#endif
-
-  return ((functionT) orig_func)(obj, data);
-}
-
-// for fastrtps
-// For measuring rcl layers.
-bool _ZN8eprosima7fastdds3dds10DataWriter5writeEPvRNS_8fastrtps4rtps11WriteParamsE(
-  void * obj,
-  void * data,
-  eprosima::fastrtps::rtps::WriteParams & params)
-{
-  using functionT = bool (*)(void *, void *, eprosima::fastrtps::rtps::WriteParams &);
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
-  auto ser_data = static_cast<rmw_fastrtps_shared_cpp::SerializedData *>(data);
-
-  tracepoint(TRACEPOINT_PROVIDER, dds_write, ser_data->data);
-#ifdef DEBUG_OUTPUT
-  std::cerr << "dds_write," << ser_data->data << std::endl;
-#endif
-  return ((functionT) orig_func)(obj, data, params);
-}
-
-
-// In fastrtps, there is no place for ros_message and source_timestamp to be in the same function.
-// In order to bind ros_message and source_timestamp, the address of payload is used.
-// The bind from &payload to source_timestamp is done by unsent_change_added_to_history.
-// bind: &ros_message -> &payload
-// rmw_fastrtps_shared_cpp::TypeSupport::serialize(void*, eprosima::fastrtps::rtps::SerializedPayload_t*)   // NOLINT
-bool SYMBOL_CONCAT_2(
-  _ZN23rmw_fastrtps_shared_cpp11TypeSupport9serialize,
-  EPvPN8eprosima8fastrtps4rtps19SerializedPayload_tE)(
-  // NOLINT
-  void * obj, void * data, eprosima::fastrtps::rtps::SerializedPayload_t * payload)
-{
-  using functionT = bool (*)(void *, void *, eprosima::fastrtps::rtps::SerializedPayload_t *);
-
-  auto ser_data = static_cast<rmw_fastrtps_shared_cpp::SerializedData *>(data);
-  auto payload_ptr = static_cast<void *>(payload->data);
-  if (FASTDDS::SERIALIZE == nullptr) {
-    update_dds_function_addr();
-  }
-  auto ret = ((functionT) FASTDDS::SERIALIZE)(obj, data, payload);
-
-  tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_addr, ser_data->data, payload_ptr);
-#ifdef DEBUG_OUTPUT
-  std::cerr << "dds_bind_addr_to_addr," << ser_data->data << "," << payload_ptr << std::endl;
-#endif
-
-  return ret;
-}
-
-// for fastrtps
-// bind: &payload -> source_timestamp
-// unsent_change_added_to_history
-void SYMBOL_CONCAT_3(
-  _ZN8eprosima8fastrtps4rtps15StatelessWriter30unsent_change_added_to_history,
-  EPNS1_13CacheChange_tERKNSt6chrono10time_point,
-  INS5_3_V212steady_clockENS5_8durationIlSt5ratioILl1ELl1000000000EEEEEE)(
-  // NOLINT
-  void * obj,
-  eprosima::fastrtps::rtps::CacheChange_t * change,
-  const std::chrono::time_point<std::chrono::steady_clock>&max_blocking_time
-  )
-{
-  using functionT = bool (*)(
-    void *,
-    eprosima::fastrtps::rtps::CacheChange_t *,
-    const std::chrono::time_point<std::chrono::steady_clock> &);
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
-
-  auto payload_data_ptr = static_cast<void *>(change->serializedPayload.data);
-  auto source_timestamp = change->sourceTimestamp.to_ns();
-
-  ((functionT) orig_func)(obj, change, max_blocking_time);
-
-  tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, payload_data_ptr, source_timestamp);
-#ifdef DEBUG_OUTPUT
-  std::cerr << "dds_bind_addr_to_stamp," << payload_data_ptr << "," << source_timestamp <<
-    std::endl;
-#endif
-}
-
-
-// for fastrtps
-// bind: &payload -> source_timestamp
-// unsent_change_added_to_history
-void SYMBOL_CONCAT_3(
-  _ZN8eprosima8fastrtps4rtps14StatefulWriter30unsent_change_added_to_history,
-  EPNS1_13CacheChange_tERKNSt6chrono10time_point,
-  INS5_3_V212steady_clockENS5_8durationIlSt5ratioILl1ELl1000000000EEEEEE)(
-  // NOLINT
-  void * obj,
-  eprosima::fastrtps::rtps::CacheChange_t * change,
-  const std::chrono::time_point<std::chrono::steady_clock>&max_blocking_time
-  )
-{
-  using functionT =
-    bool (*)(
-    void *, eprosima::fastrtps::rtps::CacheChange_t *,
-    const std::chrono::time_point<std::chrono::steady_clock> &);
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
-
-  auto payload_data_ptr = static_cast<void *>(change->serializedPayload.data);
-  auto source_timestamp = change->sourceTimestamp.to_ns();
-
-  ((functionT) orig_func)(obj, change, max_blocking_time);
-
-  tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, payload_data_ptr, source_timestamp);
-#ifdef DEBUG_OUTPUT
-  std::cerr << "dds_bind_addr_to_stamp," << payload_data_ptr << "," << source_timestamp <<
+  std::cerr << "dds_bind_addr_to_stamp," << change->sourceTimestamp.to_ns() <<
     std::endl;
 #endif
 }
