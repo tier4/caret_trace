@@ -230,12 +230,14 @@ int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
 
 // for fastdds
 // bind : &ros_message -> source_timestamp
-bool _ZN8eprosima8fastrtps4rtps13WriterHistory13set_fragmentsEPNS1_13CacheChange_tE (
+void _ZN8eprosima8fastrtps4rtps13WriterHistory13set_fragmentsEPNS1_13CacheChange_tE (
   void *obj, eprosima::fastrtps::rtps::CacheChange_t* change)
 {
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(void *, eprosima::fastrtps::rtps::CacheChange_t*);
-  ((functionT) orig_func)(obj, change);
+  if (FASTDDS::SET_FRAGMENTS == nullptr) {
+    update_dds_function_addr();
+  }
+  ((functionT) FASTDDS::SET_FRAGMENTS)(obj, change);
 
   tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, nullptr, change->sourceTimestamp.to_ns());
 #ifdef DEBUG_OUTPUT
