@@ -18,6 +18,7 @@
 #include <memory>
 #include <iomanip>
 #include <string>
+#include <time.h>
 
 #include "caret_trace/tp.h"
 #include "caret_trace/tracing_controller.hpp"
@@ -26,6 +27,14 @@
 // #define DEBUG_OUTPUT
 
 extern "C" {
+
+// int clock_gettime(clockid_t clk_id, struct timespec *tp)
+// {
+//   static void * orig_func = dlsym(RTLD_NEXT, __func__);
+//   using functionT = int (*)(clockid_t, struct timespec);
+//   return ((functionT) orig_func)(clk_id, *tp);
+// }
+
 void ros_trace_rcl_node_init(
   const void * node_handle,
   const void * rmw_handle,

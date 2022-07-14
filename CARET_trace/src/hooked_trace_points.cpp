@@ -42,6 +42,8 @@
 #define STRINGIFY_(s) #s
 #define STRINGIFY(s) STRINGIFY_(s)
 
+#include "caret_trace/keys_set.hpp"
+
 #define SYMBOL_CONCAT_2(x, y)  x ## y
 #define SYMBOL_CONCAT_3(x, y, z)  x ## y ## z
 
@@ -345,21 +347,30 @@ void SYMBOL_CONCAT_3(
     const void *,
     bool);
   auto group_addr = static_cast<const void *>(group_ptr.get());
-  std::string group_type_name = "unknown";
-  auto group_type = group_ptr->type();
-  if (group_type == rclcpp::CallbackGroupType::MutuallyExclusive) {
-    group_type_name = "mutually_exclusive";
-  } else if (group_type == rclcpp::CallbackGroupType::Reentrant) {
-    group_type_name = "reentrant";
-  }
 
   ((functionT) orig_func)(obj, group_ptr, node_ptr, weak_groups_to_nodes, notify);
 
-  tracepoint(TRACEPOINT_PROVIDER, add_callback_group, obj, group_addr, group_type_name.c_str());
+  static KeysSet<void *, void *, void *> recorded_args;
+
+  auto node_ptr_ = const_cast<void *>(node_ptr);
+  auto group_addr_ = const_cast<void *>(group_addr);
+  if (!recorded_args.has(obj, group_addr_, node_ptr_)) {
+    recorded_args.insert(obj, group_addr_, node_ptr_);
+
+    std::string group_type_name = "unknown";
+    auto group_type = group_ptr->type();
+    if (group_type == rclcpp::CallbackGroupType::MutuallyExclusive) {
+      group_type_name = "mutually_exclusive";
+    } else if (group_type == rclcpp::CallbackGroupType::Reentrant) {
+      group_type_name = "reentrant";
+    }
+    tracepoint(TRACEPOINT_PROVIDER, add_callback_group, obj, group_addr, group_type_name.c_str());
 #ifdef DEBUG_OUTPUT
-  std::cerr << "add_callback_group," << obj << "," << group_addr << "," <<
-    group_type_name << std::endl;
+    std::cerr << "add_callback_group," << obj << "," << group_addr << "," <<
+      group_type_name << std::endl;
 #endif
+  }
+
 }
 
 bool SYMBOL_CONCAT_3(
