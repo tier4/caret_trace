@@ -525,6 +525,12 @@ void ros_trace_rcl_take(
 // #endif
 }
 
+void ros_trace_rclcpp_take(
+  const void * message
+)
+{
+}
+
 void ros_trace_rmw_take(
   const void * rmw_subscription_handle,
   const void * message,
