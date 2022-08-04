@@ -30,12 +30,14 @@
 
 #define TRACEPOINT_DEFINE
 #include "caret_trace/tp.h"
+#include "caret_trace/singleton.hpp"
+#include "caret_trace/context.hpp"
 
 #include "rcpputils/shared_library.hpp"
 #include "rcpputils/get_env.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-// #define DEBUG_OUTPUT
+#define DEBUG_OUTPUT
 
 #define STRINGIFY_(s) #s
 #define STRINGIFY(s) STRINGIFY_(s)
@@ -171,6 +173,8 @@ extern "C" {
 // std::shared_ptr<rcpputils::SharedLibrary> _Z12load_libraryv()
 void update_dds_function_addr()
 {
+  static auto & context = Singleton<Context>::get_instance();
+
   static std::mutex mutex;
   std::lock_guard<std::mutex> lock(mutex);
 
@@ -207,7 +211,9 @@ void update_dds_function_addr()
       "Could not load library %s: %s", library_name.c_str(), e.what());
   }
 
-  tracepoint(TRACEPOINT_PROVIDER, rmw_implementation, env_var.c_str());
+  if (context.is_recording_enabled()) {
+    tracepoint(TRACEPOINT_PROVIDER, rmw_implementation, env_var.c_str());
+  }
 
   if (env_var == "rmw_fastrtps_cpp") {
     // SubListener::on_data_available(eprosima::fastdds::dds::DataReader*)
@@ -227,16 +233,20 @@ void update_dds_function_addr()
 // bind : &ros_message -> source_timestamp
 int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
 {
+  static auto & context = Singleton<Context>::get_instance();
+
   using functionT = int (*)(void *, void *, long, int);   // NOLINT
   if (CYCLONEDDS::DDS_WRITE_IMPL == nullptr) {
     update_dds_function_addr();
   }
   int dds_return = ((functionT) CYCLONEDDS::DDS_WRITE_IMPL)(wr, data, tstamp, action);
 
-  tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, data, tstamp);
+  if (context.is_recording_enabled()) {
+    tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, data, tstamp);
 #ifdef DEBUG_OUTPUT
-  std::cerr << "dds_bind_addr_to_stamp," << data << "," << tstamp << std::endl;
+    std::cerr << "dds_bind_addr_to_stamp," << data << "," << tstamp << std::endl;
 #endif
+  }
   return dds_return;
 }
 
@@ -244,6 +254,8 @@ int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
 // measure the time when the DDS communication is completed.
 static void on_data_available(dds_entity_t reader, void * arg)
 {
+  static auto & context = Singleton<Context>::get_instance();
+
   (void) on_data_available;
   (void) arg;
   static uint64_t last_timestamp_ns;
@@ -259,7 +271,7 @@ static void on_data_available(dds_entity_t reader, void * arg)
 
   // Omit the output of the trace points for the same message.
   // This is to reduce the output, so it does not need to be strict.
-  if (timestamp_ns != last_timestamp_ns) {
+  if (timestamp_ns != last_timestamp_ns && context.is_recording_enabled()) {
     tracepoint(TRACEPOINT_PROVIDER, on_data_available, timestamp_ns);
 #ifdef DEBUG_OUTPUT
     std::cerr << "on_data_available," << timestamp_ns << std::endl;
@@ -331,12 +343,15 @@ bool ddsi_serdata_to_sample(
 dds_return_t dds_write(dds_entity_t writer, const void * data)
 {
   using functionT = dds_return_t (*)(dds_entity_t, const void *);
+  static auto & context = Singleton<Context>::get_instance();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
-  tracepoint(TRACEPOINT_PROVIDER, dds_write, data);
+  if (context.is_recording_enabled()) {
+    tracepoint(TRACEPOINT_PROVIDER, dds_write, data);
 #ifdef DEBUG_OUTPUT
-  std::cerr << "dds_write," << data << std::endl;
+    std::cerr << "dds_write," << data << std::endl;
 #endif
+  }
   return ((functionT) orig_func)(writer, data);
 }
 
@@ -347,6 +362,7 @@ void _ZThn8_N11SubListener17on_data_availableEPN8eprosima7fastdds3dds10DataReade
   void * obj,
   eprosima::fastdds::dds::DataReader * reader)
 {
+  static auto & context = Singleton<Context>::get_instance();
   static uint64_t last_timestamp_ns;
   using functionT = void (*)(void *, eprosima::fastdds::dds::DataReader *);
 
@@ -359,7 +375,7 @@ void _ZThn8_N11SubListener17on_data_availableEPN8eprosima7fastdds3dds10DataReade
       uint64_t timestamp_ns = sinfo.source_timestamp.to_ns();
       // Omit the output of a tracepoint for the same message.
       // This is to reduce the output, so it does not need to be strict.
-      if (timestamp_ns != last_timestamp_ns) {
+      if (timestamp_ns != last_timestamp_ns && context.is_recording_enabled()) {
         tracepoint(TRACEPOINT_PROVIDER, on_data_available, timestamp_ns);
 #ifdef DEBUG_OUTPUT
         std::cerr << "on_data_available," << timestamp_ns << std::endl;
@@ -376,14 +392,17 @@ void _ZThn8_N11SubListener17on_data_availableEPN8eprosima7fastdds3dds10DataReade
 // For measuring rcl layers.
 bool _ZN8eprosima7fastdds3dds10DataWriter5writeEPv(void * obj, void * data)
 {
+  static auto & context = Singleton<Context>::get_instance();
   using functionT = bool (*)(void *, void *);
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   auto ser_data = static_cast<rmw_fastrtps_shared_cpp::SerializedData *>(data);
 
-  tracepoint(TRACEPOINT_PROVIDER, dds_write, ser_data->data);
+  if (context.is_recording_enabled()) {
+    tracepoint(TRACEPOINT_PROVIDER, dds_write, ser_data->data);
 #ifdef DEBUG_OUTPUT
-  std::cerr << "dds_write," << ser_data->data << std::endl;
+    std::cerr << "dds_write," << ser_data->data << std::endl;
 #endif
+  }
 
   return ((functionT) orig_func)(obj, data);
 }
@@ -396,13 +415,17 @@ bool _ZN8eprosima7fastdds3dds10DataWriter5writeEPvRNS_8fastrtps4rtps11WriteParam
   eprosima::fastrtps::rtps::WriteParams & params)
 {
   using functionT = bool (*)(void *, void *, eprosima::fastrtps::rtps::WriteParams &);
+
+  static auto & context = Singleton<Context>::get_instance();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   auto ser_data = static_cast<rmw_fastrtps_shared_cpp::SerializedData *>(data);
 
-  tracepoint(TRACEPOINT_PROVIDER, dds_write, ser_data->data);
+  if (context.is_recording_enabled()) {
+    tracepoint(TRACEPOINT_PROVIDER, dds_write, ser_data->data);
 #ifdef DEBUG_OUTPUT
-  std::cerr << "dds_write," << ser_data->data << std::endl;
+    std::cerr << "dds_write," << ser_data->data << std::endl;
 #endif
+  }
   return ((functionT) orig_func)(obj, data, params);
 }
 
@@ -419,6 +442,7 @@ bool SYMBOL_CONCAT_2(
   void * obj, void * data, eprosima::fastrtps::rtps::SerializedPayload_t * payload)
 {
   using functionT = bool (*)(void *, void *, eprosima::fastrtps::rtps::SerializedPayload_t *);
+  static auto & context = Singleton<Context>::get_instance();
 
   auto ser_data = static_cast<rmw_fastrtps_shared_cpp::SerializedData *>(data);
   auto payload_ptr = static_cast<void *>(payload->data);
@@ -427,10 +451,12 @@ bool SYMBOL_CONCAT_2(
   }
   auto ret = ((functionT) FASTDDS::SERIALIZE)(obj, data, payload);
 
-  tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_addr, ser_data->data, payload_ptr);
+  if (context.is_recording_enabled()) {
+    tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_addr, ser_data->data, payload_ptr);
 #ifdef DEBUG_OUTPUT
-  std::cerr << "dds_bind_addr_to_addr," << ser_data->data << "," << payload_ptr << std::endl;
+    std::cerr << "dds_bind_addr_to_addr," << ser_data->data << "," << payload_ptr << std::endl;
 #endif
+  }
 
   return ret;
 }
@@ -452,6 +478,7 @@ void SYMBOL_CONCAT_3(
     void *,
     eprosima::fastrtps::rtps::CacheChange_t *,
     const std::chrono::time_point<std::chrono::steady_clock> &);
+  static auto & context = Singleton<Context>::get_instance();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
   auto payload_data_ptr = static_cast<void *>(change->serializedPayload.data);
@@ -459,11 +486,13 @@ void SYMBOL_CONCAT_3(
 
   ((functionT) orig_func)(obj, change, max_blocking_time);
 
-  tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, payload_data_ptr, source_timestamp);
+  if (context.is_recording_enabled()) {
+    tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, payload_data_ptr, source_timestamp);
 #ifdef DEBUG_OUTPUT
-  std::cerr << "dds_bind_addr_to_stamp," << payload_data_ptr << "," << source_timestamp <<
-    std::endl;
+    std::cerr << "dds_bind_addr_to_stamp," << payload_data_ptr << "," << source_timestamp <<
+      std::endl;
 #endif
+  }
 }
 
 
@@ -484,6 +513,7 @@ void SYMBOL_CONCAT_3(
     bool (*)(
     void *, eprosima::fastrtps::rtps::CacheChange_t *,
     const std::chrono::time_point<std::chrono::steady_clock> &);
+  static auto & context = Singleton<Context>::get_instance();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
   auto payload_data_ptr = static_cast<void *>(change->serializedPayload.data);
@@ -491,11 +521,13 @@ void SYMBOL_CONCAT_3(
 
   ((functionT) orig_func)(obj, change, max_blocking_time);
 
-  tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, payload_data_ptr, source_timestamp);
+  if (context.is_recording_enabled()) {
+    tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, payload_data_ptr, source_timestamp);
 #ifdef DEBUG_OUTPUT
-  std::cerr << "dds_bind_addr_to_stamp," << payload_data_ptr << "," << source_timestamp <<
-    std::endl;
+    std::cerr << "dds_bind_addr_to_stamp," << payload_data_ptr << "," << source_timestamp <<
+      std::endl;
 #endif
+  }
 }
 
 // rclcpp::executors::SingleThreadedExecutor::SingleThreadedExecutor(rclcpp::ExecutorOptions const&)
@@ -504,16 +536,19 @@ void _ZN6rclcpp9executors22SingleThreadedExecutorC1ERKNS_15ExecutorOptionsE(
   const void * option)
 {
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  static auto & context = Singleton<Context>::get_instance();
   using functionT = void (*)(void *, const void *);
   ((functionT) orig_func)(obj, option);
   const std::string executor_type_name = "single_threaded_executor";
 
-  tracepoint(TRACEPOINT_PROVIDER, construct_executor, obj, executor_type_name.c_str());
+  if (context.is_recording_enabled()) {
+    tracepoint(TRACEPOINT_PROVIDER, construct_executor, obj, executor_type_name.c_str());
 #ifdef DEBUG_OUTPUT
-  std::cerr << "construct_executor," <<
-    executor_type_name << "," <<
-    obj << std::endl;
+    std::cerr << "construct_executor," <<
+      executor_type_name << "," <<
+      obj << std::endl;
 #endif
+  }
 }
 
 // rclcpp::executors::MultiThreadedExecutor::MultiThreadedExecutor(
@@ -532,14 +567,17 @@ SYMBOL_CONCAT_2(
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(void *, const void *, size_t, bool, const void *);
   ((functionT) orig_func)(obj, option, number_of_thread, yield_before_execute, timeout);
+  static auto & context = Singleton<Context>::get_instance();
   const std::string executor_type_name = "multi_threaded_executor";
 
-  tracepoint(TRACEPOINT_PROVIDER, construct_executor, obj, executor_type_name.c_str());
+  if (context.is_recording_enabled()) {
+    tracepoint(TRACEPOINT_PROVIDER, construct_executor, obj, executor_type_name.c_str());
 #ifdef DEBUG_OUTPUT
-  std::cerr << "construct_executor," <<
-    executor_type_name << "," <<
-    obj << std::endl;
+    std::cerr << "construct_executor," <<
+      executor_type_name << "," <<
+      obj << std::endl;
 #endif
+  }
 }
 
 // rclcpp::executors::StaticSingleThreadedExecutor::StaticSingleThreadedExecutor(
@@ -549,6 +587,7 @@ void _ZN6rclcpp9executors28StaticSingleThreadedExecutorC1ERKNS_15ExecutorOptions
   const void * option)
 {
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  static auto & context = Singleton<Context>::get_instance();
   using functionT = void (*)(void *, const void *);
   ((functionT) orig_func)(obj, option);
 
@@ -556,17 +595,19 @@ void _ZN6rclcpp9executors28StaticSingleThreadedExecutorC1ERKNS_15ExecutorOptions
   auto exec_ptr = reinterpret_cast<StaticSingleThreadedExecutorPublic *>(obj);
 
   auto entities_collector_ptr = static_cast<const void *>(exec_ptr->entities_collector_.get());
-  tracepoint(
-    TRACEPOINT_PROVIDER,
-    construct_static_executor,
-    obj,
-    entities_collector_ptr,
-    "static_single_threaded_executor");
+  if (context.is_recording_enabled()) {
+    tracepoint(
+      TRACEPOINT_PROVIDER,
+      construct_static_executor,
+      obj,
+      entities_collector_ptr,
+      "static_single_threaded_executor");
 #ifdef DEBUG_OUTPUT
-  std::cerr << "construct_static_executor," <<
-    "static_single_threaded_executor" << "," <<
-    obj << "," << entities_collector_ptr << std::endl;
+    std::cerr << "construct_static_executor," <<
+      "static_single_threaded_executor" << "," <<
+      obj << "," << entities_collector_ptr << std::endl;
 #endif
+  }
 }
 
 // rclcpp::Executor::add_callback_group_to_map(
@@ -590,6 +631,7 @@ void SYMBOL_CONCAT_3(
   )
 {
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  static auto & context = Singleton<Context>::get_instance();
   using functionT = void (*)(
     void *,
     rclcpp::CallbackGroup::SharedPtr,
@@ -607,11 +649,13 @@ void SYMBOL_CONCAT_3(
 
   ((functionT) orig_func)(obj, group_ptr, node_ptr, weak_groups_to_nodes, notify);
 
-  tracepoint(TRACEPOINT_PROVIDER, add_callback_group, obj, group_addr, group_type_name.c_str());
+  if (context.is_recording_enabled()) {
+    tracepoint(TRACEPOINT_PROVIDER, add_callback_group, obj, group_addr, group_type_name.c_str());
 #ifdef DEBUG_OUTPUT
-  std::cerr << "add_callback_group," << obj << "," << group_addr << "," <<
-    group_type_name << std::endl;
+    std::cerr << "add_callback_group," << obj << "," << group_addr << "," <<
+      group_type_name << std::endl;
 #endif
+  }
 }
 
 bool SYMBOL_CONCAT_3(
@@ -629,6 +673,7 @@ bool SYMBOL_CONCAT_3(
     rclcpp::CallbackGroup::SharedPtr,
     rclcpp::node_interfaces::NodeBaseInterface::SharedPtr,
     rclcpp::memory_strategy::MemoryStrategy::WeakCallbackGroupsToNodesMap &);
+  static auto & context = Singleton<Context>::get_instance();
 
   auto group_addr = static_cast<const void *>(group_ptr.get());
   std::string group_type_name = "unknown";
@@ -641,13 +686,15 @@ bool SYMBOL_CONCAT_3(
 
   auto ret = ((functionT) orig_func)(obj, group_ptr, node_ptr, weak_groups_to_nodes);
 
-  tracepoint(
-    TRACEPOINT_PROVIDER, add_callback_group_static_executor,
-    obj, group_addr, group_type_name.c_str());
+  if (context.is_recording_enabled()) {
+    tracepoint(
+      TRACEPOINT_PROVIDER, add_callback_group_static_executor,
+      obj, group_addr, group_type_name.c_str());
 #ifdef DEBUG_OUTPUT
-  std::cerr << "add_callback_group_static_executor," << obj << "," << group_addr << "," <<
-    group_type_name << std::endl;
+    std::cerr << "add_callback_group_static_executor," << obj << "," << group_addr << "," <<
+      group_type_name << std::endl;
 #endif
+  }
 
   return ret;
 }
@@ -660,15 +707,18 @@ void _ZN6rclcpp13CallbackGroup9add_timerESt10shared_ptrINS_9TimerBaseEE(
 {
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(void *, const rclcpp::TimerBase::SharedPtr);
+  static auto & context = Singleton<Context>::get_instance();
 
   auto timer_handle = static_cast<const void *>(timer_ptr->get_timer_handle().get());
   ((functionT) orig_func)(obj, timer_ptr);
 
-  tracepoint(TRACEPOINT_PROVIDER, callback_group_add_timer, obj, timer_handle);
+  if (context.is_recording_enabled()) {
+    tracepoint(TRACEPOINT_PROVIDER, callback_group_add_timer, obj, timer_handle);
 
 #ifdef DEBUG_OUTPUT
-  std::cerr << "callback_group_add_timer," << obj << "," << timer_handle << std::endl;
+    std::cerr << "callback_group_add_timer," << obj << "," << timer_handle << std::endl;
 #endif
+  }
 }
 
 // rclcpp::CallbackGroup::add_subscription(std::shared_ptr<rclcpp::SubscriptionBase>)
@@ -679,16 +729,20 @@ void _ZN6rclcpp13CallbackGroup16add_subscriptionESt10shared_ptrINS_16Subscriptio
 {
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(void *, const rclcpp::SubscriptionBase::SharedPtr);
+  static auto & context = Singleton<Context>::get_instance();
 
   auto subscription_handle = static_cast<const void *>(
     subscription_ptr->get_subscription_handle().get());
   ((functionT) orig_func)(obj, subscription_ptr);
 
-  tracepoint(TRACEPOINT_PROVIDER, callback_group_add_subscription, obj, subscription_handle);
+  if (context.is_recording_enabled()) {
+    tracepoint(TRACEPOINT_PROVIDER, callback_group_add_subscription, obj, subscription_handle);
 
 #ifdef DEBUG_OUTPUT
-  std::cerr << "callback_group_add_subscription," << obj << "," << subscription_handle << std::endl;
+    std::cerr << "callback_group_add_subscription," << obj << "," << subscription_handle <<
+      std::endl;
 #endif
+  }
 }
 
 // rclcpp::CallbackGroup::add_service(std::shared_ptr<rclcpp::ServiceBase>)
@@ -698,15 +752,18 @@ void _ZN6rclcpp13CallbackGroup11add_serviceESt10shared_ptrINS_11ServiceBaseEE(
 {
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(void *, const rclcpp::ServiceBase::SharedPtr);
+  static auto & context = Singleton<Context>::get_instance();
 
   auto service_handle = static_cast<const void *>(service_ptr->get_service_handle().get());
   ((functionT) orig_func)(obj, service_ptr);
 
-  tracepoint(TRACEPOINT_PROVIDER, callback_group_add_service, obj, service_handle);
+  if (context.is_recording_enabled()) {
+    tracepoint(TRACEPOINT_PROVIDER, callback_group_add_service, obj, service_handle);
 
 #ifdef DEBUG_OUTPUT
-  std::cerr << "callback_group_add_service," << obj << "," << service_handle << std::endl;
+    std::cerr << "callback_group_add_service," << obj << "," << service_handle << std::endl;
 #endif
+  }
 }
 
 // rclcpp::CallbackGroup::add_client(std::shared_ptr<rclcpp::ClientBase>)
@@ -716,14 +773,17 @@ void _ZN6rclcpp13CallbackGroup10add_clientESt10shared_ptrINS_10ClientBaseEE(
 {
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(void *, const rclcpp::ClientBase::SharedPtr);
+  static auto & context = Singleton<Context>::get_instance();
 
   auto client_handle = static_cast<const void *>(client_ptr->get_client_handle().get());
   ((functionT) orig_func)(obj, client_ptr);
 
-  tracepoint(TRACEPOINT_PROVIDER, callback_group_add_client, obj, client_handle);
+  if (context.is_recording_enabled()) {
+    tracepoint(TRACEPOINT_PROVIDER, callback_group_add_client, obj, client_handle);
 
 #ifdef DEBUG_OUTPUT
-  std::cerr << "callback_group_add_client," << obj << "," << client_handle << std::endl;
+    std::cerr << "callback_group_add_client," << obj << "," << client_handle << std::endl;
 #endif
+  }
 }
 }

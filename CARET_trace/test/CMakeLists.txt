@@ -1,0 +1,23 @@
+
+find_package(ament_cmake_gtest REQUIRED)
+find_package(ament_cmake_gmock REQUIRED)
+
+message(ament_cmake, ${ament_cmake_gmock_LIBRARIES})
+
+ament_add_gmock(test_caret_trace_node test_caret_trace_node.cpp)
+target_link_libraries(test_caret_trace_node caret_test_core)
+
+ament_add_gtest(test_data_container test_data_container.cpp)
+target_link_libraries(test_data_container caret_test_core)
+
+ament_add_gtest(test_data_recorder test_data_recorder.cpp)
+target_link_libraries(test_data_recorder caret_test_core)
+
+ament_add_gtest(test_iterable_keys_set test_iterable_keys_set.cpp)
+target_link_libraries(test_iterable_keys_set caret_test_core)
+
+ament_add_gtest(test_lttng_session test_lttng_session.cpp)
+target_link_libraries(test_lttng_session caret_test_core)
+
+ament_add_gmock(test_context test_context.cpp)
+target_link_libraries(test_context caret_test_core)

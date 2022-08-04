@@ -33,13 +33,29 @@ find_package(CycloneDDS REQUIRED)
 find_package(fastrtps REQUIRED)
 find_package(rmw_fastrtps_shared_cpp REQUIRED)
 find_package(LTTngUST REQUIRED)
+find_package(caret_msgs REQUIRED)
 
 add_library(caret SHARED
   src/ros_trace_points.cpp
   src/hooked_trace_points.cpp
   src/tracing_controller.cpp
   src/singleton.cpp
-  src/tp.c)
+  src/tp.c
+  src/trace_node.cpp
+  src/data_container.cpp
+  src/lttng_session.cpp
+  src/context.cpp
+)
+
+add_library(caret_test_core SHARED
+  src/tracing_controller.cpp
+  src/singleton.cpp
+  src/tp.c
+  src/trace_node.cpp
+  src/data_container.cpp
+  src/lttng_session.cpp
+  src/context.cpp
+)
 
 ament_target_dependencies(caret
   rclcpp
@@ -48,6 +64,18 @@ ament_target_dependencies(caret
   rmw_implementation
   rcpputils
   std_msgs
+  caret_msgs
+  rmw_fastrtps_shared_cpp
+  LTTngUST)
+
+ament_target_dependencies(caret_test_core
+  rclcpp
+  rcl
+  rmw
+  rmw_implementation
+  rcpputils
+  std_msgs
+  caret_msgs
   rmw_fastrtps_shared_cpp
   LTTngUST)
 
@@ -73,6 +101,7 @@ install(
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
+  add_subdirectory(test)
 endif()
 
 ament_package()

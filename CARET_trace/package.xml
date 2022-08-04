@@ -16,6 +16,7 @@
   <depend>rcpputils</depend>
   <depend>rcutils</depend>
   <depend>std_msgs</depend>
+  <depend>caret_msgs</depend>
 
   <depend>cyclonedds</depend>
   <depend>fastrtps</depend>
