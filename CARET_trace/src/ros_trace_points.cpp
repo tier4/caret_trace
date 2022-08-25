@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "caret_trace/singleton.hpp"
+#include "caret_trace/tracing_controller.hpp"
+
 #include <dlfcn.h>
 
+#include <iomanip>
 #include <iostream>
 #include <memory>
-#include <iomanip>
 #include <string>
-
-#include "caret_trace/tracing_controller.hpp"
-#include "caret_trace/singleton.hpp"
 
 // #define DEBUG_OUTPUT
 
@@ -483,5 +483,4 @@ void ros_trace_message_construct(
 #endif
 
 // clang-format on
-
 }
