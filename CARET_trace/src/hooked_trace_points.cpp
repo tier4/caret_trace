@@ -445,7 +445,7 @@ void SYMBOL_CONCAT_3(
   // NOLINT
   void * obj,
   eprosima::fastrtps::rtps::CacheChange_t * change,
-  const std::chrono::time_point<std::chrono::steady_clock>&max_blocking_time
+  const std::chrono::time_point<std::chrono::steady_clock> & max_blocking_time
   )
 {
   using functionT = bool (*)(
