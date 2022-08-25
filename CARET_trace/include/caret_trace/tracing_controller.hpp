@@ -15,9 +15,9 @@
 #ifndef CARET_TRACE__TRACING_CONTROLLER_HPP_
 
 #include <shared_mutex>
-#include <unordered_set>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 
 class TracingController
 {
@@ -28,20 +28,16 @@ public:
   void add_subscription_handle(
     const void * node_handle, const void * subscription_handle, std::string topic_name);
 
-  void add_subscription(
-    const void * subscription_handle, const void * subscription);
+  void add_subscription(const void * subscription_handle, const void * subscription);
 
-  void add_subscription_callback(
-    const void * subscription, const void * callback);
+  void add_subscription_callback(const void * subscription, const void * callback);
 
-  void add_timer_handle(
-    const void * node_handle, const void * timer_handle);
+  void add_timer_handle(const void * node_handle, const void * timer_handle);
 
   void add_publisher_handle(
     const void * node_handle, const void * publisher_handle, std::string topic_name);
 
-  void add_timer_callback(
-    const void * timer_handle, const void * callback);
+  void add_timer_callback(const void * timer_handle, const void * callback);
 
   bool is_allowed_callback(const void * callback);
 

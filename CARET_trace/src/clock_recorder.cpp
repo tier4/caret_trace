@@ -21,29 +21,27 @@
 #define TRACEPOINT_DEFINE
 #include "caret_trace/tp.h"
 
-
-using namespace std::chrono_literals;
+using namespace std::literals::chrono_literals;
 
 class ClockRecorder : public rclcpp::Node
 {
 public:
-  ClockRecorder()
-  : Node("clock_recorder")
+  ClockRecorder() : Node("clock_recorder")
   {
     auto use_sim_time = rclcpp::Parameter("use_sim_time", true);
     set_parameter(use_sim_time);
 
     RCLCPP_INFO(get_logger(), "clock_recorder started to record sim time.");
     auto timer_callback = [&]() {
-        auto now = this->now();
-        // std::cout << static_cast<int>(now.seconds()) << std::endl;
-        // The /clock topic will not be recorded while it is not published.
-        if (now.nanoseconds() == 0) {
-          return;
-        }
-        RCLCPP_DEBUG(get_logger(), "sim_time recorded: %ld.", now.nanoseconds());
-        tracepoint(TRACEPOINT_PROVIDER, sim_time, now.nanoseconds());
-      };
+      auto now = this->now();
+      // std::cout << static_cast<int>(now.seconds()) << std::endl;
+      // The /clock topic will not be recorded while it is not published.
+      if (now.nanoseconds() == 0) {
+        return;
+      }
+      RCLCPP_DEBUG(get_logger(), "sim_time recorded: %ld.", now.nanoseconds());
+      tracepoint(TRACEPOINT_PROVIDER, sim_time, now.nanoseconds());
+    };
     timer_ = create_wall_timer(1s, timer_callback);
   }
   rclcpp::TimerBase::SharedPtr timer_;
