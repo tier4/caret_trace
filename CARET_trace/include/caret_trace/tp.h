@@ -26,10 +26,10 @@
 #if !defined(_TP_H) || defined(TRACEPOINT_HEADER_MULTI_READ)
 #define _TP_H
 
-#include <lttng/tracepoint-event.h>
-#include <lttng/tracepoint.h>
-
 // clang-format off
+
+#include <lttng/tracepoint.h>
+#include <lttng/tracepoint-event.h>
 
 TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
