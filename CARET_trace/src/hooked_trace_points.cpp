@@ -210,7 +210,7 @@ void update_dds_function_addr()
 int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
 {
   using functionT = int (*)(void *, void *, long, int);   // NOLINT
-//clang-format on
+// clang-format on
 
   if (CYCLONEDDS::DDS_WRITE_IMPL == nullptr) {
     update_dds_function_addr();
