@@ -6,6 +6,8 @@
     - source: .github/workflows/semantic-pull-request.yaml
     - source: .github/workflows/spell-check-differential.yaml
     - source: .clang-format
+    - source: .markdown-link-check.json
+    - source: .markdownlint.yaml
     - source: .pre-commit-config.yaml
     - source: .pre-commit-config-optional.yaml
     - source: .prettierignore
