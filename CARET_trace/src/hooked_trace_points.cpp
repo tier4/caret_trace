@@ -210,12 +210,12 @@ void update_dds_function_addr()
 int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
 {
   using functionT = int (*)(void *, void *, long, int);   // NOLINT
-// clang-format on
+  // clang-format on
 
   if (CYCLONEDDS::DDS_WRITE_IMPL == nullptr) {
     update_dds_function_addr();
   }
-  int dds_return = ((functionT) CYCLONEDDS::DDS_WRITE_IMPL)(wr, data, tstamp, action);
+  int dds_return = ((functionT)CYCLONEDDS::DDS_WRITE_IMPL)(wr, data, tstamp, action);
 
   tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, data, tstamp);
 #ifdef DEBUG_OUTPUT
@@ -224,14 +224,12 @@ int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
   return dds_return;
 }
 
-
-
 // For cyclone_dds
 // measure the time when the DDS communication is completed.
 static void on_data_available(dds_entity_t reader, void * arg)
 {
-  (void) on_data_available;
-  (void) arg;
+  (void)on_data_available;
+  (void)arg;
   static uint64_t last_timestamp_ns;
   dds_sample_info_t si;
   void * buf_ptr[] = {&CYCLONEDDS::DUMMY_BUF};
@@ -257,14 +255,10 @@ static void on_data_available(dds_entity_t reader, void * arg)
 // Configuration to run on_data_available
 // By setting the listener to the parent, the child entities will inherit it.
 dds_entity_t dds_create_subscriber(
-  dds_entity_t participant,
-  const dds_qos_t * qos,
-  const dds_listener_t * listener
-)
+  dds_entity_t participant, const dds_qos_t * qos, const dds_listener_t * listener)
 {
-  using functionT = dds_entity_t (*)(
-    const dds_domainid_t, const dds_qos_t *,
-    const dds_listener_t *);
+  using functionT =
+    dds_entity_t (*)(const dds_domainid_t, const dds_qos_t *, const dds_listener_t *);
 
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
@@ -280,15 +274,12 @@ dds_entity_t dds_create_subscriber(
   // disable on_data_available hook
   // dds_lset_data_available(CYCLONEDDS::LISTENER, &on_data_available);
 
-  return ((functionT) orig_func)(participant, qos, CYCLONEDDS::LISTENER);
+  return ((functionT)orig_func)(participant, qos, CYCLONEDDS::LISTENER);
 }
 
 // For CycloneDDS
 // Configuration to run on_data_available.
-dds_return_t dds_waitset_attach(
-  dds_entity_t waitset,
-  dds_entity_t entity,
-  dds_attach_t x)
+dds_return_t dds_waitset_attach(dds_entity_t waitset, dds_entity_t entity, dds_attach_t x)
 {
   using functionT = dds_return_t (*)(dds_entity_t, dds_entity_t, dds_attach_t);
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
@@ -296,20 +287,19 @@ dds_return_t dds_waitset_attach(
   // disable on_data_available hook
   // dds_set_status_mask(entity, DDS_DATA_AVAILABLE_STATUS);
 
-  return ((functionT) orig_func)(waitset, entity, x);
+  return ((functionT)orig_func)(waitset, entity, x);
 }
 
 // Skip deserialize when a dummy buffer for getting message info is received.
 bool ddsi_serdata_to_sample(
-  const struct ddsi_serdata * d, void * sample, void ** bufptr,
-  void * buflim)
+  const struct ddsi_serdata * d, void * sample, void ** bufptr, void * buflim)
 {
   using functionT = bool (*)(const struct ddsi_serdata *, void *, void **, void *);
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   if (sample == &CYCLONEDDS::DUMMY_BUF) {
     return true;
   }
-  return ((functionT) orig_func)(d, sample, bufptr, buflim);
+  return ((functionT)orig_func)(d, sample, bufptr, buflim);
 }
 
 // for cyclonedds
@@ -323,21 +313,20 @@ dds_return_t dds_write(dds_entity_t writer, const void * data)
 #ifdef DEBUG_OUTPUT
   std::cerr << "dds_write," << data << std::endl;
 #endif
-  return ((functionT) orig_func)(writer, data);
+  return ((functionT)orig_func)(writer, data);
 }
 
 // for fstartps
 // measure the time when the DDS communication is completed.
 // SubListener::on_data_available(eprosima::fastdds::dds::DataReader*)
 void _ZThn8_N11SubListener17on_data_availableEPN8eprosima7fastdds3dds10DataReaderE(
-  void * obj,
-  eprosima::fastdds::dds::DataReader * reader)
+  void * obj, eprosima::fastdds::dds::DataReader * reader)
 {
   static uint64_t last_timestamp_ns;
   using functionT = void (*)(void *, eprosima::fastdds::dds::DataReader *);
 
   eprosima::fastdds::dds::SampleInfo sinfo;
-  ((functionT) FASTDDS::ON_DATA_AVAILABLE)(obj, reader);
+  ((functionT)FASTDDS::ON_DATA_AVAILABLE)(obj, reader);
 
   // fastrps has an API to get the info directly, so use it.
   if (reader->get_first_untaken_info(&sinfo) == ReturnCode_t::RETCODE_OK) {
@@ -371,15 +360,13 @@ bool _ZN8eprosima7fastdds3dds10DataWriter5writeEPv(void * obj, void * data)
   std::cerr << "dds_write," << ser_data->data << std::endl;
 #endif
 
-  return ((functionT) orig_func)(obj, data);
+  return ((functionT)orig_func)(obj, data);
 }
 
 // for fastrtps
 // For measuring rcl layers.
 bool _ZN8eprosima7fastdds3dds10DataWriter5writeEPvRNS_8fastrtps4rtps11WriteParamsE(
-  void * obj,
-  void * data,
-  eprosima::fastrtps::rtps::WriteParams & params)
+  void * obj, void * data, eprosima::fastrtps::rtps::WriteParams & params)
 {
   using functionT = bool (*)(void *, void *, eprosima::fastrtps::rtps::WriteParams &);
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
@@ -389,7 +376,7 @@ bool _ZN8eprosima7fastdds3dds10DataWriter5writeEPvRNS_8fastrtps4rtps11WriteParam
 #ifdef DEBUG_OUTPUT
   std::cerr << "dds_write," << ser_data->data << std::endl;
 #endif
-  return ((functionT) orig_func)(obj, data, params);
+  return ((functionT)orig_func)(obj, data, params);
 }
 
 // clang-format off
