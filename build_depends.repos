@@ -1,5 +1,5 @@
 repositories:
   autoware_common:
     type: git
-    url: https://github.com/autowarefoundation/autoware_common.git
+    url: https://github.com/tier4/caret_common.git
     version: main
