@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "caret_trace/singleton.hpp"
+#include "caret_trace/tracing_controller.hpp"
+
 #include <dlfcn.h>
 
+#include <iomanip>
 #include <iostream>
 #include <memory>
-#include <iomanip>
 #include <string>
-
-#include "caret_trace/tracing_controller.hpp"
-#include "caret_trace/singleton.hpp"
 
 // #define DEBUG_OUTPUT
 
+// clang-format off
 extern "C" {
 void ros_trace_rcl_node_init(
   const void * node_handle,
@@ -480,4 +481,6 @@ void ros_trace_message_construct(
     constructed_message << std::endl;
 }
 #endif
+
+// clang-format on
 }

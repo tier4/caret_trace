@@ -22,7 +22,7 @@ std::mutex gMutex;
 int gNumFinalizersSize = 0;
 SingletonFinalizer::FinalizerFunc gFinalizers[kMaxFinalizersSize];
 
-}
+}  // namespace
 
 void SingletonFinalizer::addFinalizer(FinalizerFunc func)
 {

@@ -12,22 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <dlfcn.h>
-
-#include <shared_mutex>
-#include <iostream>
-#include <memory>
-#include <unordered_set>
-#include <unordered_map>
-#include <iomanip>
-#include <string>
-#include <regex>
-#include <utility>
+#include "caret_trace/tracing_controller.hpp"
 
 #include "rclcpp/rclcpp.hpp"
-
 #include "rcpputils/get_env.hpp"
-#include "caret_trace/tracing_controller.hpp"
+
+#include <dlfcn.h>
+
+#include <iomanip>
+#include <iostream>
+#include <memory>
+#include <regex>
+#include <shared_mutex>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
 
 #define SELECT_NODES_ENV_NAME "CARET_SELECT_NODES"
 #define IGNORE_NODES_ENV_NAME "CARET_IGNORE_NODES"
@@ -132,24 +132,24 @@ TracingController::TracingController()
   }
   if (select_enabled_) {
     if (selected_node_names_.size() > 0) {
-      std::string msg = SELECT_NODES_ENV_NAME + std::string(": ") + get_env_var(
-        SELECT_NODES_ENV_NAME);
+      std::string msg =
+        SELECT_NODES_ENV_NAME + std::string(": ") + get_env_var(SELECT_NODES_ENV_NAME);
       RCLCPP_INFO(rclcpp::get_logger("caret"), msg.c_str());
     }
     if (selected_topic_names_.size() > 0) {
-      std::string msg = SELECT_TOPICS_ENV_NAME + std::string(": ") + get_env_var(
-        SELECT_TOPICS_ENV_NAME);
+      std::string msg =
+        SELECT_TOPICS_ENV_NAME + std::string(": ") + get_env_var(SELECT_TOPICS_ENV_NAME);
       RCLCPP_INFO(rclcpp::get_logger("caret"), msg.c_str());
     }
   } else if (ignore_enabled_) {
     if (ignored_node_names_.size() > 0) {
-      std::string msg = IGNORE_NODES_ENV_NAME + std::string(": ") + get_env_var(
-        IGNORE_NODES_ENV_NAME);
+      std::string msg =
+        IGNORE_NODES_ENV_NAME + std::string(": ") + get_env_var(IGNORE_NODES_ENV_NAME);
       RCLCPP_INFO(rclcpp::get_logger("caret"), msg.c_str());
     }
     if (ignored_topic_names_.size() > 0) {
-      std::string msg = IGNORE_TOPICS_ENV_NAME + std::string(": ") + get_env_var(
-        IGNORE_TOPICS_ENV_NAME);
+      std::string msg =
+        IGNORE_TOPICS_ENV_NAME + std::string(": ") + get_env_var(IGNORE_TOPICS_ENV_NAME);
       RCLCPP_INFO(rclcpp::get_logger("caret"), msg.c_str());
     }
   }
@@ -166,7 +166,7 @@ bool TracingController::is_allowed_callback(const void * callback)
   {
     std::shared_lock<std::shared_timed_mutex> lock(mutex_);
     is_allowed_it = allowed_callbacks_.find(callback);
-    if (is_allowed_it != allowed_callbacks_.end() ) {
+    if (is_allowed_it != allowed_callbacks_.end()) {
       return is_allowed_it->second;
     }
   }
@@ -269,7 +269,7 @@ bool TracingController::is_allowed_publisher_handle(const void * publisher_handl
   {
     std::shared_lock<std::shared_timed_mutex> lock(mutex_);
     is_allowed_it = allowed_publishers_.find(publisher_handle);
-    if (is_allowed_it != allowed_publishers_.end() ) {
+    if (is_allowed_it != allowed_publishers_.end()) {
       return is_allowed_it->second;
     }
   }
@@ -346,8 +346,7 @@ std::string TracingController::to_node_name(const void * callback)
       break;
     }
 
-    auto node_handle_it =
-      subscription_handle_to_node_handles_.find(subscription_handle_it->second);
+    auto node_handle_it = subscription_handle_to_node_handles_.find(subscription_handle_it->second);
     if (node_handle_it == subscription_handle_to_node_handles_.end()) {
       break;
     }
@@ -410,24 +409,21 @@ void TracingController::add_subscription(
   subscription_to_subscription_handles_.insert(std::make_pair(subscription, subscription_handle));
 }
 
-void TracingController::add_subscription_callback(
-  const void * subscription, const void * callback)
+void TracingController::add_subscription_callback(const void * subscription, const void * callback)
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
 
   callback_to_subscriptions_.insert(std::make_pair(callback, subscription));
 }
 
-void TracingController::add_timer_handle(
-  const void * node_handle, const void * timer_handle)
+void TracingController::add_timer_handle(const void * node_handle, const void * timer_handle)
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
 
   timer_handle_to_node_handles_.insert(std::make_pair(node_handle, timer_handle));
 }
 
-void TracingController::add_timer_callback(
-  const void * timer_handle, const void * callback)
+void TracingController::add_timer_callback(const void * timer_handle, const void * callback)
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
 
@@ -435,9 +431,7 @@ void TracingController::add_timer_callback(
 }
 
 void TracingController::add_publisher_handle(
-  const void * node_handle,
-  const void * publisher_handle,
-  std::string topic_name)
+  const void * node_handle, const void * publisher_handle, std::string topic_name)
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   publisher_handle_to_node_handles_.insert(std::make_pair(publisher_handle, node_handle));
