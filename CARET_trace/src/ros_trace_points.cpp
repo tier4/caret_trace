@@ -64,9 +64,15 @@ void ros_trace_rcl_node_init(
   const char * node_namespace)
 {
   static auto & context = Singleton<Context>::get_instance();
+  static auto & data_container = context.get_data_container();
   static auto & controller = Singleton<TracingController>::get_instance();
 
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(const void *, const void *, const char *, const char *);
+
+  if (!data_container.is_assigned_rcl_node_init()) {
+    data_container.assign_rcl_node_init((functionT) orig_func);
+  }
 
   trace_node_thread = std::make_unique<std::thread>();
 
@@ -79,9 +85,9 @@ void ros_trace_rcl_node_init(
 
   controller.add_node(node_handle, node_ns_and_name);
 
-  using functionT = void (*)(const void *, const void *, const char *, const char *);
 
   if (controller.is_allowed_node(node_handle) && context.is_recording_enabled()) {
+    data_container.add_rcl_node_init(node_handle, rmw_handle, node_name, node_namespace);
     ((functionT) orig_func)(node_handle, rmw_handle, node_name, node_namespace);
 
 #ifdef DEBUG_OUTPUT
