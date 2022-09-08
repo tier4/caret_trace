@@ -14,26 +14,20 @@
 
 #ifndef CARET_TRACE__KEYS_SET_HPP_
 
-#include <iostream>
 #include <functional>
-#include <unordered_set>
+#include <iostream>
 #include <type_traits>
+#include <unordered_set>
 
-template<typename T1, typename T2 = std::false_type, typename T3 = std::false_type>
+template <typename T1, typename T2 = std::false_type, typename T3 = std::false_type>
 class HashableKeys
 {
 public:
-  explicit HashableKeys(T1 key1)
-  : key1_(key1)
-  {}
+  explicit HashableKeys(T1 key1) : key1_(key1) {}
 
-  HashableKeys(T1 key1, T2 key2)
-  : key1_(key1), key2_(key2)
-  {}
+  HashableKeys(T1 key1, T2 key2) : key1_(key1), key2_(key2) {}
 
-  HashableKeys(T1 key1, T2 key2, T3 key3)
-  : key1_(key1), key2_(key2), key3_(key3)
-  {}
+  HashableKeys(T1 key1, T2 key2, T3 key3) : key1_(key1), key2_(key2), key3_(key3) {}
 
   size_t hash() const
   {
@@ -71,7 +65,7 @@ private:
 
 namespace std
 {
-template<typename T1, typename T2, typename T3>
+template <typename T1, typename T2, typename T3>
 struct hash<HashableKeys<T1, T2, T3>>
 {
   size_t operator()(const HashableKeys<T1, T2, T3> & t) const
@@ -81,7 +75,7 @@ struct hash<HashableKeys<T1, T2, T3>>
   }
 };
 
-template<typename T1, typename T2, typename T3>
+template <typename T1, typename T2, typename T3>
 struct equal_to<HashableKeys<T1, T2, T3>>
 {
   size_t operator()(const HashableKeys<T1, T2, T3> & t, const HashableKeys<T1, T2, T3> & t_) const
@@ -91,8 +85,7 @@ struct equal_to<HashableKeys<T1, T2, T3>>
 };
 }  // namespace std
 
-
-template<typename T1, typename T2 = std::false_type, typename T3 = std::false_type>
+template <typename T1, typename T2 = std::false_type, typename T3 = std::false_type>
 class KeysSet
 {
 public:
