@@ -53,7 +53,7 @@ namespace CYCLONEDDS
 void * DDS_WRITE_IMPL;
 }
 
-// fortrtps用
+// For FastDDS
 namespace FASTDDS
 {
 static void * SET_FRAGMENTS;
@@ -180,20 +180,27 @@ void update_dds_function_addr()
   tracepoint(TRACEPOINT_PROVIDER, rmw_implementation, env_var.c_str());
 
   if (env_var == "rmw_fastrtps_cpp") {
+    // clang-format off
     // // rmw_fastrtps_shared_cpp::TypeSupport::serialize(void*,
     // eprosima::fastrtps::rtps::SerializedPayload_t*)  // NOLINT
     FASTDDS::SET_FRAGMENTS = lib->get_symbol(
       "_ZN8eprosima8fastrtps4rtps13WriterHistory13set_fragmentsEPNS1_13CacheChange_tE");  // NOLINT
+    // clang-format on
   } else if (env_var == "rmw_cyclonedds_cpp") {
     CYCLONEDDS::DDS_WRITE_IMPL = lib->get_symbol("dds_write_impl");
   }
 }
+
+// clang-format off
 
 // for cyclonedds
 // bind : &ros_message -> source_timestamp
 int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
 {
   using functionT = int (*)(void *, void *, long, int);  // NOLINT
+
+  // clang-format on
+
   if (CYCLONEDDS::DDS_WRITE_IMPL == nullptr) {
     update_dds_function_addr();
   }
