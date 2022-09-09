@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <dlfcn.h>
-#include <cassert>
-
-#include <iostream>
-#include <memory>
-#include <iomanip>
-#include <string>
-#include <time.h>
-
+#include "caret_trace/singleton.hpp"
 #include "caret_trace/tp.h"
 #include "caret_trace/tracing_controller.hpp"
-#include "caret_trace/singleton.hpp"
+
+#include <dlfcn.h>
+#include <time.h>
+
+#include <cassert>
+#include <iomanip>
+#include <iostream>
+#include <memory>
+#include <string>
 
 // #define DEBUG_OUTPUT
 
@@ -31,27 +31,27 @@
 
 namespace ORIG_FUNC
 {
-  static void * DEFINE_ORIG_FUNC(ros_trace_callback_end);
-  static void * DEFINE_ORIG_FUNC(ros_trace_callback_start);
-  static void * DEFINE_ORIG_FUNC(ros_trace_dispatch_intra_process_subscription_callback);
-  static void * DEFINE_ORIG_FUNC(ros_trace_dispatch_subscription_callback);
-  static void * DEFINE_ORIG_FUNC(ros_trace_message_construct);
-  static void * DEFINE_ORIG_FUNC(ros_trace_rcl_lifecycle_state_machine_init);
-  static void * DEFINE_ORIG_FUNC(ros_trace_rcl_lifecycle_transition);
-  static void * DEFINE_ORIG_FUNC(ros_trace_rcl_node_init);
-  static void * DEFINE_ORIG_FUNC(ros_trace_rcl_publish);
-  static void * DEFINE_ORIG_FUNC(ros_trace_rcl_service_init);
-  static void * DEFINE_ORIG_FUNC(ros_trace_rcl_subscription_init);
-  static void * DEFINE_ORIG_FUNC(ros_trace_rcl_timer_init);
-  static void * DEFINE_ORIG_FUNC(ros_trace_rclcpp_callback_register);
-  static void * DEFINE_ORIG_FUNC(ros_trace_rclcpp_intra_publish);
-  static void * DEFINE_ORIG_FUNC(ros_trace_rclcpp_publish);
-  static void * DEFINE_ORIG_FUNC(ros_trace_rclcpp_service_callback_added);
-  static void * DEFINE_ORIG_FUNC(ros_trace_rclcpp_subscription_callback_added);
-  static void * DEFINE_ORIG_FUNC(ros_trace_rclcpp_subscription_init);
-  static void * DEFINE_ORIG_FUNC(ros_trace_rclcpp_timer_callback_added);
-  static void * DEFINE_ORIG_FUNC(ros_trace_rclcpp_timer_link_node);
-}
+static void * DEFINE_ORIG_FUNC(ros_trace_callback_end);
+static void * DEFINE_ORIG_FUNC(ros_trace_callback_start);
+static void * DEFINE_ORIG_FUNC(ros_trace_dispatch_intra_process_subscription_callback);
+static void * DEFINE_ORIG_FUNC(ros_trace_dispatch_subscription_callback);
+static void * DEFINE_ORIG_FUNC(ros_trace_message_construct);
+static void * DEFINE_ORIG_FUNC(ros_trace_rcl_lifecycle_state_machine_init);
+static void * DEFINE_ORIG_FUNC(ros_trace_rcl_lifecycle_transition);
+static void * DEFINE_ORIG_FUNC(ros_trace_rcl_node_init);
+static void * DEFINE_ORIG_FUNC(ros_trace_rcl_publish);
+static void * DEFINE_ORIG_FUNC(ros_trace_rcl_service_init);
+static void * DEFINE_ORIG_FUNC(ros_trace_rcl_subscription_init);
+static void * DEFINE_ORIG_FUNC(ros_trace_rcl_timer_init);
+static void * DEFINE_ORIG_FUNC(ros_trace_rclcpp_callback_register);
+static void * DEFINE_ORIG_FUNC(ros_trace_rclcpp_intra_publish);
+static void * DEFINE_ORIG_FUNC(ros_trace_rclcpp_publish);
+static void * DEFINE_ORIG_FUNC(ros_trace_rclcpp_service_callback_added);
+static void * DEFINE_ORIG_FUNC(ros_trace_rclcpp_subscription_callback_added);
+static void * DEFINE_ORIG_FUNC(ros_trace_rclcpp_subscription_init);
+static void * DEFINE_ORIG_FUNC(ros_trace_rclcpp_timer_callback_added);
+static void * DEFINE_ORIG_FUNC(ros_trace_rclcpp_timer_link_node);
+}  // namespace ORIG_FUNC
 
 // clang-format off
 
@@ -609,5 +609,4 @@ void ros_trace_rmw_subscription_init(
 }
 
 // clang-format on
-
 }
