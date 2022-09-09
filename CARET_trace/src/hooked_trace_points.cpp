@@ -85,7 +85,8 @@ public:
   RCLCPP_PUBLIC
   void add_callback_group(
     rclcpp::CallbackGroup::SharedPtr group_ptr,
-    rclcpp::node_interfaces::NodeBaseInterface::SharedPtr node_ptr, bool notify = true) override; // NOLINT
+    rclcpp::node_interfaces::NodeBaseInterface::SharedPtr node_ptr,
+    bool notify = true) override;  // NOLINT
 
   RCLCPP_PUBLIC
   void remove_callback_group(
