@@ -21,7 +21,7 @@
 #define TRACEPOINT_DEFINE
 #include "caret_trace/tp.h"
 
-using namespace std::chrono_literals;
+using namespace std::literals::chrono_literals;
 
 class ClockRecorder : public rclcpp::Node
 {
