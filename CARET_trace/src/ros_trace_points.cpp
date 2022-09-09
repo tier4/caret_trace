@@ -85,7 +85,7 @@ void ros_trace_rcl_node_init(
 
   if (controller.is_allowed_node(node_handle)) {
     assert(ORIG_FUNC::ros_trace_rcl_node_init != nullptr);
-    ((functionT) ORIG_FUNC::ros_trace_rcl_node_init)(node_handle, rmw_handle, node_name, node_namespace);
+    ((functionT) ORIG_FUNC::ros_trace_rcl_node_init)(node_handle, rmw_handle, node_name, node_namespace); // NOLINT
 
 #ifdef DEBUG_OUTPUT
     std::cerr << "rcl_node_init," <<
@@ -247,7 +247,7 @@ void ros_trace_dispatch_subscription_callback(
   using functionT = void (*)(const void *, const void *, const uint64_t, const uint64_t);
   if (controller.is_allowed_callback(callback)) {
     assert(ORIG_FUNC::ros_trace_dispatch_subscription_callback != nullptr);
-    ((functionT) ORIG_FUNC::ros_trace_dispatch_subscription_callback)(message, callback, source_timestamp, message_timestamp);
+    ((functionT) ORIG_FUNC::ros_trace_dispatch_subscription_callback)(message, callback, source_timestamp, message_timestamp); // NOLINT
 
 #ifdef DEBUG_OUTPUT
     std::cerr << "dispatch_subscription_callback," <<
@@ -269,7 +269,7 @@ void ros_trace_dispatch_intra_process_subscription_callback(
   using functionT = void (*)(const void *, const void *, const uint64_t);
   if (controller.is_allowed_callback(callback)) {
     assert(ORIG_FUNC::ros_trace_dispatch_intra_process_subscription_callback != nullptr);
-    ((functionT) ORIG_FUNC::ros_trace_dispatch_intra_process_subscription_callback)(message, callback, message_timestamp);
+    ((functionT) ORIG_FUNC::ros_trace_dispatch_intra_process_subscription_callback)(message, callback, message_timestamp); // NOLINT
 
 #ifdef DEBUG_OUTPUT
     std::cerr << "dispatch_intra_process_subscription_callback," <<
@@ -311,7 +311,7 @@ void ros_trace_rclcpp_intra_publish(
 
   if (controller.is_allowed_publisher_handle(publisher_handle)) {
     assert(ORIG_FUNC::ros_trace_rclcpp_intra_publish != nullptr);
-    ((functionT) ORIG_FUNC::ros_trace_rclcpp_intra_publish)(publisher_handle, message, message_timestamp);
+    ((functionT) ORIG_FUNC::ros_trace_rclcpp_intra_publish)(publisher_handle, message, message_timestamp); // NOLINT
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_intra_publish," <<
       publisher_handle << "," <<
@@ -445,7 +445,7 @@ void ros_trace_rcl_client_init(
 {
   using functionT = void (*)(const void *, const void *, const void *, const char *);
   assert(ORIG_FUNC::ros_trace_rcl_client_init != nullptr);
-  ((functionT) ORIG_FUNC::ros_trace_rcl_client_init)(client_handle, node_handle, rmw_client_handle, service_name);
+  ((functionT) ORIG_FUNC::ros_trace_rcl_client_init)(client_handle, node_handle, rmw_client_handle, service_name); // NOLINT
 
   std::cerr << "rcl_client_init," <<
     client_handle << "," <<
@@ -495,7 +495,7 @@ void ros_trace_rcl_lifecycle_transition(
 {
   using functionT = void (*)(const void *, const char *, const char *);
   assert(ORIG_FUNC::ros_trace_rcl_lifecycle_transition != nullptr);
-  ((functionT) ORIG_FUNC::ros_trace_rcl_lifecycle_transition)(state_machine, start_label, goal_label);
+  ((functionT) ORIG_FUNC::ros_trace_rcl_lifecycle_transition)(state_machine, start_label, goal_label); // NOLINT
 
   std::cerr << "rcl_lifecycle_transition," <<
     state_machine << "," <<
