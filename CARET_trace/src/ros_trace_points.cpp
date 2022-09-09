@@ -411,7 +411,7 @@ void ros_trace_rcl_service_init(
 {
   using functionT = void (*)(const void *, const void *, const void *, const char *);
   assert(ORIG_FUNC::ros_trace_rcl_service_init != nullptr);
-  ((functionT) ORIG_FUNC::ros_trace_rcl_service_init)(service_handle, node_handle, rmw_service_handle, service_name);
+  ((functionT) ORIG_FUNC::ros_trace_rcl_service_init)(service_handle, node_handle, rmw_service_handle, service_name); // NOLINT
 
   std::cerr << "rcl_service_init," <<
     service_handle << "," <<
