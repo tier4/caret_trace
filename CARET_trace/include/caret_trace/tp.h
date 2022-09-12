@@ -31,6 +31,7 @@
 #include <lttng/tracepoint.h>
 #include <lttng/tracepoint-event.h>
 
+
 TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
   on_data_available,
