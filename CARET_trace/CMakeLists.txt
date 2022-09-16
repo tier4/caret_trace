@@ -51,6 +51,22 @@ ament_target_dependencies(caret
   rmw_fastrtps_shared_cpp
   LTTngUST)
 
+add_library(caret_test_core SHARED
+  src/tracing_controller.cpp
+  src/singleton.cpp
+  src/tp.c
+)
+
+ament_target_dependencies(caret_test_core
+  rclcpp
+  rcl
+  rmw
+  rmw_implementation
+  rcpputils
+  std_msgs
+  rmw_fastrtps_shared_cpp
+  LTTngUST)
+
 target_link_libraries(caret CycloneDDS::ddsc fastrtps)
 
 add_executable(clock_recorder src/clock_recorder.cpp src/tp.c)
@@ -73,6 +89,7 @@ install(
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
+  add_subdirectory(test)
 endif()
 
 ament_package()
