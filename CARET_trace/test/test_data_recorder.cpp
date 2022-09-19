@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 #include <utility>
 #include <memory>
@@ -20,17 +21,21 @@
 #include "caret_trace/keys_set.hpp"
 #include "caret_trace/data_container.hpp"
 
+using ::testing::MockFunction;
+using ::testing::InSequence;
+using ::testing::Return;
+using ::testing::_;
+
 TEST(DataRecorderTest, EmptyCase) {
-  DataRecorder recorder;
-  recorder.begin();
-  EXPECT_TRUE(recorder.is_iterating());
-  EXPECT_TRUE(recorder.is_end());
-  EXPECT_NO_THROW(recorder.next());
+  DataRecorder recorder({});
+  recorder.start();
+  EXPECT_FALSE(recorder.is_recording());
+  EXPECT_TRUE(recorder.finished());
 }
 
 TEST(DataRecorderTest, AssignCaseOneKeys) {
-  DataRecorder recorder;
-  auto key = std::make_shared<IterableKeysSet<int>>();
+  auto key = std::make_shared<RecordableData<int>>("test");
+  DataRecorder recorder({key});
   bool called = false;
 
   key->assign(
@@ -39,55 +44,119 @@ TEST(DataRecorderTest, AssignCaseOneKeys) {
       called = true;
     });
 
-  key->insert(0);
+  key->store(0);
 
-  recorder.assign(key);
-  recorder.begin();
-  recorder.record_once();
-  recorder.next();
+  recorder.start();
+  recorder.record_next_one();
   EXPECT_TRUE(called);
 
-  EXPECT_TRUE(recorder.is_end());
-  EXPECT_TRUE(recorder.is_iterating());
+  EXPECT_TRUE(recorder.finished());
+  EXPECT_FALSE(recorder.is_recording());
 }
 
 TEST(DataRecorderTest, AssignCaseTwoKeys) {
-  DataRecorder recorder;
+  auto key_0 = std::make_shared<RecordableData<int>>("test");
+  auto key_1 = std::make_shared<RecordableData<char>>("test");
 
-  auto key_0 = std::make_shared<IterableKeysSet<int>>();
-  auto key_1 = std::make_shared<IterableKeysSet<char>>();
-  bool called_0 = false;
-  bool called_1 = false;
+  DataRecorder recorder({key_0, key_1});
 
-  key_0->assign(
-    [&](const int arg) {
-      (void) arg;
-      called_0 = true;
-    });
-  key_1->assign(
-    [&](const char arg) {
-      (void) arg;
-      called_1 = true;
-    });
+  MockFunction<void(int arg)> key_0_func;
+  MockFunction<void(char arg)> key_1_func;
 
-  key_0->insert(0);
-  key_1->insert('a');
-  recorder.assign(key_0);
-  recorder.assign(key_1);
+  key_0->assign(key_0_func.AsStdFunction());
+  key_1->assign(key_1_func.AsStdFunction());
 
-  recorder.begin();
+  key_0->store(0);
+  key_1->store('a');
 
-  recorder.record_once();
-  recorder.next();
-  EXPECT_TRUE(called_0);
-  EXPECT_FALSE(called_1);
-  EXPECT_FALSE(recorder.is_end());
-  EXPECT_TRUE(recorder.is_iterating());
+  {
+    InSequence s;
 
-  recorder.record_once();
-  recorder.next();
-  EXPECT_TRUE(called_0);
-  EXPECT_TRUE(called_1);
-  EXPECT_TRUE(recorder.is_end());
-  EXPECT_TRUE(recorder.is_iterating());
+    EXPECT_CALL(key_0_func, Call(0)).Times(1);
+    EXPECT_CALL(key_1_func, Call('a')).Times(1);
+  }
+
+  recorder.start();
+
+  recorder.record_next_one();
+  recorder.record_next_one();
+}
+
+TEST(DataRecorderTest, Reset) {
+  auto key = std::make_shared<RecordableData<int>>("test");
+  DataRecorder recorder({key});
+  EXPECT_NO_THROW(recorder.reset());
+
+  MockFunction<void(int arg)> key_func;
+
+  key->assign(key_func.AsStdFunction());
+
+  key->store(0);
+  key->store(1);
+
+  EXPECT_CALL(key_func, Call(0)).Times(2);
+  EXPECT_CALL(key_func, Call(1)).Times(0);
+
+  recorder.start();
+  EXPECT_TRUE(recorder.is_recording());
+
+  recorder.record_next_one();
+
+  recorder.reset();
+  EXPECT_FALSE(recorder.is_recording());
+
+  recorder.start();
+  recorder.record_next_one();
+}
+
+TEST(DataRecorderTest, MergePendingData) {
+  MockFunction<void(int arg)> key_func;
+  EXPECT_CALL(key_func, Call(_)).WillRepeatedly(Return());
+  {
+    auto key = std::make_shared<RecordableData<int>>("test");
+    DataRecorder recorder({key});
+
+    key->assign(key_func.AsStdFunction());
+
+    key->store(0);
+    recorder.start();
+
+    key->store(1);
+
+    EXPECT_EQ(key->size(), (size_t) 1);
+    recorder.reset();
+    EXPECT_EQ(key->size(), (size_t) 2);
+  }
+
+  {
+    auto key = std::make_shared<RecordableData<int>>("test");
+    DataRecorder recorder({key});
+
+    key->assign(key_func.AsStdFunction());
+
+    key->store(0);
+    recorder.start();
+
+    key->store(1);
+
+    recorder.record_next_one();
+    recorder.record_next_one();
+
+    EXPECT_EQ(key->size(), (size_t) 2);
+  }
+
+  {
+    auto key = std::make_shared<RecordableData<int>>("test");
+    DataRecorder recorder({key});
+
+    key->assign(key_func.AsStdFunction());
+
+    key->store(0);
+    recorder.start();
+    key->store(1);
+
+    recorder.start();
+
+    EXPECT_EQ(key->size(), (size_t) 2);
+  }
 }

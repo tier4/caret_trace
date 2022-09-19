@@ -12,50 +12,71 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
 #include <string>
 #include <memory>
 #include <chrono>
+#include <unistd.h>
+#include <utility>
 
 #include "caret_trace/trace_node.hpp"
 #include "caret_trace/lttng_session.hpp"
 #include "caret_msgs/msg/end.hpp"
 #include "caret_msgs/msg/start.hpp"
+#include "caret_msgs/msg/status.hpp"
+
 
 using namespace std::chrono_literals;
 using std::placeholders::_1;
 
-CaretTraceNode::CaretTraceNode(
-  std::string node_name,
+TraceNode::TraceNode(
+  std::string node_name_base,
   std::shared_ptr<LttngSession> lttng_session,
-  std::shared_ptr<DataContainerInterface> data_container)
-: rclcpp::Node(node_name, rclcpp::NodeOptions()),
-  status_(TRACE_STATUS::INIT_MEASURE),
+  std::shared_ptr<DataContainerInterface> data_container,
+  rclcpp::Logger::Level level)
+: rclcpp::Node(TraceNode::get_unique_node_name(node_name_base), rclcpp::NodeOptions()),
+  status_(TRACE_STATUS::UNINITIALIZED),
+  record_block_size_(100),
   data_container_(data_container)
 {
-  if (!lttng_session->is_session_running()) {
-    status_ = TRACE_STATUS::WAIT;
-    RCLCPP_INFO(get_logger(), "Transitioned to wait status.");
-  } else {
-    RCLCPP_INFO(get_logger(), "Transitioned to init measure status.");
-  }
+  set_log_level(level);
 
   start_sub_ = create_subscription<caret_msgs::msg::Start>(
     "/caret/start_record", 10,
-    std::bind(&CaretTraceNode::start_callback, this, _1));
+    std::bind(&TraceNode::start_callback, this, _1));
 
   end_sub_ = create_subscription<caret_msgs::msg::End>(
     "/caret/end_record", 10,
-    std::bind(&CaretTraceNode::end_callback, this, _1)
+    std::bind(&TraceNode::end_callback, this, _1)
   );
 
-  timer_ = create_wall_timer(1s, std::bind(&CaretTraceNode::timer_callback, this));
+  status_pub_ = create_publisher<caret_msgs::msg::Status>(
+    "/caret/status", 10
+  );
+
+  timer_ = create_wall_timer(100ms, std::bind(&TraceNode::timer_callback, this));
   timer_->cancel();
-  RCLCPP_INFO(get_logger(), "CARET Trace Node initialized.");
+
+  if (!lttng_session->is_session_running()) {
+    status_ = TRACE_STATUS::WAIT;
+    RCLCPP_INFO(get_logger(), "No active LTTng session exists.");
+    RCLCPP_DEBUG(get_logger(), "Transitioned to WAIT status.");
+  } else {
+    status_ = TRACE_STATUS::RECORD;
+    RCLCPP_INFO(get_logger(), "Active LTTng session exists.");
+    RCLCPP_DEBUG(get_logger(), "Transitioned to RECORD status.");
+  }
+
+  assert(status_ != TRACE_STATUS::UNINITIALIZED);
+
+  publish_status(status_);
+
+  RCLCPP_DEBUG(get_logger(), "Initialized.");
 }
 
 
-CaretTraceNode::CaretTraceNode(std::string node_name, std::shared_ptr<DataContainer> data_container)
-: CaretTraceNode(
+TraceNode::TraceNode(std::string node_name, std::shared_ptr<DataContainer> data_container)
+: TraceNode(
     node_name,
     std::make_shared<LttngSessionImpl>(),
     data_container
@@ -63,76 +84,112 @@ CaretTraceNode::CaretTraceNode(std::string node_name, std::shared_ptr<DataContai
 {
 }
 
-CaretTraceNode::~CaretTraceNode()
+TraceNode::~TraceNode()
 {
 }
 
-DataContainerInterface & CaretTraceNode::get_data_container()
+std::string TraceNode::get_unique_node_name(std::string base_name)
+{
+  auto pid = getpid();
+  char * pid_str = nullptr;
+  if (asprintf(&pid_str, "%jd", (intmax_t) pid) != -1) {
+    base_name += "_" + std::string(pid_str);
+    free(pid_str);
+  }
+  return base_name;
+}
+
+DataContainerInterface & TraceNode::get_data_container()
 {
   return *data_container_;
 }
 
-void CaretTraceNode::run_timer()
+void TraceNode::run_timer()
 {
-  RCLCPP_DEBUG(get_logger(), "CARET Trace Node started timer.");
+  RCLCPP_DEBUG(get_logger(), "Started recording timer .");
   timer_->reset();
+  timer_->execute_callback();
 }
 
-void CaretTraceNode::stop_timer()
+void TraceNode::set_log_level(rclcpp::Logger::Level level)
 {
-  RCLCPP_DEBUG(get_logger(), "CARET Trace Node stopped timer.");
+  get_logger().set_level(level);
+}
+
+void TraceNode::stop_timer()
+{
+  RCLCPP_DEBUG(get_logger(), "Stopped recording timer.");
   timer_->cancel();
 }
 
-bool CaretTraceNode::is_recording_allowed() const
+bool TraceNode::is_recording_allowed() const
 {
-  return status_ == TRACE_STATUS::INIT_MEASURE ||
-         status_ == TRACE_STATUS::MEASURE;
+  return status_ == TRACE_STATUS::RECORD;
 }
 
 
-const TRACE_STATUS & CaretTraceNode::get_status() const
+const TRACE_STATUS & TraceNode::get_status() const
 {
   return status_;
 }
 
-void CaretTraceNode::start_callback(caret_msgs::msg::Start::UniquePtr msg)
+void TraceNode::publish_status(TRACE_STATUS status) const
 {
-  RCLCPP_DEBUG(get_logger(), "CARET Trace Node received start message.");
+  auto msg = std::make_unique<caret_msgs::msg::Status>();
+  msg->node_name = get_name();
+  msg->status = static_cast<int>(status);
+  status_pub_->publish(std::move(msg));
+}
+
+void TraceNode::start_callback(caret_msgs::msg::Start::UniquePtr msg)
+{
+  (void) msg;
+
+  RCLCPP_DEBUG(get_logger(), "Received start message.");
 
   bool is_wait_to_prepare_transition = status_ == TRACE_STATUS::WAIT;
   status_ = TRACE_STATUS::PREPARE;
-  RCLCPP_INFO(get_logger(), "Transitioned to prepare status.");
+
+  publish_status(status_);
+  RCLCPP_DEBUG(get_logger(), "Transitioned to PREPARE status.");
+
+  data_container_->reset();
 
   if (is_wait_to_prepare_transition) {
+    record_block_size_ = msg->recording_frequency / 10;  // 100ms timer: 10Hz
+    if (record_block_size_ <= 0) {
+      record_block_size_ = 1;
+    }
     run_timer();
   }
 }
 
-bool CaretTraceNode::is_timer_running() const
+bool TraceNode::is_timer_running() const
 {
   return !timer_->is_canceled();
 }
 
-void CaretTraceNode::timer_callback()
+void TraceNode::timer_callback()
 {
-  RCLCPP_DEBUG(get_logger(), "CARET Trace Node fired timer callback.");
-
-  auto record_finished = data_container_->record(1);
+  auto record_finished = data_container_->record(record_block_size_);
   if (record_finished) {
-    status_ = TRACE_STATUS::MEASURE;
-    RCLCPP_INFO(get_logger(), "Transitioned to measure status.");
+    status_ = TRACE_STATUS::RECORD;
+
+    publish_status(status_);
+    RCLCPP_DEBUG(get_logger(), "Transitioned to RECORD status.");
 
     stop_timer();
   }
 }
 
-void CaretTraceNode::end_callback(caret_msgs::msg::End::UniquePtr msg)
+void TraceNode::end_callback(caret_msgs::msg::End::UniquePtr msg)
 {
-  RCLCPP_DEBUG(get_logger(), "CARET Trace Node receivred end message.");
+  (void) msg;
 
   status_ = TRACE_STATUS::WAIT;
-  RCLCPP_INFO(get_logger(), "Transitioned to wait status.");
+
+  publish_status(status_);
+  RCLCPP_DEBUG(get_logger(), "Transitioned to WAIT status.");
 
   stop_timer();
 }

@@ -23,13 +23,18 @@
 
 
 Context::Context()
-: Context(std::make_shared<DataContainer>())
+: Context(std::make_shared<DataContainer>(), std::make_shared<TracingController>())
 {
 }
 
 
-Context::Context(std::shared_ptr<DataContainer> data_container)
-: data_container_(data_container)
+Context::Context(
+  std::shared_ptr<DataContainer> data_container,
+  std::shared_ptr<TracingController> controller
+)
+: is_node_initializing(false),
+  data_container_(data_container),
+  controller_(controller)
 {
 }
 
@@ -44,10 +49,16 @@ DataContainer & Context::get_data_container()
 }
 
 
-CaretTraceNodeInterface & Context::get_node()
+TraceNodeInterface & Context::get_node()
 {
   assert(is_node_assigned());
   return *node_;
+}
+
+TracingController & Context::get_controller()
+{
+  assert(controller_ != nullptr);
+  return *controller_;
 }
 
 bool Context::is_recording_enabled() const
@@ -58,7 +69,7 @@ bool Context::is_recording_enabled() const
   return false;
 }
 
-void Context::assign_node(std::shared_ptr<CaretTraceNodeInterface> node)
+void Context::assign_node(std::shared_ptr<TraceNodeInterface> node)
 {
   node_ = node;
 }

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CARET_TRACE__TRQACE_NODE_HPP_
+#ifndef CARET_TRACE__TRACE_NODE_HPP_
 
 #include <utility>
 #include <string>
@@ -22,22 +22,23 @@
 
 #include "caret_msgs/msg/start.hpp"
 #include "caret_msgs/msg/end.hpp"
+#include "caret_msgs/msg/status.hpp"
 #include "caret_trace/lttng_session.hpp"
 #include "caret_trace/data_container.hpp"
 
 enum class TRACE_STATUS
 {
-  INIT_MEASURE,
+  UNINITIALIZED,
   WAIT,
   PREPARE,
-  MEASURE,
+  RECORD,
 };
 
 
-class CaretTraceNodeInterface
+class TraceNodeInterface
 {
 public:
-  virtual ~CaretTraceNodeInterface() {}
+  virtual ~TraceNodeInterface() {}
   virtual bool is_recording_allowed() const = 0;
   virtual bool is_timer_running() const = 0;
   virtual DataContainerInterface & get_data_container() = 0;
@@ -45,19 +46,22 @@ public:
 };
 
 
-class CaretTraceNode : public rclcpp::Node, public CaretTraceNodeInterface
+class TraceNode : public rclcpp::Node, public TraceNodeInterface
 {
 public:
-  CaretTraceNode(std::string node_name, std::shared_ptr<DataContainer> data_container);
+  TraceNode(
+    std::string node_name_base,
+    std::shared_ptr<DataContainer> data_container);
 
   // for test
-  CaretTraceNode(
+  TraceNode(
     std::string node_names,
     std::shared_ptr<LttngSession> lttng_session,
-    std::shared_ptr<DataContainerInterface> data_container
+    std::shared_ptr<DataContainerInterface> data_container,
+    rclcpp::Logger::Level level = rclcpp::Logger::Level::Info
   );
 
-  ~CaretTraceNode();
+  ~TraceNode();
 
   bool is_recording_allowed() const override;
   bool is_timer_running() const override;
@@ -71,15 +75,20 @@ public:
 
 private:
   TRACE_STATUS status_;
-  // rclcpp::Logger logger_;
+  uint64_t record_block_size_;
+
+  static std::string get_unique_node_name(std::string base_name);
   void run_timer();
   void stop_timer();
+  void set_log_level(rclcpp::Logger::Level level);
+  void publish_status(TRACE_STATUS status) const;
 
   rclcpp::Subscription<caret_msgs::msg::Start>::SharedPtr start_sub_;
   rclcpp::Subscription<caret_msgs::msg::End>::SharedPtr end_sub_;
+  rclcpp::Publisher<caret_msgs::msg::Status>::SharedPtr status_pub_;
   rclcpp::TimerBase::SharedPtr timer_;
   std::shared_ptr<DataContainerInterface> data_container_;
 };
 
 #endif  // CARET_TRACE__TRACE_NODE_HPP_
-#define CARET_TRACE__TRQACE_NODE_HPP_
+#define CARET_TRACE__TRACE_NODE_HPP_

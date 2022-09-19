@@ -20,31 +20,14 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-#include "caret_trace/tracing_controller.hpp"
-#include "caret_trace/lttng_session.hpp"
-#include "caret_trace/data_container.hpp"
-#include "caret_trace/trace_node.hpp"
-#include "caret_msgs/msg/start.hpp"
 #include "caret_msgs/msg/end.hpp"
-
-void init_context()
-{
-  if (!rclcpp::ok()) {
-    rclcpp::init(0, nullptr);
-  }
-}
-
-class LttngSessionMock : public LttngSession
-{
-public:
-  MOCK_CONST_METHOD0(is_session_running, bool());
-};
-
-class DataContainerMock : public DataContainerInterface
-{
-public:
-  MOCK_METHOD1(record, bool(uint64_t));
-};
+#include "caret_msgs/msg/start.hpp"
+#include "caret_trace/data_container.hpp"
+#include "caret_trace/lttng_session.hpp"
+#include "caret_trace/trace_node.hpp"
+#include "caret_trace/tracing_controller.hpp"
+#include "test/mock.hpp"
+#include "test/common.hpp"
 
 using ::testing::Return;
 using ::testing::_;
@@ -65,10 +48,6 @@ protected:
   {
     node_ = get_init_node();
 
-    if (node_->get_status() == status && status == TRACE_STATUS::INIT_MEASURE) {
-      return;
-    }
-
     // transition to wait status
     auto end_msg = get_end_msg();
     node_->end_callback(std::move(end_msg));
@@ -83,7 +62,7 @@ protected:
       return;
     }
 
-    // transition to measure status
+    // transition to record status
     set_data_container_return_value(true);
     node_->timer_callback();
   }
@@ -108,25 +87,26 @@ protected:
     return std::make_unique<caret_msgs::msg::End>();
   }
 
-  std::unique_ptr<CaretTraceNode> node_;
+  std::unique_ptr<TraceNode> node_;
 
 private:
   std::shared_ptr<LttngSessionMock> lttng_session_;
   std::shared_ptr<DataContainerMock> data_container_;
 
-  std::unique_ptr<CaretTraceNode> get_init_node()
+  std::unique_ptr<TraceNode> get_init_node()
   {
     if (node_) {
       node_ = nullptr;
     }
     set_lttng_session_return_value(true);
-    return std::make_unique<CaretTraceNode>("bbb", lttng_session_, data_container_);
+    return std::make_unique<TraceNode>(
+      "bbb", lttng_session_, data_container_,
+      rclcpp::Logger::Level::Warn);
   }
 };
 
 TEST(CaretTraceTest, TestStartTransition) {
   init_context();
-
 
   auto data_container = std::make_shared<DataContainerMock>();
 
@@ -134,46 +114,16 @@ TEST(CaretTraceTest, TestStartTransition) {
     auto lttng = std::make_shared<LttngSessionMock>();
     EXPECT_CALL(*lttng, is_session_running()).WillRepeatedly(Return(true));
 
-    auto node = CaretTraceNode("test", lttng, data_container);
-    EXPECT_TRUE(node.is_recording_allowed());
-    EXPECT_TRUE(node.get_status() == TRACE_STATUS::INIT_MEASURE);
+    auto node = TraceNode("test", lttng, data_container, rclcpp::Logger::Level::Warn);
+    EXPECT_TRUE(node.get_status() == TRACE_STATUS::RECORD);
   }
 
   {    // session is not started.
     auto lttng = std::make_shared<LttngSessionMock>();
     EXPECT_CALL(*lttng, is_session_running()).WillRepeatedly(Return(false));
 
-    auto node = CaretTraceNode("sdfdfs", lttng, data_container);
-    EXPECT_FALSE(node.is_recording_allowed());
+    auto node = TraceNode("sdfdfs", lttng, data_container, rclcpp::Logger::Level::Warn);
     EXPECT_TRUE(node.get_status() == TRACE_STATUS::WAIT);
-  }
-}
-
-
-TEST_F(CaretTraceNodeTest, TestInitMeasureTransition) {
-  init_context();
-
-
-  {    // subscribe start message: INIT_MEASURE -> PREPARE
-    set_status(TRACE_STATUS::INIT_MEASURE);
-
-    EXPECT_TRUE(node_->get_status() == TRACE_STATUS::INIT_MEASURE);
-
-    auto start_msg = get_start_msg();
-    node_->start_callback(std::move(start_msg));
-
-    EXPECT_TRUE(node_->get_status() == TRACE_STATUS::PREPARE);
-  }
-
-  {    // subscribe end message: INIT_MEASURE -> WAIT
-    set_status(TRACE_STATUS::INIT_MEASURE);
-
-    EXPECT_TRUE(node_->get_status() == TRACE_STATUS::INIT_MEASURE);
-
-    auto end_msg = get_end_msg();
-    node_->end_callback(std::move(end_msg));
-
-    EXPECT_TRUE(node_->get_status() == TRACE_STATUS::WAIT);
   }
 }
 
@@ -243,7 +193,7 @@ TEST_F(CaretTraceNodeTest, TestPrepareTransition) {
     set_data_container_return_value(true);
     node_->timer_callback();
 
-    EXPECT_TRUE(node_->get_status() == TRACE_STATUS::MEASURE);
+    EXPECT_TRUE(node_->get_status() == TRACE_STATUS::RECORD);
   }
 }
 
@@ -251,9 +201,9 @@ TEST_F(CaretTraceNodeTest, TestMeasureTransition) {
   init_context();
 
   {    // subscribe start message: MEASURE -> PREPARE
-    set_status(TRACE_STATUS::MEASURE);
+    set_status(TRACE_STATUS::RECORD);
 
-    EXPECT_TRUE(node_->get_status() == TRACE_STATUS::MEASURE);
+    EXPECT_TRUE(node_->get_status() == TRACE_STATUS::RECORD);
 
     auto start_msg = get_start_msg();
     node_->start_callback(std::move(start_msg));
@@ -262,23 +212,15 @@ TEST_F(CaretTraceNodeTest, TestMeasureTransition) {
   }
 
   {    // subscribe end message: MEASURE -> WAIT
-    set_status(TRACE_STATUS::MEASURE);
+    set_status(TRACE_STATUS::RECORD);
 
-    EXPECT_TRUE(node_->get_status() == TRACE_STATUS::MEASURE);
+    EXPECT_TRUE(node_->get_status() == TRACE_STATUS::RECORD);
 
     auto end_msg = get_end_msg();
     node_->end_callback(std::move(end_msg));
 
     EXPECT_TRUE(node_->get_status() == TRACE_STATUS::WAIT);
   }
-}
-
-TEST_F(CaretTraceNodeTest, TestInitMeasure) {
-  init_context();
-
-  set_status(TRACE_STATUS::INIT_MEASURE);
-  EXPECT_TRUE(node_->is_recording_allowed());
-  EXPECT_FALSE(node_->is_timer_running());
 }
 
 TEST_F(CaretTraceNodeTest, TestWait) {
@@ -300,7 +242,7 @@ TEST_F(CaretTraceNodeTest, TestPrepare) {
 TEST_F(CaretTraceNodeTest, TestMeasure) {
   init_context();
 
-  set_status(TRACE_STATUS::MEASURE);
+  set_status(TRACE_STATUS::RECORD);
   EXPECT_TRUE(node_->is_recording_allowed());
   EXPECT_FALSE(node_->is_timer_running());
 }

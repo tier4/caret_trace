@@ -20,7 +20,7 @@
 #include <string>
 #include <thread>
 #include <sys/types.h>
-#include <unistd.h>
+#include <mutex>
 
 
 #define ros_trace_rclcpp_publish _ros_trace_rclcpp_publish
@@ -35,22 +35,18 @@
 #undef ros_trace_rclcpp_publish
 #undef ros_trace_rclcpp_service_callback_added
 
-#define DEBUG_OUTPUT
+// #define DEBUG_OUTPUT
 
 std::unique_ptr<std::thread> trace_node_thread;
 
 void run_caret_trace_node()
 {
-  std::string node_name = "caret_trace";
-  auto pid = getpid();
-  char * pid_str = nullptr;
-  if (asprintf(&pid_str, "%jd", (intmax_t) pid) != -1) {
-    node_name += "_" + std::string(pid_str);
-    free(pid_str);
-  }
+  std::string node_name_base = "caret_trace";
   auto & context = Singleton<Context>::get_instance();
   auto data_container = context.get_data_container_ptr();
-  auto trace_node = std::make_shared<CaretTraceNode>(node_name, data_container);
+  // contextが作られる前にNodeを作ろうとすると失敗する。
+  auto trace_node = std::make_shared<TraceNode>(node_name_base, data_container);
+  context.assign_node(trace_node);
   auto exec = rclcpp::executors::SingleThreadedExecutor();
   exec.add_node(trace_node);
   exec.spin();
@@ -65,7 +61,18 @@ void ros_trace_rcl_node_init(
 {
   static auto & context = Singleton<Context>::get_instance();
   static auto & data_container = context.get_data_container();
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & controller = context.get_controller();
+
+  static std::mutex mtx;
+
+  {  // TraceNodeの初期化
+    std::lock_guard<std::mutex> lock(mtx);
+    if (!context.is_node_assigned() && !context.is_node_initializing.load()) {
+      context.is_node_initializing.store(true);
+      trace_node_thread = std::make_unique<std::thread>(run_caret_trace_node);
+      trace_node_thread->detach();
+    }
+  }
 
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(const void *, const void *, const char *, const char *);
@@ -85,9 +92,12 @@ void ros_trace_rcl_node_init(
 
   controller.add_node(node_handle, node_ns_and_name);
 
+  bool pending = data_container.store_rcl_node_init(
+    node_handle, rmw_handle, node_name,
+    node_namespace);
 
-  if (controller.is_allowed_node(node_handle) && context.is_recording_enabled()) {
-    data_container.add_rcl_node_init(node_handle, rmw_handle, node_name, node_namespace);
+  bool record = context.is_recording_enabled() || pending;
+  if (controller.is_allowed_node(node_handle) && record) {
     ((functionT) orig_func)(node_handle, rmw_handle, node_name, node_namespace);
 
 #ifdef DEBUG_OUTPUT
@@ -108,7 +118,8 @@ void ros_trace_rcl_subscription_init(
   const size_t queue_depth)
 {
   static auto & context = Singleton<Context>::get_instance();
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & data_container = context.get_data_container();
+  static auto & controller = context.get_controller();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
   controller.add_subscription_handle(node_handle, subscription_handle, topic_name);
@@ -116,9 +127,16 @@ void ros_trace_rcl_subscription_init(
   using functionT =
     void (*)(const void *, const void *, const void *, const char *, const size_t);
 
-  if (controller.is_allowed_subscription_handle(subscription_handle) &&
-    context.is_recording_enabled())
-  {
+  if (!data_container.is_assigned_rcl_subscription_init()) {
+    data_container.assign_rcl_subscription_init((functionT) orig_func);
+  }
+
+  bool pending = data_container.store_rcl_subscription_init(
+    subscription_handle, node_handle, rmw_subscription_handle, topic_name,
+    reinterpret_cast<size_t>(queue_depth));
+
+  bool record = context.is_recording_enabled() || pending;
+  if (controller.is_allowed_subscription_handle(subscription_handle) && record) {
     ((functionT) orig_func)(
       subscription_handle, node_handle, rmw_subscription_handle, topic_name,
       queue_depth);
@@ -138,15 +156,21 @@ void ros_trace_rclcpp_subscription_init(
   const void * subscription)
 {
   static auto & context = Singleton<Context>::get_instance();
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & data_container = context.get_data_container();
+  static auto & controller = context.get_controller();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
   controller.add_subscription(subscription_handle, subscription);
 
   using functionT = void (*)(const void *, const void *);
-  if (controller.is_allowed_subscription_handle(subscription_handle) &&
-    context.is_recording_enabled() )
-  {
+  if (!data_container.is_assigned_rclcpp_subscription_init()) {
+    data_container.assign_rclcpp_subscription_init((functionT) orig_func);
+  }
+
+  bool pending = data_container.store_rclcpp_subscription_init(subscription_handle, subscription);
+  bool record = context.is_recording_enabled() || pending;
+
+  if (controller.is_allowed_subscription_handle(subscription_handle) && record) {
     ((functionT) orig_func)(subscription_handle, subscription);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_subscription_init," <<
@@ -161,13 +185,21 @@ void ros_trace_rclcpp_subscription_callback_added(
   const void * callback)
 {
   static auto & context = Singleton<Context>::get_instance();
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & data_container = context.get_data_container();
+  static auto & controller = context.get_controller();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
   controller.add_subscription_callback(subscription, callback);
 
   using functionT = void (*)(const void *, const void *);
-  if (controller.is_allowed_callback(callback) && context.is_recording_enabled() ) {
+  if (!data_container.is_assigned_rclcpp_subscription_callback_added()) {
+    data_container.assign_rclcpp_subscription_callback_added((functionT)orig_func);
+  }
+
+  bool pending = data_container.store_rclcpp_subscription_callback_added(subscription, callback);
+  bool record = context.is_recording_enabled() || pending;
+
+  if (controller.is_allowed_callback(callback) && record) {
     ((functionT) orig_func)(subscription, callback);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_subscription_callback_added," <<
@@ -180,13 +212,20 @@ void ros_trace_rclcpp_subscription_callback_added(
 void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void * callback)
 {
   static auto & context = Singleton<Context>::get_instance();
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & data_container = context.get_data_container();
+  static auto & controller = context.get_controller();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
   controller.add_timer_callback(timer_handle, callback);
-
   using functionT = void (*)(const void *, const void *);
-  if (controller.is_allowed_callback(callback) && context.is_recording_enabled()) {
+
+  if (!data_container.is_assigned_rclcpp_timer_callback_added()) {
+    data_container.assign_rclcpp_timer_callback_added((functionT) orig_func);
+  }
+
+  bool pending = data_container.store_rclcpp_timer_callback_added(timer_handle, callback);
+  bool record = context.is_recording_enabled() || pending;
+  if (controller.is_allowed_callback(callback) && record) {
     ((functionT) orig_func)(timer_handle, callback);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_timer_callback_added," <<
@@ -199,13 +238,21 @@ void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void
 void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * node_handle)
 {
   static auto & context = Singleton<Context>::get_instance();
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & data_container = context.get_data_container();
+  static auto & controller = context.get_controller();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
   controller.add_timer_handle(node_handle, timer_handle);
 
   using functionT = void (*)(const void *, const void *);
-  if (controller.is_allowed_node(node_handle) && context.is_recording_enabled()) {
+
+  if (!data_container.is_assigned_rclcpp_timer_link_node()) {
+    data_container.assign_rclcpp_timer_link_node((functionT) orig_func);
+  }
+
+  bool pending = data_container.store_rclcpp_timer_link_node(timer_handle, node_handle);
+  bool record = context.is_recording_enabled() || pending;
+  if (controller.is_allowed_node(node_handle) && record) {
     ((functionT) orig_func)(timer_handle, node_handle);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_timer_link_node," <<
@@ -218,12 +265,14 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
 void ros_trace_callback_start(const void * callback, bool is_intra_process)
 {
   static auto & context = Singleton<Context>::get_instance();
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & controller = context.get_controller();
 
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(const void *, bool);
 
-  if (controller.is_allowed_callback(callback) && context.is_recording_enabled()) {
+  if (controller.is_allowed_callback(callback) &&
+    context.is_recording_enabled())
+  {
     ((functionT) orig_func)(callback, is_intra_process);
 #ifdef DEBUG_OUTPUT
     std::cerr << "callback_start," <<
@@ -236,11 +285,13 @@ void ros_trace_callback_start(const void * callback, bool is_intra_process)
 void ros_trace_callback_end(const void * callback)
 {
   static auto & context = Singleton<Context>::get_instance();
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & controller = context.get_controller();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
   using functionT = void (*)(const void *);
-  if (controller.is_allowed_callback(callback) && context.is_recording_enabled()) {
+  if (controller.is_allowed_callback(callback) &&
+    context.is_recording_enabled())
+  {
     ((functionT) orig_func)(callback);
 
 #ifdef DEBUG_OUTPUT
@@ -257,11 +308,13 @@ void ros_trace_dispatch_subscription_callback(
   const uint64_t message_timestamp)
 {
   static auto & context = Singleton<Context>::get_instance();
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & controller = context.get_controller();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
   using functionT = void (*)(const void *, const void *, const uint64_t, const uint64_t);
-  if (controller.is_allowed_callback(callback) && context.is_recording_enabled()) {
+  if (controller.is_allowed_callback(callback) &&
+    context.is_recording_enabled())
+  {
     ((functionT) orig_func)(message, callback, source_timestamp, message_timestamp);
 
 #ifdef DEBUG_OUTPUT
@@ -280,11 +333,13 @@ void ros_trace_dispatch_intra_process_subscription_callback(
   const uint64_t message_timestamp)
 {
   static auto & context = Singleton<Context>::get_instance();
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & controller = context.get_controller();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
   using functionT = void (*)(const void *, const void *, const uint64_t);
-  if (controller.is_allowed_callback(callback) && context.is_recording_enabled()) {
+  if (controller.is_allowed_callback(callback) &&
+    context.is_recording_enabled())
+  {
     ((functionT) orig_func)(message, callback, message_timestamp);
 
 #ifdef DEBUG_OUTPUT
@@ -302,11 +357,13 @@ void ros_trace_rclcpp_publish(
   const uint64_t message_timestamp)
 {
   static auto & context = Singleton<Context>::get_instance();
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & controller = context.get_controller();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
   using functionT = void (*)(const void *, const void *, const uint64_t);
-  if (controller.is_allowed_publisher_handle(publisher_handle) && context.is_recording_enabled()) {
+  if (controller.is_allowed_publisher_handle(publisher_handle) &&
+    context.is_recording_enabled())
+  {
     ((functionT) orig_func)(publisher_handle, message, message_timestamp);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_publish," <<
@@ -323,12 +380,14 @@ void ros_trace_rclcpp_intra_publish(
   const uint64_t message_timestamp)
 {
   static auto & context = Singleton<Context>::get_instance();
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & controller = context.get_controller();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
   using functionT = void (*)(const void *, const void *, const uint64_t message_timestamp);
 
-  if (controller.is_allowed_publisher_handle(publisher_handle) && context.is_recording_enabled()) {
+  if (controller.is_allowed_publisher_handle(publisher_handle) &&
+    context.is_recording_enabled())
+  {
     ((functionT) orig_func)(publisher_handle, message, message_timestamp);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_intra_publish," <<
@@ -345,11 +404,17 @@ void ros_trace_rcl_timer_init(
 {
   static auto & context = Singleton<Context>::get_instance();
 
+  static auto & data_container = context.get_data_container();
   // TODO(hsgwa): Add filtering of timer initialization using node_handle
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(const void *, int64_t);
 
-  if (context.is_recording_enabled()) {
+  if (!data_container.is_assigned_rcl_timer_init()) {
+    data_container.assign_rcl_timer_init((functionT) orig_func);
+  }
+
+  bool pending = data_container.store_rcl_timer_init(timer_handle, period);
+  if (context.is_recording_enabled() || pending) {
     ((functionT) orig_func)(timer_handle, period);
 
 #ifdef DEBUG_OUTPUT
@@ -365,13 +430,15 @@ void ros_trace_rcl_init(
 {
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   static auto & context = Singleton<Context>::get_instance();
+  static auto & data_container = context.get_data_container();
   using functionT = void (*)(const void *);
   ((functionT) orig_func)(context_handle);
 
-  trace_node_thread = std::make_unique<std::thread>(run_caret_trace_node);
-  trace_node_thread->detach();
-
-  if (context.is_recording_enabled()) {
+  if (!data_container.is_assigned_rcl_init()) {
+    data_container.assign_rcl_init((functionT)orig_func);
+  }
+  bool pending = data_container.store_rcl_init(context_handle);
+  if (context.is_recording_enabled() || pending) {
 #ifdef DEBUG_OUTPUT
     std::cerr << "rcl_init," <<
       context_handle << std::endl;
@@ -389,9 +456,9 @@ void ros_trace_rcl_publisher_init(
 )
 {
   static auto & context = Singleton<Context>::get_instance();
+  static auto & data_container = context.get_data_container();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
-
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & controller = context.get_controller();
 
   controller.add_publisher_handle(node_handle, publisher_handle, topic_name);
 
@@ -399,7 +466,18 @@ void ros_trace_rcl_publisher_init(
   // TODO(hsgwa): support topic_name filtering
   // It seems to be executed before the topic name and node name are known.
 
-  if (context.is_recording_enabled()) {
+  if (!data_container.is_assigned_rcl_publisher_init()) {
+    data_container.assign_rcl_publisher_init((functionT) orig_func);
+  }
+
+  bool pending = data_container.store_rcl_publisher_init(
+    publisher_handle,
+    node_handle,
+    rmw_publisher_handle,
+    topic_name,
+    queue_depth);
+
+  if (context.is_recording_enabled() || pending) {
     ((functionT) orig_func)(
       publisher_handle,
       node_handle,
@@ -423,10 +501,12 @@ void ros_trace_rcl_publish(
 {
   static auto & context = Singleton<Context>::get_instance();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & controller = context.get_controller();
 
   using functionT = void (*)(const void *, const void *);
-  if (controller.is_allowed_publisher_handle(publisher_handle) && context.is_recording_enabled()) {
+  if (controller.is_allowed_publisher_handle(publisher_handle) &&
+    context.is_recording_enabled())
+  {
     ((functionT) orig_func)(publisher_handle, message);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rcl_publish," <<
@@ -443,10 +523,18 @@ void ros_trace_rcl_service_init(
   const char * service_name)
 {
   static auto & context = Singleton<Context>::get_instance();
+  static auto & data_container = context.get_data_container();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(const void *, const void *, const void *, const char *);
 
-  if (context.is_recording_enabled()) {
+  if (!data_container.is_assigned_rcl_service_init()) {
+    data_container.assign_rcl_service_init((functionT) orig_func);
+  }
+
+  bool pending = data_container.store_rcl_service_init(
+    service_handle, node_handle, rmw_service_handle,
+    service_name);
+  if (context.is_recording_enabled() || pending) {
     ((functionT) orig_func)(service_handle, node_handle, rmw_service_handle, service_name);
 
 #ifdef DEBUG_OUTPUT
@@ -464,10 +552,16 @@ void ros_trace_rclcpp_service_callback_added(
   const char * callback)
 {
   static auto & context = Singleton<Context>::get_instance();
+  static auto & data_container = context.get_data_container();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(const void *, const void *);
 
-  if (context.is_recording_enabled()) {
+  if (!data_container.is_assigned_rclcpp_service_callback_added()) {
+    data_container.assign_rclcpp_service_callback_added((functionT) orig_func);
+  }
+  bool pending = data_container.store_rclcpp_service_callback_added(service_handle, callback);
+
+  if (context.is_recording_enabled() || pending) {
     ((functionT) orig_func)(service_handle, callback);
 
 #ifdef DEBUG_OUTPUT
@@ -485,10 +579,17 @@ void ros_trace_rcl_client_init(
   const char * service_name)
 {
   static auto & context = Singleton<Context>::get_instance();
+  static auto & data_container = context.get_data_container();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(const void *, const void *, const void *, const char *);
 
-  if (context.is_recording_enabled()) {
+  if (!data_container.is_assigned_rcl_client_init()) {
+    data_container.assign_rcl_client_init((functionT) orig_func);
+  }
+  bool pending = data_container.store_rcl_client_init(
+    client_handle, node_handle, rmw_client_handle,
+    service_name);
+  if (context.is_recording_enabled() || pending) {
     ((functionT) orig_func)(client_handle, node_handle, rmw_client_handle, service_name);
 
 #ifdef DEBUG_OUTPUT
@@ -506,10 +607,20 @@ void ros_trace_rclcpp_callback_register(
   const char * symbol)
 {
   static auto & context = Singleton<Context>::get_instance();
+  static auto & data_container = context.get_data_container();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & controller = context.get_controller();
   using functionT = void (*)(const void *, const char *);
-  if (controller.is_allowed_callback(callback) && context.is_recording_enabled()) {
+
+
+  if (!data_container.is_assigned_rclcpp_callback_register()) {
+    data_container.assign_rclcpp_callback_register((functionT) orig_func);
+  }
+
+  bool pending = data_container.store_rclcpp_callback_register(callback, symbol);
+  bool record = context.is_recording_enabled() || pending;
+
+  if (controller.is_allowed_callback(callback) && record) {
     ((functionT) orig_func)(callback, symbol);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_callback_register," <<
