@@ -22,13 +22,27 @@
 
 TEST(HashableKeys, IntCase)
 {
-  HashableKeys<int> keys(1);
-  HashableKeys<int> keys_(1);
-  HashableKeys<int> keys__(2);
+  {
+    HashableKeys<int> keys(1);
+    HashableKeys<int> keys_(1);
+    HashableKeys<int> keys__(2);
 
-  EXPECT_TRUE(keys.equal_to(keys_));
-  EXPECT_FALSE(keys.equal_to(keys__));
+    EXPECT_TRUE(keys.equal_to(keys_));
+    EXPECT_FALSE(keys.equal_to(keys__));
 
-  EXPECT_EQ(keys.hash(), keys_.hash());
-  EXPECT_NE(keys.hash(), keys__.hash());
+    EXPECT_EQ(keys.hash(), keys_.hash());
+    EXPECT_NE(keys.hash(), keys__.hash());
+  }
+
+  {
+    HashableKeys<int, int, int> keys(1, 2, 3);
+    HashableKeys<int, int, int> keys_(1, 2, 3);
+    HashableKeys<int, int, int> keys__(2, 2, 3);
+
+    EXPECT_TRUE(keys.equal_to(keys_));
+    EXPECT_FALSE(keys.equal_to(keys__));
+
+    EXPECT_EQ(keys.hash(), keys_.hash());
+    EXPECT_NE(keys.hash(), keys__.hash());
+  }
 }
