@@ -73,7 +73,6 @@ struct hash<HashableKeys<T1, T2, T3>>
 {
   size_t operator()(const HashableKeys<T1, T2, T3> & t) const
   {
-    // cout << t.hash() << endl;
     return t.hash();
   }
 };
