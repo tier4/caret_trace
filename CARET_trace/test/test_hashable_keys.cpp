@@ -35,10 +35,10 @@ TEST(HashableKeys, IntCase)
   }
 
   {
-    HashableKeys<int, int, int> keys(1, 2, 3);
-    HashableKeys<int, int, int> keys_(1, 2, 3);
-    HashableKeys<int, int, int> keys__(2, 2, 3);
-    HashableKeys<int, int, int> keys___(1, 2, 4);
+    HashableKeys<int, int, int, int, int> keys(1, 2, 3, 4, 5);
+    HashableKeys<int, int, int, int, int> keys_(1, 2, 3, 4, 5);
+    HashableKeys<int, int, int, int, int> keys__(2, 2, 3, 4, 5);
+    HashableKeys<int, int, int, int, int> keys___(1, 2, 3, 4, 4);
 
     EXPECT_TRUE(keys.equal_to(keys_));
     EXPECT_FALSE(keys.equal_to(keys__));

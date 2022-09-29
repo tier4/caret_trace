@@ -19,7 +19,13 @@
 #include <type_traits>
 #include <unordered_set>
 
-template <typename T1, typename T2 = std::false_type, typename T3 = std::false_type>
+template<
+  typename T1,
+  typename T2 = std::false_type,
+  typename T3 = std::false_type,
+  typename T4 = std::false_type,
+  typename T5 = std::false_type
+>
 class HashableKeys
 {
 public:
@@ -28,6 +34,14 @@ public:
   HashableKeys(T1 key1, T2 key2) : key1_(key1), key2_(key2) {}
 
   HashableKeys(T1 key1, T2 key2, T3 key3) : key1_(key1), key2_(key2), key3_(key3) {}
+
+  HashableKeys(T1 key1, T2 key2, T3 key3, T4 key4)
+  : key1_(key1), key2_(key2), key3_(key3), key4_(key4)
+  {}
+
+  HashableKeys(T1 key1, T2 key2, T3 key3, T4 key4, T5 key5)
+  : key1_(key1), key2_(key2), key3_(key3), key4_(key4), key5_(key5)
+  {}
 
   size_t hash() const
   {
@@ -44,12 +58,24 @@ public:
     if constexpr (!std::is_same<std::false_type, T3>::value) {
       res = res * 31 + std::hash<T3>()(key3_);
     }
+    if constexpr (!std::is_same_v<std::false_type, T4>) {
+      res = res * 31 + std::hash<T4>()(key4_);
+    }
+    if constexpr (!std::is_same_v<std::false_type, T5>) {
+      res = res * 31 + std::hash<T5>()(key5_);
+    }
 
     return res;
   }
-  bool equal_to(const HashableKeys<T1, T2, T3> & keys) const
+  bool equal_to(const HashableKeys<T1, T2, T3, T4, T5> & keys) const
   {
-    if constexpr (!std::is_same_v<std::false_type, T3>) {
+    if constexpr (!std::is_same_v<std::false_type, T5>) {
+      return key1_ == keys.key1_ && key2_ == keys.key2_ && key3_ == keys.key3_ &&
+             key4_ == keys.key4_ && key5_ == keys.key5_;
+    } else if constexpr (!std::is_same_v<std::false_type, T4>) {
+      return key1_ == keys.key1_ && key2_ == keys.key2_ && key3_ == keys.key3_ &&
+             key4_ == keys.key4_;
+    } else if constexpr (!std::is_same_v<std::false_type, T3>) {
       return key1_ == keys.key1_ && key2_ == keys.key2_ && key3_ == keys.key3_;
     } else if constexpr (!std::is_same_v<std::false_type, T2>) {
       return key1_ == keys.key1_ && key2_ == keys.key2_;
@@ -62,23 +88,27 @@ private:
   T1 key1_;
   T2 key2_;
   T3 key3_;
+  T4 key4_;
+  T5 key5_;
 };
 
 namespace std
 {
-template <typename T1, typename T2, typename T3>
-struct hash<HashableKeys<T1, T2, T3>>
+template<typename T1, typename T2, typename T3, typename T4, typename T5>
+struct hash<HashableKeys<T1, T2, T3, T4, T5>>
 {
-  size_t operator()(const HashableKeys<T1, T2, T3> & t) const
+  size_t operator()(const HashableKeys<T1, T2, T3, T4, T5> & t) const
   {
     return t.hash();
   }
 };
 
-template <typename T1, typename T2, typename T3>
-struct equal_to<HashableKeys<T1, T2, T3>>
+template<typename T1, typename T2, typename T3, typename T4, typename T5>
+struct equal_to<HashableKeys<T1, T2, T3, T4, T5>>
 {
-  size_t operator()(const HashableKeys<T1, T2, T3> & t, const HashableKeys<T1, T2, T3> & t_) const
+  size_t operator()(
+    const HashableKeys<T1, T2, T3, T4, T5> & t,
+    const HashableKeys<T1, T2, T3, T4, T5> & t_) const
   {
     return t.equal_to(t_);
   }
