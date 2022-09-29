@@ -49,15 +49,13 @@ public:
   }
   bool equal_to(const HashableKeys<T1, T2, T3> & keys) const
   {
-    if constexpr (std::true_type::value) {
-      return key1_ == keys.key1_;
-    } else if constexpr (!std::is_same<std::false_type, T2>::value) {
+    if constexpr (!std::is_same_v<std::false_type, T3>) {
+      return key1_ == keys.key1_ && key2_ == keys.key2_ && key3_ == keys.key3_;
+    } else if constexpr (!std::is_same_v<std::false_type, T2>) {
       return key1_ == keys.key1_ && key2_ == keys.key2_;
-    } else if constexpr (!std::is_same<std::false_type, T3>::value) {
-      return key1_ == keys.key1_ && key2_ == keys.key2_ && key3_ == keys.keys3_;
+    } else {
+      return key1_ == keys.key1_;
     }
-
-    return false;
   }
 
 private:
