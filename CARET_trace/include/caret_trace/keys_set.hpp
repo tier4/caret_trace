@@ -31,6 +31,9 @@ public:
 
   size_t hash() const
   {
+    // For hash code impelemtation, see:
+    // https://www.baeldung.com/java-hashcode#standard-hashcode-implementations
+
     size_t res = 17;
     if constexpr (std::true_type::value) {
       res = res * 31 + std::hash<T1>()(key1_);
