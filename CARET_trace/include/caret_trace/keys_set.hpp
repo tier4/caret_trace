@@ -76,7 +76,7 @@ public:
 
   size_t hash() const
   {
-    // For hash code impelemtation, see:
+    // For hash code implementations, see:
     // https://www.baeldung.com/java-hashcode#standard-hashcode-implementations
 
     size_t res = 17;
