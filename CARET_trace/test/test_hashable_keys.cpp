@@ -114,7 +114,8 @@ TEST(HashableKeys, Size)
 TEST(HashableKeys, StringLiteralCase)
 {
   const char * s = "a";
-  const char * s_ = std::string("a").c_str();  // avoid optimization of string literal
+  auto s_tmp = std::string("a");
+  const char * s_ = s_tmp.c_str();  // avoid optimization of string literal
   const char * s__ = "b";
 
   EXPECT_NE(s, s_);
