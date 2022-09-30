@@ -74,3 +74,29 @@ TEST(HashableKeys, LessOperator) {
   EXPECT_TRUE(keys < keys__);
   EXPECT_TRUE(keys__ < keys___);
 }
+
+TEST(HashableKeys, Size) {
+  {
+    HashableKeys<int8_t> keys_8(1);
+    HashableKeys<int16_t> keys_16(1);
+    HashableKeys<int32_t> keys_32(1);
+    HashableKeys<int64_t> keys_64(1);
+
+    EXPECT_LE(sizeof(keys_8), sizeof(keys_16));
+    EXPECT_LE(sizeof(keys_16), sizeof(keys_32));
+    EXPECT_LE(sizeof(keys_32), sizeof(keys_64));
+  }
+
+  {
+    HashableKeys<int> keys_1(1);
+    HashableKeys<int, int> keys_2(1, 2);
+    HashableKeys<int, int, int> keys_3(1, 2, 3);
+    HashableKeys<int, int, int, int> keys_4(1, 2, 3, 4);
+    HashableKeys<int, int, int, int, int64_t> keys_5(1, 2, 3, 4, 5);
+
+    EXPECT_LE(sizeof(keys_1), sizeof(keys_2));
+    EXPECT_LE(sizeof(keys_2), sizeof(keys_3));
+    EXPECT_LE(sizeof(keys_3), sizeof(keys_4));
+    EXPECT_LE(sizeof(keys_4), sizeof(keys_5));
+  }
+}
