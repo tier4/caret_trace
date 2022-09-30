@@ -49,3 +49,17 @@ TEST(HashableKeys, IntCase)
     EXPECT_NE(keys.hash(), keys___.hash());
   }
 }
+
+TEST(HashableKeys, MultiArgsCase) {
+  HashableKeys<int, char, int64_t, void *, char *> keys(1, 'a', 2, nullptr, nullptr);
+  HashableKeys<int, char, int64_t, void *, char *> keys_(1, 'a', 2, nullptr, nullptr);
+  HashableKeys<int, char, int64_t, void *, char *> keys__(1, 'b', 2, nullptr, nullptr);
+
+  EXPECT_EQ(keys.first(), 1);
+  EXPECT_EQ(keys.second(), 'a');
+  EXPECT_EQ(keys.third(), 2);
+  EXPECT_EQ(keys.fourth(), nullptr);
+  EXPECT_EQ(keys.fifth(), nullptr);
+  EXPECT_TRUE(keys.equal_to(keys_));
+  EXPECT_FALSE(keys.equal_to(keys__));
+}

@@ -84,6 +84,39 @@ public:
     }
   }
 
+  T1 first() const
+  {
+    return key1_;
+  }
+
+  T2  second() const
+  {
+    static_assert(!std::is_same_v<T2, std::false_type>, "Invalid access.");
+
+    return key2_;
+  }
+
+  T3  third() const
+  {
+    static_assert(!std::is_same_v<T3, std::false_type>, "Invalid access.");
+
+    return key3_;
+  }
+
+  T4 fourth() const
+  {
+    static_assert(!std::is_same_v<T4, std::false_type>, "Invalid access.");
+
+    return key4_;
+  }
+
+  T5 fifth() const
+  {
+    static_assert(!std::is_same_v<T5, std::false_type>, "Invalid access.");
+
+    return key5_;
+  }
+
 private:
   T1 key1_;
   T2 key2_;
