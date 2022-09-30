@@ -51,17 +51,24 @@ TEST(HashableKeys, IntCase)
 }
 
 TEST(HashableKeys, MultiArgsCase) {
-  HashableKeys<int, char, int64_t, void *, char *> keys(1, 'a', 2, nullptr, nullptr);
-  HashableKeys<int, char, int64_t, void *, char *> keys_(1, 'a', 2, nullptr, nullptr);
-  HashableKeys<int, char, int64_t, void *, char *> keys__(1, 'b', 2, nullptr, nullptr);
+  const char * str = "a";
+  const char * str_ = "b";
+
+  HashableKeys<int, char, int64_t, void *, const char *> keys(1, 'a', 2, nullptr, str);
+  HashableKeys<int, char, int64_t, void *, const char *> keys_(1, 'a', 2, nullptr, str);
+  HashableKeys<int, char, int64_t, void *, const char *> keys__(1, 'b', 2, nullptr, str);
+  HashableKeys<int, char, int64_t, void *, const char *> keys___(1, 'a', 2, nullptr, str_);
 
   EXPECT_EQ(keys.first(), 1);
   EXPECT_EQ(keys.second(), 'a');
   EXPECT_EQ(keys.third(), 2);
   EXPECT_EQ(keys.fourth(), nullptr);
-  EXPECT_EQ(keys.fifth(), nullptr);
+  EXPECT_NE(keys.fifth(), str);
+  EXPECT_EQ(std::string(keys.fifth()), str);
+
   EXPECT_TRUE(keys.equal_to(keys_));
   EXPECT_FALSE(keys.equal_to(keys__));
+  EXPECT_FALSE(keys.equal_to(keys___));
 }
 
 TEST(HashableKeys, LessOperator) {
@@ -99,4 +106,29 @@ TEST(HashableKeys, Size) {
     EXPECT_LE(sizeof(keys_3), sizeof(keys_4));
     EXPECT_LE(sizeof(keys_4), sizeof(keys_5));
   }
+}
+
+TEST(HashableKeys, StringLiteralCase) {
+  const char * s = "a";
+  const char * s_ = std::string("a").c_str();  // avoid optimization of string literal
+  const char * s__ = "b";
+
+  EXPECT_NE(s, s_);
+
+  HashableKeys<const char *> keys(s);
+  HashableKeys<const char *> keys_(s_);
+  HashableKeys<const char *> keys__(s__);
+
+  auto is_equal = [](const char * lhs, const char * rhs) -> bool {
+      return std::string(lhs).compare(rhs) == 0;
+    };
+
+  EXPECT_TRUE(is_equal(keys.first(), keys_.first()));
+  EXPECT_FALSE(is_equal(keys.first(), keys__.first()));
+
+  EXPECT_TRUE(keys.equal_to(keys_));
+  EXPECT_FALSE(keys.equal_to(keys__));
+
+  EXPECT_EQ(keys.hash(), keys_.hash());
+  EXPECT_NE(keys.hash(), keys__.hash());
 }

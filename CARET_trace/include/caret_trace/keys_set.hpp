@@ -18,6 +18,19 @@
 #include <iostream>
 #include <type_traits>
 #include <unordered_set>
+#include <string>
+
+template<bool Cond, typename Then, typename Else>
+struct if_
+{
+  using type = Then;
+};
+
+template<typename Then, typename Else>
+struct if_<false, Then, Else>
+{
+  using type = Else;
+};
 
 template<
   typename T1,
@@ -28,6 +41,20 @@ template<
 >
 class HashableKeys
 {
+private:
+  using IsT1String = std::is_same<const char *, T1>;
+  using IsT2String = std::is_same<const char *, T2>;
+  using IsT3String = std::is_same<const char *, T3>;
+  using IsT4String = std::is_same<const char *, T4>;
+  using IsT5String = std::is_same<const char *, T5>;
+
+  // Store string literal as std::string
+  using T1_ = typename if_<IsT1String::value, std::string, T1>::type;
+  using T2_ = typename if_<IsT2String::value, std::string, T2>::type;
+  using T3_ = typename if_<IsT3String::value, std::string, T3>::type;
+  using T4_ = typename if_<IsT4String::value, std::string, T4>::type;
+  using T5_ = typename if_<IsT5String::value, std::string, T5>::type;
+
 public:
   explicit HashableKeys(T1 key1) : key1_(key1) {}
 
@@ -50,19 +77,19 @@ public:
 
     size_t res = 17;
     if constexpr (std::true_type::value) {
-      res = res * 31 + std::hash<T1>()(key1_);
+      res = res * 31 + std::hash<T1_>()(key1_);
     }
     if constexpr (!std::is_same<std::false_type, T2>::value) {
-      res = res * 31 + std::hash<T2>()(key2_);
+      res = res * 31 + std::hash<T2_>()(key2_);
     }
     if constexpr (!std::is_same<std::false_type, T3>::value) {
-      res = res * 31 + std::hash<T3>()(key3_);
+      res = res * 31 + std::hash<T3_>()(key3_);
     }
     if constexpr (!std::is_same_v<std::false_type, T4>) {
-      res = res * 31 + std::hash<T4>()(key4_);
+      res = res * 31 + std::hash<T4_>()(key4_);
     }
     if constexpr (!std::is_same_v<std::false_type, T5>) {
-      res = res * 31 + std::hash<T5>()(key5_);
+      res = res * 31 + std::hash<T5_>()(key5_);
     }
 
     return res;
@@ -119,43 +146,63 @@ public:
 
   T1 first() const
   {
-    return key1_;
+    if constexpr (IsT1String::value) {
+      return key1_.c_str();
+    } else {
+      return key1_;
+    }
   }
 
   T2  second() const
   {
     static_assert(!std::is_same_v<T2, std::false_type>, "Invalid access.");
 
-    return key2_;
+    if constexpr (IsT2String::value) {
+      return key2_.c_str();
+    } else {
+      return key2_;
+    }
   }
 
   T3  third() const
   {
     static_assert(!std::is_same_v<T3, std::false_type>, "Invalid access.");
 
-    return key3_;
+    if constexpr (IsT3String::value) {
+      return key3_.c_str();
+    } else {
+      return key3_;
+    }
   }
 
   T4 fourth() const
   {
     static_assert(!std::is_same_v<T4, std::false_type>, "Invalid access.");
 
-    return key4_;
+    if constexpr (IsT4String::value) {
+      return key4_.c_str();
+    } else {
+      return key4_;
+    }
   }
 
   T5 fifth() const
   {
     static_assert(!std::is_same_v<T5, std::false_type>, "Invalid access.");
 
-    return key5_;
+    if constexpr (IsT5String::value) {
+      return key5_.c_str();
+    } else {
+      return key5_;
+    }
   }
 
 private:
-  T1 key1_;
-  T2 key2_;
-  T3 key3_;
-  T4 key4_;
-  T5 key5_;
+  T1_ key1_;
+  T2_ key2_;
+  T3_ key3_;
+  T4_ key4_;
+  T5_ key5_;
 };
 
 namespace std
