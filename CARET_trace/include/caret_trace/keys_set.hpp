@@ -16,22 +16,23 @@
 
 #include <functional>
 #include <iostream>
+#include <string>
 #include <type_traits>
 #include <unordered_set>
-#include <string>
 
-template<bool Cond, typename Then, typename Else>
+template <bool Cond, typename Then, typename Else>
 struct if_
 {
   using type = Then;
 };
 
-template<typename Then, typename Else>
+template <typename Then, typename Else>
 struct if_<false, Then, Else>
 {
   using type = Else;
 };
 
+// clang-format off
 template<
   typename T1,
   typename T2 = std::false_type,
@@ -39,6 +40,7 @@ template<
   typename T4 = std::false_type,
   typename T5 = std::false_type
 >
+// clang-format on
 class HashableKeys
 {
 private:
@@ -64,11 +66,13 @@ public:
 
   HashableKeys(T1 key1, T2 key2, T3 key3, T4 key4)
   : key1_(key1), key2_(key2), key3_(key3), key4_(key4)
-  {}
+  {
+  }
 
   HashableKeys(T1 key1, T2 key2, T3 key3, T4 key4, T5 key5)
   : key1_(key1), key2_(key2), key3_(key3), key4_(key4), key5_(key5)
-  {}
+  {
+  }
 
   size_t hash() const
   {
@@ -153,7 +157,7 @@ public:
     }
   }
 
-  T2  second() const
+  T2 second() const
   {
     static_assert(!std::is_same_v<T2, std::false_type>, "Invalid access.");
 
@@ -164,7 +168,7 @@ public:
     }
   }
 
-  T3  third() const
+  T3 third() const
   {
     static_assert(!std::is_same_v<T3, std::false_type>, "Invalid access.");
 
@@ -207,21 +211,17 @@ private:
 
 namespace std
 {
-template<typename T1, typename T2, typename T3, typename T4, typename T5>
+template <typename T1, typename T2, typename T3, typename T4, typename T5>
 struct hash<HashableKeys<T1, T2, T3, T4, T5>>
 {
-  size_t operator()(const HashableKeys<T1, T2, T3, T4, T5> & t) const
-  {
-    return t.hash();
-  }
+  size_t operator()(const HashableKeys<T1, T2, T3, T4, T5> & t) const { return t.hash(); }
 };
 
-template<typename T1, typename T2, typename T3, typename T4, typename T5>
+template <typename T1, typename T2, typename T3, typename T4, typename T5>
 struct equal_to<HashableKeys<T1, T2, T3, T4, T5>>
 {
   size_t operator()(
-    const HashableKeys<T1, T2, T3, T4, T5> & t,
-    const HashableKeys<T1, T2, T3, T4, T5> & t_) const
+    const HashableKeys<T1, T2, T3, T4, T5> & t, const HashableKeys<T1, T2, T3, T4, T5> & t_) const
   {
     return t.equal_to(t_);
   }

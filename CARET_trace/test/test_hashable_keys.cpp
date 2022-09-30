@@ -50,7 +50,8 @@ TEST(HashableKeys, IntCase)
   }
 }
 
-TEST(HashableKeys, MultiArgsCase) {
+TEST(HashableKeys, MultiArgsCase)
+{
   const char * str = "a";
   const char * str_ = "b";
 
@@ -71,7 +72,8 @@ TEST(HashableKeys, MultiArgsCase) {
   EXPECT_FALSE(keys.equal_to(keys___));
 }
 
-TEST(HashableKeys, LessOperator) {
+TEST(HashableKeys, LessOperator)
+{
   HashableKeys<int, int, int, int, int> keys(1, 2, 3, 4, 5);
   HashableKeys<int, int, int, int, int> keys_(1, 2, 3, 4, 5);
   HashableKeys<int, int, int, int, int> keys__(1, 2, 3, 4, 6);
@@ -82,7 +84,8 @@ TEST(HashableKeys, LessOperator) {
   EXPECT_TRUE(keys__ < keys___);
 }
 
-TEST(HashableKeys, Size) {
+TEST(HashableKeys, Size)
+{
   {
     HashableKeys<int8_t> keys_8(1);
     HashableKeys<int16_t> keys_16(1);
@@ -108,7 +111,8 @@ TEST(HashableKeys, Size) {
   }
 }
 
-TEST(HashableKeys, StringLiteralCase) {
+TEST(HashableKeys, StringLiteralCase)
+{
   const char * s = "a";
   const char * s_ = std::string("a").c_str();  // avoid optimization of string literal
   const char * s__ = "b";
@@ -120,8 +124,8 @@ TEST(HashableKeys, StringLiteralCase) {
   HashableKeys<const char *> keys__(s__);
 
   auto is_equal = [](const char * lhs, const char * rhs) -> bool {
-      return std::string(lhs).compare(rhs) == 0;
-    };
+    return std::string(lhs).compare(rhs) == 0;
+  };
 
   EXPECT_TRUE(is_equal(keys.first(), keys_.first()));
   EXPECT_FALSE(is_equal(keys.first(), keys__.first()));
