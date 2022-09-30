@@ -63,3 +63,14 @@ TEST(HashableKeys, MultiArgsCase) {
   EXPECT_TRUE(keys.equal_to(keys_));
   EXPECT_FALSE(keys.equal_to(keys__));
 }
+
+TEST(HashableKeys, LessOperator) {
+  HashableKeys<int, int, int, int, int> keys(1, 2, 3, 4, 5);
+  HashableKeys<int, int, int, int, int> keys_(1, 2, 3, 4, 5);
+  HashableKeys<int, int, int, int, int> keys__(1, 2, 3, 4, 6);
+  HashableKeys<int, int, int, int, int> keys___(2, 2, 3, 4, 6);
+
+  EXPECT_FALSE(keys < keys_);
+  EXPECT_TRUE(keys < keys__);
+  EXPECT_TRUE(keys__ < keys___);
+}

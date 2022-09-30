@@ -84,6 +84,39 @@ public:
     }
   }
 
+  bool operator<(const HashableKeys<T1, T2, T3, T4, T5> & rhs) const
+  {
+    if (first() < rhs.first()) {
+      return true;
+    }
+
+    if constexpr (!std::is_same_v<std::false_type, T2>) {
+      if (second() < rhs.second()) {
+        return true;
+      }
+    }
+
+    if constexpr (!std::is_same_v<std::false_type, T3>) {
+      if (third() < rhs.third()) {
+        return true;
+      }
+    }
+
+    if constexpr (!std::is_same_v<std::false_type, T4>) {
+      if (fourth() < rhs.fourth()) {
+        return true;
+      }
+    }
+
+    if constexpr (!std::is_same_v<std::false_type, T5>) {
+      if (fifth() < rhs.fifth()) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   T1 first() const
   {
     return key1_;
