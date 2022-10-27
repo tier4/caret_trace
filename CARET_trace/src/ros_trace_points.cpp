@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "caret_trace/context.hpp"
 #include "caret_trace/singleton.hpp"
 #include "caret_trace/tp.h"
 #include "caret_trace/tracing_controller.hpp"
@@ -70,7 +71,8 @@ void ros_trace_rcl_node_init(
   const char * node_name,
   const char * node_namespace)
 {
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
 
   std::string ns = node_namespace;
   char last_char = ns[ns.length() - 1];
@@ -104,7 +106,8 @@ void ros_trace_rcl_subscription_init(
   const char * topic_name,
   const size_t queue_depth)
 {
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
 
   controller.add_subscription_handle(node_handle, subscription_handle, topic_name);
 
@@ -131,7 +134,8 @@ void ros_trace_rclcpp_subscription_init(
   const void * subscription_handle,
   const void * subscription)
 {
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
 
   controller.add_subscription(subscription_handle, subscription);
 
@@ -151,7 +155,8 @@ void ros_trace_rclcpp_subscription_callback_added(
   const void * subscription,
   const void * callback)
 {
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
 
   controller.add_subscription_callback(subscription, callback);
 
@@ -169,7 +174,8 @@ void ros_trace_rclcpp_subscription_callback_added(
 
 void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void * callback)
 {
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
 
   controller.add_timer_callback(timer_handle, callback);
 
@@ -187,7 +193,8 @@ void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void
 
 void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * node_handle)
 {
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
 
   controller.add_timer_handle(node_handle, timer_handle);
 
@@ -205,7 +212,8 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
 
 void ros_trace_callback_start(const void * callback, bool is_intra_process)
 {
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
 
   using functionT = void (*)(const void *, bool);
 
@@ -222,7 +230,8 @@ void ros_trace_callback_start(const void * callback, bool is_intra_process)
 
 void ros_trace_callback_end(const void * callback)
 {
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
 
   using functionT = void (*)(const void *);
   if (controller.is_allowed_callback(callback)) {
@@ -242,7 +251,8 @@ void ros_trace_dispatch_subscription_callback(
   const uint64_t source_timestamp,
   const uint64_t message_timestamp)
 {
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
 
   using functionT = void (*)(const void *, const void *, const uint64_t, const uint64_t);
   if (controller.is_allowed_callback(callback)) {
@@ -264,7 +274,8 @@ void ros_trace_dispatch_intra_process_subscription_callback(
   const void * callback,
   const uint64_t message_timestamp)
 {
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
 
   using functionT = void (*)(const void *, const void *, const uint64_t);
   if (controller.is_allowed_callback(callback)) {
@@ -285,7 +296,8 @@ void ros_trace_rclcpp_publish(
   const void * message,
   const uint64_t message_timestamp)
 {
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
 
   using functionT = void (*)(const void *, const void *, const uint64_t);
   if (controller.is_allowed_publisher_handle(publisher_handle)) {
@@ -305,7 +317,8 @@ void ros_trace_rclcpp_intra_publish(
   const void * message,
   const uint64_t message_timestamp)
 {
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
 
   using functionT = void (*)(const void *, const void *, const uint64_t message_timestamp);
 
@@ -360,7 +373,8 @@ void ros_trace_rcl_publisher_init(
   const size_t queue_depth
 )
 {
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
 
   controller.add_publisher_handle(node_handle, publisher_handle, topic_name);
 
@@ -388,7 +402,8 @@ void ros_trace_rcl_publish(
   const void * publisher_handle,
   const void * message)
 {
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
 
   using functionT = void (*)(const void *, const void *);
   if (controller.is_allowed_publisher_handle(publisher_handle)) {
@@ -459,8 +474,11 @@ void ros_trace_rclcpp_callback_register(
   const void * callback,
   const char * symbol)
 {
-  static auto & controller = Singleton<TracingController>::get_instance();
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
+
   using functionT = void (*)(const void *, const char *);
+
   if (controller.is_allowed_callback(callback)) {
     assert(ORIG_FUNC::ros_trace_rclcpp_callback_register != nullptr);
     ((functionT) ORIG_FUNC::ros_trace_rclcpp_callback_register)(callback, symbol);

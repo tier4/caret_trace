@@ -39,7 +39,8 @@ add_library(caret SHARED
   src/hooked_trace_points.cpp
   src/tracing_controller.cpp
   src/singleton.cpp
-  src/tp.c)
+  src/tp.c
+  src/context.cpp)
 
 ament_target_dependencies(caret
   rclcpp
