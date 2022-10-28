@@ -8,8 +8,6 @@
     - source: .clang-format
     - source: .markdown-link-check.json
     - source: .markdownlint.yaml
-    - source: .pre-commit-config.yaml
-    - source: .pre-commit-config-optional.yaml
     - source: .prettierignore
     - source: .prettierrc.yaml
     - source: .yamllint.yaml
@@ -26,3 +24,5 @@
 - repository: tier4/caret_common
   files:
     - source: .cspell.json
+    - source: .pre-commit-config.yaml
+    - source: .pre-commit-config-optional.yaml
