@@ -257,17 +257,17 @@ public:
     keys_.insert(keys);
   }
 
-  bool has(T1 key1, T2 key2, T3 key3)
+  bool has(T1 key1, T2 key2, T3 key3) const
   {
     HashableKeys<T1, T2, T3> keys(key1, key2, key3);
     return keys_.count(keys) > 0;
   }
-  bool has(T1 key1, T2 key2)
+  bool has(T1 key1, T2 key2) const
   {
     HashableKeys<T1, T2> keys(key1, key2);
     return keys_.count(keys) > 0;
   }
-  bool has(T1 key1)
+  bool has(T1 key1) const
   {
     HashableKeys<T1> keys(key1);
     return keys_.count(keys) > 0;
