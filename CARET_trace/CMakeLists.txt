@@ -54,6 +54,9 @@ ament_target_dependencies(caret
   rmw_fastrtps_shared_cpp
   LTTngUST)
 
+ament_export_targets(export_caret_trace HAS_LIBRARY_TARGET)
+ament_export_dependencies(rclcpp LTTngUST)
+
 target_link_libraries(caret CycloneDDS::ddsc fastrtps)
 
 add_executable(clock_recorder src/clock_recorder.cpp src/tp.c)
