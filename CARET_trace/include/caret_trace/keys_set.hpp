@@ -16,6 +16,7 @@
 
 #include <functional>
 #include <iostream>
+#include <iterator>
 #include <string>
 #include <type_traits>
 #include <unordered_set>
@@ -243,6 +244,10 @@ template <
 class KeysSet
 {
 public:
+  using SetT = std::unordered_set<HashableKeys<T1, T2, T3, T4, T5>>;
+  using IteratorT = typename SetT::iterator;
+  using ConstIteratorT = typename SetT::const_iterator;
+
   void insert(T1 key1, T2 key2, T3 key3, T4 key4, T5 key5)
   {
     HashableKeys<T1, T2, T3, T4, T5> keys(key1, key2, key3, key4, key5);
@@ -268,6 +273,10 @@ public:
     HashableKeys<T1> keys(key1);
     keys_.insert(keys);
   }
+
+  void insert(HashableKeys<T1, T2, T3, T4, T5> keys) { keys_.insert(keys); }
+
+  void clear() { keys_.clear(); }
 
   bool has(T1 key1, T2 key2, T3 key3, T4 key4, T5 key5) const
   {
@@ -295,8 +304,14 @@ public:
     return keys_.count(keys) > 0;
   }
 
+  ConstIteratorT begin() const { return keys_.cbegin(); }
+
+  ConstIteratorT end() const { return keys_.cend(); }
+
+  size_t size() const { return keys_.size(); }
+
 private:
-  std::unordered_set<HashableKeys<T1, T2, T3>> keys_;
+  SetT keys_;
 };
 
 #endif  // CARET_TRACE__KEYS_SET_HPP_
