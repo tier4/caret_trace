@@ -33,6 +33,7 @@ find_package(CycloneDDS REQUIRED)
 find_package(fastrtps REQUIRED)
 find_package(rmw_fastrtps_shared_cpp REQUIRED)
 find_package(LTTngUST REQUIRED)
+find_package(caret_msgs REQUIRED)
 
 add_library(caret SHARED
   src/ros_trace_points.cpp
@@ -49,6 +50,7 @@ ament_target_dependencies(caret
   rmw_implementation
   rcpputils
   std_msgs
+  caret_msgs
   rmw_fastrtps_shared_cpp
   LTTngUST)
 
