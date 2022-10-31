@@ -237,10 +237,22 @@ struct equal_to<HashableKeys<T1, T2, T3, T4, T5>>
 };
 }  // namespace std
 
-template <typename T1, typename T2 = std::false_type, typename T3 = std::false_type>
+template <
+  typename T1, typename T2 = std::false_type, typename T3 = std::false_type,
+  typename T4 = std::false_type, typename T5 = std::false_type>
 class KeysSet
 {
 public:
+  void insert(T1 key1, T2 key2, T3 key3, T4 key4, T5 key5)
+  {
+    HashableKeys<T1, T2, T3, T4, T5> keys(key1, key2, key3, key4, key5);
+    keys_.insert(keys);
+  }
+  void insert(T1 key1, T2 key2, T3 key3, T4 key4)
+  {
+    HashableKeys<T1, T2, T3, T4> keys(key1, key2, key3, key4);
+    keys_.insert(keys);
+  }
   void insert(T1 key1, T2 key2, T3 key3)
   {
     HashableKeys<T1, T2, T3> keys(key1, key2, key3);
@@ -257,6 +269,16 @@ public:
     keys_.insert(keys);
   }
 
+  bool has(T1 key1, T2 key2, T3 key3, T4 key4, T5 key5) const
+  {
+    HashableKeys<T1, T2, T3, T4, T5> keys(key1, key2, key3, key4, key5);
+    return keys_.count(keys) > 0;
+  }
+  bool has(T1 key1, T2 key2, T3 key3, T4 key4) const
+  {
+    HashableKeys<T1, T2, T3, T4> keys(key1, key2, key3, key4);
+    return keys_.count(keys) > 0;
+  }
   bool has(T1 key1, T2 key2, T3 key3) const
   {
     HashableKeys<T1, T2, T3> keys(key1, key2, key3);
