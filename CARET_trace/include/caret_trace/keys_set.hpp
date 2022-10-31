@@ -33,6 +33,15 @@ struct if_<false, Then, Else>
 };
 
 // clang-format off
+/**
+ * @brief Tuple-like class that has hash() function.
+ *
+ * @tparam T1
+ * @tparam T2
+ * @tparam T3
+ * @tparam T4
+ * @tparam T5
+ */
 template<
   typename T1,
   typename T2 = std::false_type,
