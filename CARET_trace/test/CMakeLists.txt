@@ -10,6 +10,9 @@ target_link_libraries(test_hashable_keys caret)
 ament_add_gmock(test_context test_context.cpp)
 target_link_libraries(test_context caret)
 
+ament_add_gmock(test_scenario test_scenario.cpp common.cpp)
+target_link_libraries(test_scenario caret)
+
 ament_add_gmock(test_trace_node test_trace_node.cpp common.cpp)
 target_link_libraries(test_trace_node caret)
 
