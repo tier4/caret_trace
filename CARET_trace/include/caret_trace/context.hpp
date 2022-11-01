@@ -14,6 +14,8 @@
 
 #ifndef CARET_TRACE__CONTEXT_HPP_
 
+#include "caret_trace/data_container.hpp"
+#include "caret_trace/trace_node.hpp"
 #include "caret_trace/tracing_controller.hpp"
 
 #include <atomic>
@@ -24,14 +26,24 @@ class Context final
 public:
   Context();
 
-  Context(std::shared_ptr<TracingController> controller);
+  Context(
+    std::shared_ptr<DataContainer> data_container, std::shared_ptr<TracingController> controller);
 
   Context(const Context &) = delete;
 
   TracingController & get_controller();
+  std::shared_ptr<DataContainer> get_data_container_ptr();
+  DataContainer & get_data_container();
+  TraceNodeInterface & get_node();
+  void assign_node(std::shared_ptr<TraceNodeInterface> nodev);
+  bool is_node_assigned() const;
+  bool is_recording_enabled() const;
+  std::atomic<bool> is_node_initializing;
 
 private:
+  std::shared_ptr<DataContainer> data_container_;
   std::shared_ptr<TracingController> controller_;
+  std::shared_ptr<TraceNodeInterface> node_;
 };
 
 #endif  // CARET_TRACE__CONTEXT_HPP_

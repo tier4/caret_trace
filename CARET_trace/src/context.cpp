@@ -14,18 +14,49 @@
 
 #include "caret_trace/context.hpp"
 
+#include "caret_trace/data_container.hpp"
+#include "caret_trace/trace_node.hpp"
+
 #include <rclcpp/rclcpp.hpp>
 
 #include <chrono>
 #include <iostream>
 #include <memory>
 
-Context::Context() : Context(std::make_shared<TracingController>()) {}
+Context::Context()
+: Context(std::make_shared<DataContainer>(), std::make_shared<TracingController>())
+{
+}
 
-Context::Context(std::shared_ptr<TracingController> controller) : controller_(controller) {}
-
+Context::Context(
+  std::shared_ptr<DataContainer> data_container, std::shared_ptr<TracingController> controller)
+: is_node_initializing(false), data_container_(data_container), controller_(controller)
+{
+}
 TracingController & Context::get_controller()
 {
   assert(controller_ != nullptr);
   return *controller_;
 }
+
+std::shared_ptr<DataContainer> Context::get_data_container_ptr() { return data_container_; }
+
+DataContainer & Context::get_data_container() { return *data_container_; }
+
+TraceNodeInterface & Context::get_node()
+{
+  assert(is_node_assigned());
+  return *node_;
+}
+
+bool Context::is_recording_enabled() const
+{
+  if (is_node_assigned()) {
+    return node_->is_recording_allowed();
+  }
+  return false;
+}
+
+void Context::assign_node(std::shared_ptr<TraceNodeInterface> node) { node_ = node; }
+
+bool Context::is_node_assigned() const { return static_cast<bool>(node_); }
