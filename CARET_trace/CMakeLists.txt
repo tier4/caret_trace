@@ -42,6 +42,7 @@ add_library(caret SHARED
   src/singleton.cpp
   src/tp.c
   src/data_container.cpp
+  src/data_recorder.cpp
   src/lttng_session.cpp
   src/context.cpp)
 
