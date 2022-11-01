@@ -17,9 +17,9 @@
 #include <functional>
 #include <iostream>
 #include <iterator>
+#include <set>
 #include <string>
 #include <type_traits>
-#include <unordered_set>
 
 template <bool Cond, typename Then, typename Else>
 struct if_
@@ -244,7 +244,8 @@ template <
 class KeysSet
 {
 public:
-  using SetT = std::unordered_set<HashableKeys<T1, T2, T3, T4, T5>>;
+  //  Use set to loop through iterators in order of addition.
+  using SetT = std::set<HashableKeys<T1, T2, T3, T4, T5>>;
   using IteratorT = typename SetT::iterator;
   using ConstIteratorT = typename SetT::const_iterator;
 
