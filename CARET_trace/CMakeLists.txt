@@ -41,6 +41,7 @@ add_library(caret SHARED
   src/tracing_controller.cpp
   src/singleton.cpp
   src/tp.c
+  src/trace_node.cpp
   src/data_container.cpp
   src/data_recorder.cpp
   src/lttng_session.cpp
