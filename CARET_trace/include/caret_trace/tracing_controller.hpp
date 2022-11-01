@@ -22,7 +22,7 @@
 class TracingController
 {
 public:
-  TracingController();
+  explicit TracingController(bool use_log = true);
   void add_node(const void * node_handle, std::string node_name);
 
   void add_subscription_handle(
@@ -48,6 +48,9 @@ public:
   bool is_allowed_subscription_handle(const void * subscription_handle);
 
 private:
+  void debug(std::string message) const;
+  void info(std::string message) const;
+
   std::shared_timed_mutex mutex_;
   std::string to_node_name(const void * callback);
   std::string to_topic_name(const void * callback);
@@ -59,6 +62,8 @@ private:
 
   const bool select_enabled_;
   const bool ignore_enabled_;
+
+  const bool use_log_;  // for test
 
   std::unordered_map<const void *, const void *> subscription_handle_to_node_handles_;
   std::unordered_map<const void *, std::string> subscription_handle_to_topic_names_;
