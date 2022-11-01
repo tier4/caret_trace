@@ -10,3 +10,5 @@ target_link_libraries(test_hashable_keys caret)
 ament_add_gmock(test_context test_context.cpp)
 target_link_libraries(test_context caret)
 
+ament_add_gmock(test_recordable_data test_recordable_data.cpp common.cpp)
+target_link_libraries(test_recordable_data caret)
