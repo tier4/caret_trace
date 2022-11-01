@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// disable tracepoint for decleration conflicting
+// disable tracepoint for declaration conflicting
 #define ros_trace_rclcpp_publish ros_trace_rclcpp_publish_disabled
 #define ros_trace_rclcpp_service_callback_added ros_trace_rclcpp_service_callback_added_disabled
 #define ros_trace_rmw_publisher_init ros_trace_rmw_publisher_init_disabled

@@ -62,7 +62,7 @@ TEST(DataContainerTest, DataConsumeCase)
 TEST(DataContainerTest, TracePoints)
 {
   DataContainer container;
-  auto trarce_points = container.trace_points();
+  auto trace_points = container.trace_points();
 
   std::vector<std::string> expect(
     {"add_callback_group",
@@ -88,5 +88,5 @@ TEST(DataContainerTest, TracePoints)
      "rclcpp_timer_link_node",
      "rmw_implementation"});
 
-  EXPECT_EQ(trarce_points, expect);
+  EXPECT_EQ(trace_points, expect);
 }

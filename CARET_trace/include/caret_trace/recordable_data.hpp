@@ -224,7 +224,7 @@ private:
 
     if constexpr (arg_size == 1) {
       const auto & first = keys.first();
-      func_(first);                        // func_1_ is not assined.
+      func_(first);                        // func_1_ is not assigned.
     } else if constexpr (arg_size == 2) {  // NOLINT
       // NOLINT is necessary for old cpplint.
       // see: https://github.com/cpplint/cpplint/issues/135

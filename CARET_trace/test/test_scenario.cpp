@@ -248,7 +248,7 @@ TEST(ScenarioTest, Record)
   pending = container->store_rcl_init(addr_3);
   EXPECT_EQ(keys->size(), (size_t)2);
   EXPECT_EQ(keys->pending_size(), (size_t)1);
-  EXPECT_TRUE(pending);  // NOTE: Data in PENDING should be recored in real time.
+  EXPECT_TRUE(pending);  // NOTE: Data in PENDING should be recorded in real time.
 
   // case: RECORD status
   node->timer_callback();
