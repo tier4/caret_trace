@@ -56,7 +56,6 @@ TEST(ContextTest, TestNodeAssign)
 
   Context context(data_container, controller);
   EXPECT_FALSE(context.is_node_assigned());
-  EXPECT_DEATH(context.get_node(), "");
 
   auto node = std::make_shared<CaretTraceNodeModeMock>();
   context.assign_node(node);
