@@ -539,6 +539,7 @@ void ros_trace_rclcpp_executor_execute(
   const void * handle
 )
 {
+  (void) handle;
 // #ifdef DEBUG_OUTPUT
 //   std::cerr << "rclcpp_executor_execute," << handle << std::endl;
 // #endif
@@ -548,6 +549,7 @@ void ros_trace_rclcpp_executor_wait_for_work(
   const int64_t timeout
 )
 {
+  (void) timeout;
 // #ifdef DEBUG_OUTPUT
 //   std::cerr << "rclcpp_executor_wait_for_work," << timeout << std::endl;
 // #endif
@@ -564,6 +566,7 @@ void ros_trace_rcl_take(
   const void * message
 )
 {
+  (void) message;
 // #ifdef DEBUG_OUTPUT
 //   std::cerr << "rcl_take," << message << std::endl;
 // #endif
@@ -573,6 +576,7 @@ void ros_trace_rclcpp_take(
   const void * message
 )
 {
+  (void) message;
 }
 
 void ros_trace_rmw_take(
@@ -582,6 +586,10 @@ void ros_trace_rmw_take(
   const bool taken
 )
 {
+  (void) rmw_subscription_handle;
+  (void) message;
+  (void) source_timestamp;
+  (void) taken;
 // #ifdef DEBUG_OUTPUT
 //   std::cerr << "rmw_take," <<
 //     rmw_subscription_handle << "," <<
@@ -607,6 +615,8 @@ void ros_trace_rmw_publisher_init(
   const uint8_t gid
 )
 {
+  (void) rmw_publisher_handle;
+  (void) gid;
 // #ifdef DEBUG_OUTPUT
 //   std::cerr << "rmw_publisher_init," <<
 //     rmw_publisher_handle << "," <<
@@ -619,6 +629,8 @@ void ros_trace_rmw_subscription_init(
   const uint8_t gid
 )
 {
+  (void) rmw_subscription_handle;
+  (void) gid;
 // #ifdef DEBUG_OUTPUT
 //   std::cerr << "rmw_subscription_init," <<
 //     rmw_subscription_handle << "," <<
