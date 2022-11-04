@@ -74,7 +74,7 @@ protected:
 
   void set_lttng_session_return_value(bool return_value)
   {
-    EXPECT_CALL(*lttng_session_, is_session_running()).WillRepeatedly(Return(return_value));
+    EXPECT_CALL(*lttng_session_, started_session_running()).WillRepeatedly(Return(return_value));
   }
 
   std::unique_ptr<caret_msgs::msg::Start> get_start_msg()
@@ -112,7 +112,7 @@ TEST(CaretTraceTest, TestStartTransition)
 
   {  // session has already started
     auto lttng = std::make_shared<LttngSessionMock>();
-    EXPECT_CALL(*lttng, is_session_running()).WillRepeatedly(Return(true));
+    EXPECT_CALL(*lttng, started_session_running()).WillRepeatedly(Return(true));
 
     auto node = TraceNode("test", lttng, data_container, rclcpp::Logger::Level::Warn, false);
     EXPECT_TRUE(node.get_status() == TRACE_STATUS::RECORD);
@@ -120,7 +120,7 @@ TEST(CaretTraceTest, TestStartTransition)
 
   {  // session is not started.
     auto lttng = std::make_shared<LttngSessionMock>();
-    EXPECT_CALL(*lttng, is_session_running()).WillRepeatedly(Return(false));
+    EXPECT_CALL(*lttng, started_session_running()).WillRepeatedly(Return(false));
 
     auto node = TraceNode("node_name", lttng, data_container, rclcpp::Logger::Level::Warn);
     EXPECT_TRUE(node.get_status() == TRACE_STATUS::WAIT);

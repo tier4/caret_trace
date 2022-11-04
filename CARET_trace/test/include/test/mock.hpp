@@ -37,6 +37,7 @@ class LttngSessionMock : public LttngSession
 {
 public:
   MOCK_CONST_METHOD0(is_session_running, bool());
+  MOCK_CONST_METHOD0(started_session_running, bool());
 };
 
 class DataContainerMock : public DataContainerInterface

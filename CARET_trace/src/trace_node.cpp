@@ -52,7 +52,7 @@ TraceNode::TraceNode(
     create_wall_timer(std::chrono::milliseconds(100), std::bind(&TraceNode::timer_callback, this));
   timer_->cancel();
 
-  if (!lttng_session->is_session_running()) {
+  if (!lttng_session->started_session_running()) {
     status_ = TRACE_STATUS::WAIT;
     info("No active LTTng session exists.");
     debug("Transitioned to WAIT status.");

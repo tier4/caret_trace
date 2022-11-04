@@ -30,19 +30,22 @@ class LttngSession
 public:
   virtual ~LttngSession() {}
   virtual bool is_session_running() const = 0;
+  virtual bool started_session_running() const = 0;
 };
 
 class LttngSessionImpl : public LttngSession
 {
 public:
-  LttngSessionImpl() {}
+  LttngSessionImpl() : started_session_running_(is_session_running()) {}
 
   ~LttngSessionImpl() {}
 
   bool is_session_running() const;
+  bool started_session_running() const;
 
 private:
   mutable std::mutex mtx_;
+  const bool started_session_running_;
 };
 
 #endif  // CARET_TRACE__LTTNG_SESSION_HPP_

@@ -121,7 +121,7 @@ TEST(ScenarioTest, RepetitiveRecordingCase)
   container->assign_rcl_init(func.AsStdFunction());
 
   auto lttng = std::make_shared<LttngSessionMock>();
-  EXPECT_CALL(*lttng, is_session_running()).WillRepeatedly(Return(false));
+  EXPECT_CALL(*lttng, started_session_running()).WillRepeatedly(Return(false));
 
   auto node = TraceNode("test", lttng, container, Logger::Level::Warn, false);
   EXPECT_EQ(node.get_status(), TRACE_STATUS::WAIT);
@@ -174,7 +174,7 @@ TEST(ScenarioTest, IsRecordingEnabled)
   container->store_rcl_init(addr_1);
 
   auto lttng = std::make_shared<LttngSessionMock>();
-  EXPECT_CALL(*lttng, is_session_running()).WillRepeatedly(Return(false));
+  EXPECT_CALL(*lttng, started_session_running()).WillRepeatedly(Return(false));
 
   auto node = std::make_shared<TraceNode>("test", lttng, container, Logger::Level::Warn, false);
   context.assign_node(node);
@@ -228,7 +228,7 @@ TEST(ScenarioTest, Record)
   EXPECT_FALSE(pending);
 
   auto lttng = std::make_shared<LttngSessionMock>();
-  EXPECT_CALL(*lttng, is_session_running()).WillRepeatedly(Return(false));
+  EXPECT_CALL(*lttng, started_session_running()).WillRepeatedly(Return(false));
 
   auto node = std::make_shared<TraceNode>("test", lttng, container, Logger::Level::Warn, false);
   context.assign_node(node);

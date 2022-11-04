@@ -38,6 +38,7 @@ Context::Context(
   lttng_(std::make_shared<LttngSessionImpl>())
 {
 }
+
 TracingController & Context::get_controller()
 {
   assert(controller_ != nullptr);
@@ -62,7 +63,7 @@ bool Context::is_recording_enabled() const
     return node_->is_recording_allowed();
   }
 
-  return lttng_->is_session_running();
+  return lttng_->started_session_running();
 }
 
 void Context::assign_node(std::shared_ptr<TraceNodeInterface> node) { node_ = node; }
