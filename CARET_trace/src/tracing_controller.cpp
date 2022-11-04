@@ -107,7 +107,7 @@ bool is_condition_valid(std::string condition)
 void check_condition_set(std::unordered_set<std::string> conditions, bool use_log)
 {
   for (auto & condition : conditions) {
-    if (use_log) {
+    if (use_log && !is_condition_valid(condition)) {
       std::string message =
         "Failed to load regular expression \"" + condition + "\". Skip filtering.";
       RCLCPP_INFO(rclcpp::get_logger("caret"), message.c_str());
