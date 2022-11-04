@@ -69,11 +69,6 @@ TraceNode::TraceNode(
   debug("Initialized.");
 }
 
-TraceNode::TraceNode(std::string node_name, std::shared_ptr<DataContainer> data_container)
-: TraceNode(node_name, std::make_shared<LttngSessionImpl>(), data_container)
-{
-}
-
 TraceNode::~TraceNode() {}
 
 std::string TraceNode::get_unique_node_name(std::string base_name)

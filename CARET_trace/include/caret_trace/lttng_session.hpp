@@ -20,6 +20,7 @@
 #include <functional>
 #include <iostream>
 #include <iterator>
+#include <mutex>
 #include <string>
 #include <type_traits>
 #include <unordered_set>
@@ -39,6 +40,9 @@ public:
   ~LttngSessionImpl() {}
 
   bool is_session_running() const;
+
+private:
+  mutable std::mutex mtx_;
 };
 
 #endif  // CARET_TRACE__LTTNG_SESSION_HPP_

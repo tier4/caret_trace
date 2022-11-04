@@ -53,8 +53,9 @@ void run_caret_trace_node()
   std::string node_name_base = "caret_trace";
   auto & context = Singleton<Context>::get_instance();
   auto data_container = context.get_data_container_ptr();
-  // contextが作られる前にNodeを作ろうとすると失敗する。
-  auto trace_node = std::make_shared<TraceNode>(node_name_base, data_container);
+  // If you try to create a Node before the context is created, it will fail.
+  auto lttng = context.get_lttng_session_ptr();
+  auto trace_node = std::make_shared<TraceNode>(node_name_base, lttng, data_container);
   context.assign_node(trace_node);
   auto exec = rclcpp::executors::SingleThreadedExecutor();
   exec.add_node(trace_node);

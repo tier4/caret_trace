@@ -15,6 +15,7 @@
 #include "caret_trace/context.hpp"
 
 #include "caret_trace/data_container.hpp"
+#include "caret_trace/lttng_session.hpp"
 #include "caret_trace/trace_node.hpp"
 
 #include <rclcpp/rclcpp.hpp>
@@ -30,7 +31,11 @@ Context::Context()
 
 Context::Context(
   std::shared_ptr<DataContainer> data_container, std::shared_ptr<TracingController> controller)
-: is_node_initializing(false), data_container_(data_container), controller_(controller)
+: is_node_initializing(false),
+  data_container_(data_container),
+  controller_(controller),
+  node_(nullptr),
+  lttng_(std::make_shared<LttngSessionImpl>())
 {
 }
 TracingController & Context::get_controller()
@@ -40,6 +45,8 @@ TracingController & Context::get_controller()
 }
 
 std::shared_ptr<DataContainer> Context::get_data_container_ptr() { return data_container_; }
+
+std::shared_ptr<LttngSession> Context::get_lttng_session_ptr() { return lttng_; }
 
 DataContainer & Context::get_data_container() { return *data_container_; }
 
@@ -54,7 +61,8 @@ bool Context::is_recording_enabled() const
   if (is_node_assigned()) {
     return node_->is_recording_allowed();
   }
-  return false;
+
+  return lttng_->is_session_running();
 }
 
 void Context::assign_node(std::shared_ptr<TraceNodeInterface> node) { node_ = node; }

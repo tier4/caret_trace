@@ -19,9 +19,12 @@
 #include <chrono>
 #include <iostream>
 #include <memory>
+#include <mutex>
 
 bool LttngSessionImpl::is_session_running() const
 {
+  std::lock_guard<std::mutex> lock(mtx_);
+
   std::string command = "lttng list | grep -q \'\\[active\\]\'";
   auto fp = popen(command.c_str(), "r");
   if (fp == nullptr) {

@@ -33,9 +33,10 @@ public:
 
   TracingController & get_controller();
   std::shared_ptr<DataContainer> get_data_container_ptr();
+  std::shared_ptr<LttngSession> get_lttng_session_ptr();
   DataContainer & get_data_container();
   TraceNodeInterface & get_node();
-  void assign_node(std::shared_ptr<TraceNodeInterface> nodev);
+  void assign_node(std::shared_ptr<TraceNodeInterface> node);
   bool is_node_assigned() const;
   bool is_recording_enabled() const;
   std::atomic<bool> is_node_initializing;
@@ -44,6 +45,7 @@ private:
   std::shared_ptr<DataContainer> data_container_;
   std::shared_ptr<TracingController> controller_;
   std::shared_ptr<TraceNodeInterface> node_;
+  std::shared_ptr<LttngSession> lttng_;
 };
 
 #endif  // CARET_TRACE__CONTEXT_HPP_

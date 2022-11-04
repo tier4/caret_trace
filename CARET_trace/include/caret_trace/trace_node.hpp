@@ -46,9 +46,6 @@ public:
 class TraceNode : public rclcpp::Node, public TraceNodeInterface
 {
 public:
-  TraceNode(std::string node_name_base, std::shared_ptr<DataContainer> data_container);
-
-  // for test
   TraceNode(
     std::string node_names, std::shared_ptr<LttngSession> lttng_session,
     std::shared_ptr<DataContainerInterface> data_container,
