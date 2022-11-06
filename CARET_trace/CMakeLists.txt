@@ -45,7 +45,8 @@ add_library(caret SHARED
   src/data_container.cpp
   src/data_recorder.cpp
   src/lttng_session.cpp
-  src/context.cpp)
+  src/context.cpp
+  src/clock.cpp)
 
 ament_target_dependencies(caret
   rclcpp

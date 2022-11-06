@@ -14,6 +14,7 @@
 
 #ifndef CARET_TRACE__CONTEXT_HPP_
 
+#include "caret_trace/clock.hpp"
 #include "caret_trace/data_container.hpp"
 #include "caret_trace/trace_node.hpp"
 #include "caret_trace/tracing_controller.hpp"
@@ -36,6 +37,7 @@ public:
   std::shared_ptr<LttngSession> get_lttng_session_ptr();
   DataContainer & get_data_container();
   TraceNodeInterface & get_node();
+  Clock & get_clock();
   void assign_node(std::shared_ptr<TraceNodeInterface> node);
   bool is_node_assigned() const;
   bool is_recording_enabled() const;
@@ -46,6 +48,7 @@ private:
   std::shared_ptr<TracingController> controller_;
   std::shared_ptr<TraceNodeInterface> node_;
   std::shared_ptr<LttngSession> lttng_;
+  std::shared_ptr<Clock> clock_;
 };
 
 #endif  // CARET_TRACE__CONTEXT_HPP_

@@ -14,6 +14,7 @@
 
 #include "caret_trace/context.hpp"
 
+#include "caret_trace/clock.hpp"
 #include "caret_trace/data_container.hpp"
 #include "caret_trace/lttng_session.hpp"
 #include "caret_trace/trace_node.hpp"
@@ -35,7 +36,8 @@ Context::Context(
   data_container_(data_container),
   controller_(controller),
   node_(nullptr),
-  lttng_(std::make_shared<LttngSessionImpl>())
+  lttng_(std::make_shared<LttngSessionImpl>()),
+  clock_(std::make_shared<Clock>())
 {
 }
 
@@ -55,6 +57,12 @@ TraceNodeInterface & Context::get_node()
 {
   assert(is_node_assigned());
   return *node_;
+}
+
+Clock & Context::get_clock()
+{
+  assert(clock_ != nullptr);
+  return *clock_;
 }
 
 bool Context::is_recording_enabled() const
