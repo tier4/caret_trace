@@ -14,7 +14,10 @@
 
 #include "caret_trace/trace_node.hpp"
 
+#include "caret_trace/clock.hpp"
+#include "caret_trace/context.hpp"
 #include "caret_trace/lttng_session.hpp"
+#include "caret_trace/tp.h"
 
 #include "caret_msgs/msg/end.hpp"
 #include "caret_msgs/msg/start.hpp"
@@ -135,8 +138,13 @@ void TraceNode::publish_status(TRACE_STATUS status) const
 void TraceNode::start_callback(caret_msgs::msg::Start::UniquePtr msg)
 {
   (void)msg;
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
 
   debug("Received start message.");
+
+  auto now = clock.now();
+  tracepoint(TRACEPOINT_PROVIDER, caret_init, now);
 
   bool is_wait_to_prepare_transition = status_ == TRACE_STATUS::WAIT;
   status_ = TRACE_STATUS::PREPARE;

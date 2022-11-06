@@ -212,6 +212,16 @@ TRACEPOINT_EVENT(
   )
 )
 
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  caret_init,
+  TP_ARGS(
+    int64_t, clock_offset_arg
+  ),
+  TP_FIELDS(
+    ctf_integer(const int64_t, clock_offset, clock_offset_arg)
+  )
+)
 // clang-format on
 
 #endif /* _TP_H */
