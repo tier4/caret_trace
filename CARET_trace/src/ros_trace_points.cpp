@@ -18,6 +18,7 @@
 #define ros_trace_rmw_publisher_init ros_trace_rmw_publisher_init_disabled
 #define ros_trace_rmw_subscription_init ros_trace_rmw_subscription_init_disabled
 
+#include "caret_trace/clock.hpp"
 #include "caret_trace/context.hpp"
 #include "caret_trace/singleton.hpp"
 #include "caret_trace/tp.h"
@@ -449,19 +450,22 @@ void ros_trace_rcl_timer_init(
   int64_t period)
 {
   static auto & context = Singleton<Context>::get_instance();
-
+  static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   // TODO(hsgwa): Add filtering of timer initialization using node_handle
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
-  using functionT = void (*)(const void *, int64_t);
+
+  static auto record = [](const void * timer_handle, int64_t period, int64_t init_time) {
+    tracepoint(TRACEPOINT_PROVIDER, rcl_timer_init, timer_handle, period, init_time);
+  };
 
   if (!data_container.is_assigned_rcl_timer_init()) {
-    data_container.assign_rcl_timer_init((functionT) orig_func);
+    data_container.assign_rcl_timer_init(record);
   }
+  auto now = clock.now();
 
-  bool pending = data_container.store_rcl_timer_init(timer_handle, period);
+  bool pending = data_container.store_rcl_timer_init(timer_handle, period, now);
   if (context.is_recording_enabled() || pending) {
-    ((functionT) orig_func)(timer_handle, period);
+    record(timer_handle, period, now);
 
 #ifdef DEBUG_OUTPUT
     std::cerr << "rcl_timer_init," <<

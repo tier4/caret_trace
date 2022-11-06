@@ -222,6 +222,22 @@ TRACEPOINT_EVENT(
     ctf_integer(const int64_t, clock_offset, clock_offset_arg)
   )
 )
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rcl_timer_init,
+  TP_ARGS(
+    const void *, timer_handle_arg,
+    int64_t, period_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, timer_handle, timer_handle_arg)
+    ctf_integer(const int64_t, period, period_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
 // clang-format on
 
 #endif /* _TP_H */

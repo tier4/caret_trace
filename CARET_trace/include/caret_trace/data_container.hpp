@@ -55,7 +55,7 @@ public:
   using RclcppSubscriptionCallbackAdded = ContainerTraits<const void *, const void *>;
   using RclcppTimerCallbackAdded = ContainerTraits<const void *, const void *>;
   using RclcppTimerLinkNode = ContainerTraits<const void *, const void *>;
-  using RclTimerInit = ContainerTraits<const void *, int64_t>;
+  using RclTimerInit = ContainerTraits<const void *, int64_t, int64_t>;
   using RclPublisherInit =
     ContainerTraits<const void *, const void *, const void *, const char *, size_t>;
   using RclClientInit = ContainerTraits<const void *, const void *, const void *, const char *>;
