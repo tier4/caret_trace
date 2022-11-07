@@ -54,6 +54,11 @@ void run_caret_trace_node()
   std::string node_name_base = "caret_trace";
   auto & context = Singleton<Context>::get_instance();
   auto data_container = context.get_data_container_ptr();
+  auto clock = context.get_clock();
+
+  auto now = clock.now();
+  tracepoint(TRACEPOINT_PROVIDER, caret_init, now);
+
   // If you try to create a Node before the context is created, it will fail.
   auto lttng = context.get_lttng_session_ptr();
   auto trace_node = std::make_shared<TraceNode>(node_name_base, lttng, data_container);
