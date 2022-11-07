@@ -59,13 +59,15 @@ void run_caret_trace_node()
   auto now = clock.now();
   tracepoint(TRACEPOINT_PROVIDER, caret_init, now);
 
-  // If you try to create a Node before the context is created, it will fail.
-  auto lttng = context.get_lttng_session_ptr();
-  auto trace_node = std::make_shared<TraceNode>(node_name_base, lttng, data_container);
-  context.assign_node(trace_node);
-  auto exec = rclcpp::executors::SingleThreadedExecutor();
-  exec.add_node(trace_node);
-  exec.spin();
+  if (rclcpp::ok()) {
+    // If you try to create a Node before the context is created, it will fail.
+    auto lttng = context.get_lttng_session_ptr();
+    auto trace_node = std::make_shared<TraceNode>(node_name_base, lttng, data_container);
+    context.assign_node(trace_node);
+    auto exec = rclcpp::executors::SingleThreadedExecutor();
+    exec.add_node(trace_node);
+    exec.spin();
+  }
 }
 
 namespace ORIG_FUNC
