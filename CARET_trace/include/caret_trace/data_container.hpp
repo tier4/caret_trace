@@ -55,7 +55,6 @@ public:
 
   /// @brief ContainerTrais for callback_group_add_service trace points.
   using CallbackGroupAddService = ContainerTraits<const void *, const void *>;
-  using CallbackGroupAddStaticExecutor = ContainerTraits<const void *, const void *>;
 
   /// @brief ContainerTrais for callback_group_add_subscription trace points.
   using CallbackGroupAddSubscription = ContainerTraits<const void *, const void *>;
