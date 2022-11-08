@@ -366,7 +366,7 @@ public:
   /// @param key2 Second argument.
   /// @param key3 Third argument.
   /// @param key4 Fourth argument.
-  /// @param key5 Fifgh argument.
+  /// @param key5 Fifth argument.
   /// @return True if it contains, false otherwise.
   bool has(T1 key1, T2 key2, T3 key3, T4 key4, T5 key5) const
   {

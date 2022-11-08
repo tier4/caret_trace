@@ -22,7 +22,7 @@ template <typename... Args>
 class ContainerTraits
 {
 public:
-  /// @brief Type for RecordasbleData
+  /// @brief Type for RecordableData
   using KeysT = RecordableData<Args...>;
 
   /// @brief Type for record function.

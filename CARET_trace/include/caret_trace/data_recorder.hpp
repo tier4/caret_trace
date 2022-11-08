@@ -53,7 +53,7 @@ public:
   size_t size() const;
 
   /// @brief Get trace point names.
-  /// @return trace pointt names.
+  /// @return trace point names.
   std::vector<std::string> trace_points() const;
 
   /// @brief Move to start state.

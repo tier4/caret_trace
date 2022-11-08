@@ -70,7 +70,7 @@ public:
   bool is_node_assigned() const;
 
   /// @brief Check whether current status enables recording.
-  /// @return True is reccorcing is enabled, false otherwise.
+  /// @return True is recording is enabled, false otherwise.
   bool is_recording_enabled() const;
 
   /// @brief Initializing flag for TraceNode.

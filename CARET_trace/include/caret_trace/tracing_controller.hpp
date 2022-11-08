@@ -23,7 +23,7 @@
 /// @details Reads the environment variables CARET_SELECT_NODES,
 /// CARET_IGNORE_NODES, CARET_SELECT_TOPICS, and CARET_IGNORE_TOPICS.
 /// Tracepoints related to the specified node name or topic name are filtered
-/// so that they are not recoreded by LTTng.
+/// so that they are not recorded by LTTng.
 /// If both SELECT and IGNORE are specified, SELECT takes priority.
 /// @remark Tracepoints for which node names cannot be obtained,
 /// such as tracepoints without a DDS layer, are currently not filtered.
