@@ -46,6 +46,8 @@ public:
     };
     timer_ = create_wall_timer(1s, timer_callback);
   }
+
+private:
   rclcpp::TimerBase::SharedPtr timer_;
 };
 
