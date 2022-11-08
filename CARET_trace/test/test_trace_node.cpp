@@ -32,6 +32,7 @@
 using ::testing::_;
 using ::testing::Return;
 
+/// @private
 class CaretTraceNodeTest : public ::testing::Test
 {
 protected:

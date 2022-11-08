@@ -21,12 +21,14 @@
 #include <string>
 #include <type_traits>
 
+/// @private
 template <bool Cond, typename Then, typename Else>
 struct if_
 {
   using type = Then;
 };
 
+/// @private
 template <typename Then, typename Else>
 struct if_<false, Then, Else>
 {
@@ -34,15 +36,13 @@ struct if_<false, Then, Else>
 };
 
 // clang-format off
-/**
- * @brief Tuple-like class that has hash() function.
- *
- * @tparam T1
- * @tparam T2
- * @tparam T3
- * @tparam T4
- * @tparam T5
- */
+
+/// @brief Tuple-like class that has hash() function.
+/// @tparam T1 First argument type.
+/// @tparam T2 Second argument type.
+/// @tparam T3 Third argument type.
+/// @tparam T4 Fourth argument type.
+/// @tparam T5 Fifth argument type.
 template<
   typename T1,
   typename T2 = std::false_type,
@@ -68,27 +68,48 @@ private:
   using T5_ = typename if_<IsT5String::value, std::string, T5>::type;
 
 public:
+  /// @brief Construct an instance.
+  /// @param key1 first argument.
   explicit HashableKeys(T1 key1) : key1_(key1) {}
 
+  /// @brief Construct an instance.
+  /// @param key1 first argument.
+  /// @param key2 second argument.
   HashableKeys(T1 key1, T2 key2) : key1_(key1), key2_(key2) {}
 
+  /// @brief Construct an instance.
+  /// @param key1 first argument.
+  /// @param key2 second argument.
+  /// @param key3 third argument.
   HashableKeys(T1 key1, T2 key2, T3 key3) : key1_(key1), key2_(key2), key3_(key3) {}
 
+  /// @brief Construct an instance.
+  /// @param key1 first argument.
+  /// @param key2 second argument.
+  /// @param key3 third argument.
+  /// @param key4 fourth argument.
   HashableKeys(T1 key1, T2 key2, T3 key3, T4 key4)
   : key1_(key1), key2_(key2), key3_(key3), key4_(key4)
   {
   }
 
+  /// @brief Construct an instance.
+  /// @param key1 first argument.
+  /// @param key2 second argument.
+  /// @param key3 third argument.
+  /// @param key4 fourth argument.
+  /// @param key5 fifth argument.
   HashableKeys(T1 key1, T2 key2, T3 key3, T4 key4, T5 key5)
   : key1_(key1), key2_(key2), key3_(key3), key4_(key4), key5_(key5)
   {
   }
 
+  /// @brief Calculate hash.
+  /// @return hash value.
+  /// @note For hash code implementations, see:
+  /// https://www.baeldung.com/java-hashcode#standard-hashcode-implementations
   size_t hash() const
   {
-    // For hash code implementations, see:
-    // https://www.baeldung.com/java-hashcode#standard-hashcode-implementations
-
     size_t res = 17;
     if constexpr (std::true_type::value) {
       res = res * 31 + std::hash<T1_>()(key1_);
@@ -108,6 +129,10 @@ public:
 
     return res;
   }
+
+  /// @brief Check for equivalence.
+  /// @param keys Comparison target.
+  /// @return True if equal, false otherwise.
   bool equal_to(const HashableKeys<T1, T2, T3, T4, T5> & keys) const
   {
     if constexpr (!std::is_same_v<std::false_type, T5>) {
@@ -125,6 +150,9 @@ public:
     }
   }
 
+  /// @brief Compare with other keys.
+  /// @param rhs Comparison target.
+  /// @return True if rhs is greater, false otherwise.
   bool operator<(const HashableKeys<T1, T2, T3, T4, T5> & rhs) const
   {
     if (first() < rhs.first()) {
@@ -158,6 +186,8 @@ public:
     return false;
   }
 
+  /// @brief Get first argument.
+  /// @return First argument.
   T1 first() const
   {
     if constexpr (IsT1String::value) {
@@ -167,6 +197,8 @@ public:
     }
   }
 
+  /// @brief Get second argument.
+  /// @return Second argument.
   T2 second() const
   {
     static_assert(!std::is_same_v<T2, std::false_type>, "Invalid access.");
@@ -178,6 +210,8 @@ public:
     }
   }
 
+  /// @brief Get third argument.
+  /// @return Third argument.
   T3 third() const
   {
     static_assert(!std::is_same_v<T3, std::false_type>, "Invalid access.");
@@ -189,6 +223,8 @@ public:
     }
   }
 
+  /// @brief Get fourth argument.
+  /// @return Fourth argument.
   T4 fourth() const
   {
     static_assert(!std::is_same_v<T4, std::false_type>, "Invalid access.");
@@ -200,6 +236,8 @@ public:
     }
   }
 
+  /// @brief Get fifth argument.
+  /// @return Fifth argument.
   T5 fifth() const
   {
     static_assert(!std::is_same_v<T5, std::false_type>, "Invalid access.");
@@ -238,9 +276,21 @@ struct equal_to<HashableKeys<T1, T2, T3, T4, T5>>
 };
 }  // namespace std
 
+/// @brief A set class for HashableKeys class.
+/// @tparam T1 First argument type.
+/// @tparam T2 Second argument type.
+/// @tparam T3 Third argument type.
+/// @tparam T4 Third argument type.
+/// @tparam T5 Third argument type.
+// clang-format off
 template <
-  typename T1, typename T2 = std::false_type, typename T3 = std::false_type,
-  typename T4 = std::false_type, typename T5 = std::false_type>
+  typename T1,
+  typename T2 = std::false_type,
+  typename T3 = std::false_type,
+  typename T4 = std::false_type,
+  typename T5 = std::false_type
+>
+// clang-format on
 class KeysSet
 {
 public:
@@ -249,66 +299,134 @@ public:
   using IteratorT = typename SetT::iterator;
   using ConstIteratorT = typename SetT::const_iterator;
 
+  /// @brief Insert new keys.
+  /// @param key1 First argument.
+  /// @param key2 Second argument.
+  /// @param key3 Third argument.
+  /// @param key4 Fourth argument.
+  /// @param key5 Fifth argument.
   void insert(T1 key1, T2 key2, T3 key3, T4 key4, T5 key5)
   {
     HashableKeys<T1, T2, T3, T4, T5> keys(key1, key2, key3, key4, key5);
     keys_.insert(keys);
   }
+
+  /// @brief Insert new keys.
+  /// @param key1 First argument.
+  /// @param key2 Second argument.
+  /// @param key3 Third argument.
+  /// @param key4 Fourth argument.
   void insert(T1 key1, T2 key2, T3 key3, T4 key4)
   {
     HashableKeys<T1, T2, T3, T4> keys(key1, key2, key3, key4);
     keys_.insert(keys);
   }
+
+  /// @brief Insert new keys.
+  /// @param key1 First argument.
+  /// @param key2 Second argument.
+  /// @param key3 Third argument.
   void insert(T1 key1, T2 key2, T3 key3)
   {
     HashableKeys<T1, T2, T3> keys(key1, key2, key3);
     keys_.insert(keys);
   }
+
+  /// @brief Insert new keys.
+  /// @param key1 First argument.
+  /// @param key2 Second argument.
   void insert(T1 key1, T2 key2)
   {
     HashableKeys<T1, T2> keys(key1, key2);
     keys_.insert(keys);
   }
+
+  /// @brief Insert new keys.
+  /// @param key1 First argument.
   void insert(T1 key1)
   {
     HashableKeys<T1> keys(key1);
     keys_.insert(keys);
   }
 
+  /// @brief Confirm content.
+  /// @param key1 First argument.
+  /// @param key2 Second argument.
+  /// @param key3 Third argument.
+  /// @param key4 Fourth argument.
+  /// @param key5 Fifth argument.
+  /// @return True if it contains, false otherwise.
   void insert(HashableKeys<T1, T2, T3, T4, T5> keys) { keys_.insert(keys); }
 
+  /// @brief Clear set.
   void clear() { keys_.clear(); }
 
+  /// @brief Confirm content.
+  /// @param key1 First argument.
+  /// @param key2 Second argument.
+  /// @param key3 Third argument.
+  /// @param key4 Fourth argument.
+  /// @param key5 Fifgh argument.
+  /// @return True if it contains, false otherwise.
   bool has(T1 key1, T2 key2, T3 key3, T4 key4, T5 key5) const
   {
     HashableKeys<T1, T2, T3, T4, T5> keys(key1, key2, key3, key4, key5);
     return keys_.count(keys) > 0;
   }
+
+  /// @brief Confirm content.
+  /// @param key1 First argument.
+  /// @param key2 Second argument.
+  /// @param key3 Third argument.
+  /// @param key4 Fourth argument.
+  /// @return True if it contains, false otherwise.
   bool has(T1 key1, T2 key2, T3 key3, T4 key4) const
   {
     HashableKeys<T1, T2, T3, T4> keys(key1, key2, key3, key4);
     return keys_.count(keys) > 0;
   }
+
+  /// @brief Confirm content.
+  /// @param key1 First argument.
+  /// @param key2 Second argument.
+  /// @param key3 Third argument.
+  /// @return True if it contains, false otherwise.
   bool has(T1 key1, T2 key2, T3 key3) const
   {
     HashableKeys<T1, T2, T3> keys(key1, key2, key3);
     return keys_.count(keys) > 0;
   }
+
+  /// @brief Confirm content.
+  /// @param key1 First argument.
+  /// @param key2 Second argument.
+  /// @return True if it contains, false otherwise.
   bool has(T1 key1, T2 key2) const
   {
     HashableKeys<T1, T2> keys(key1, key2);
     return keys_.count(keys) > 0;
   }
+
+  /// @brief Confirm content.
+  /// @param key1 First argument.
+  /// @return True if it contains, false otherwise.
+
   bool has(T1 key1) const
   {
     HashableKeys<T1> keys(key1);
     return keys_.count(keys) > 0;
   }
 
+  /// @brief Get const iterator
+  /// @return Iterator referring to the first element.
   ConstIteratorT begin() const { return keys_.cbegin(); }
 
+  /// @brief Get const iterator
+  /// @return Iterator referring to the last element.
   ConstIteratorT end() const { return keys_.cend(); }
 
+  /// @brief Get size.
+  /// @return Element number.
   size_t size() const { return keys_.size(); }
 
 private:

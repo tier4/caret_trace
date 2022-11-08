@@ -25,10 +25,14 @@ public:
   static void finalize();
 };
 
+/// @brief Class for use as a singleton.
+/// @tparam T Target class type.
 template <typename T>
 class Singleton final
 {
 public:
+  /// @brief Get an instance.
+  /// @return An instance.
   static T & get_instance()
   {
     std::call_once(initFlag, create);

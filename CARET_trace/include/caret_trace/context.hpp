@@ -22,25 +22,58 @@
 #include <atomic>
 #include <memory>
 
+/// @brief A class for singletons that manage shared instances.
 class Context final
 {
 public:
+  /// @brief Construct an instance.
   Context();
 
+  /// @brief Construct an instance.
+  /// @param data_container data container.
+  /// @param controller controller.
   Context(
     std::shared_ptr<DataContainer> data_container, std::shared_ptr<TracingController> controller);
 
   Context(const Context &) = delete;
 
+  /// @brief Get TracingController instance.
+  /// @return TracingController instance
   TracingController & get_controller();
+
+  /// @brief Get pointer for DataContainer instance.
+  /// @return DataContainer pointer
   std::shared_ptr<DataContainer> get_data_container_ptr();
+
+  /// @brief Get pointer for LttngSession instance.
+  /// @return LttngSession pointer.
   std::shared_ptr<LttngSession> get_lttng_session_ptr();
+
+  /// @brief Get DataContainer instance.
+  /// @return DataContainer instance
   DataContainer & get_data_container();
+
+  /// @brief Get TraceNodeInterface instance.
+  /// @return TraceNodeInterface instance.
   TraceNodeInterface & get_node();
+
+  /// @brief Get Clock instance.
+  /// @return clock instance.
   Clock & get_clock();
+
+  /// @brief Assign node instance.
+  /// @param node Node instance to be assigned.
   void assign_node(std::shared_ptr<TraceNodeInterface> node);
+
+  /// @brief Check whether node is assigned.
+  /// @return True is node is assigned, false otherwise.
   bool is_node_assigned() const;
+
+  /// @brief Check whether current status enables recording.
+  /// @return True is reccorcing is enabled, false otherwise.
   bool is_recording_enabled() const;
+
+  /// @brief Initializing flag for TraceNode.
   std::atomic<bool> is_node_initializing;
 
 private:

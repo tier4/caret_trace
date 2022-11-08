@@ -25,14 +25,22 @@
 #include <type_traits>
 #include <unordered_set>
 
+/// @brief Interface class for manipulating Lttng sessions.
 class LttngSession
 {
 public:
   virtual ~LttngSession() {}
+
+  /// @brief Check whether session is up and running.
+  /// @return True if running, false otherwise.
   virtual bool is_session_running() const = 0;
+
+  /// @brief Check whether the session was up at startup.
+  /// @return True if running, false otherwise.
   virtual bool started_session_running() const = 0;
 };
 
+/// @brief Implementation of LttngSession.
 class LttngSessionImpl : public LttngSession
 {
 public:

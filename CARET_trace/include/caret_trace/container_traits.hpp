@@ -16,12 +16,19 @@
 
 #ifndef CARET_TRACE__CONTAINER_TRAITS_HPP_
 
+/// @brief Type traits for container.
+/// @tparam ...Args Container types.
 template <typename... Args>
 class ContainerTraits
 {
 public:
+  /// @brief Type for RecordasbleData
   using KeysT = RecordableData<Args...>;
+
+  /// @brief Type for record function.
   using FuncT = typename KeysT::FuncT;
+
+  /// @brief Type for record std::function.
   using StdFuncT = typename KeysT::StdFuncT;
 };
 

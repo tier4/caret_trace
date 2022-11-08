@@ -24,6 +24,8 @@
 #include <memory>
 #include <utility>
 
+/// @private
+/// @brief Mock class of TraceNodeInterface used for gest.
 class CaretTraceNodeModeMock : public TraceNodeInterface
 {
 public:
@@ -33,6 +35,8 @@ public:
   MOCK_CONST_METHOD0(get_status, const TRACE_STATUS &());
 };
 
+/// @private
+/// @brief Mock class of LttngSession used for gest.
 class LttngSessionMock : public LttngSession
 {
 public:
@@ -40,6 +44,8 @@ public:
   MOCK_CONST_METHOD0(started_session_running, bool());
 };
 
+/// @private
+/// @brief Mock class of DataContainerInterface used for gest.
 class DataContainerMock : public DataContainerInterface
 {
 public:

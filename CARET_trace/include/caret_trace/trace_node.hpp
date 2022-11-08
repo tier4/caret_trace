@@ -33,34 +33,71 @@ enum class TRACE_STATUS {
   RECORD,
 };
 
+/// @brief Interface class for recording operation node.
 class TraceNodeInterface
 {
 public:
   virtual ~TraceNodeInterface() {}
+
+  /// @brief Check whther current status allows recording.
+  /// @return True if recording is allowed, false otherwise.
   virtual bool is_recording_allowed() const = 0;
+
+  /// @brief Check if recording timer is running.
+  /// @return True if timer is running, false otherwise.
   virtual bool is_timer_running() const = 0;
+
+  /// @brief Get DataContainer instance.
+  /// @return DataContainer instance.
   virtual DataContainerInterface & get_data_container() = 0;
+
+  /// @brief Get current recording status.
+  /// @return recording status.
   virtual const TRACE_STATUS & get_status() const = 0;
 };
 
+/// @brief Implementation class for recording operation node.
 class TraceNode : public rclcpp::Node, public TraceNodeInterface
 {
 public:
+  /// @brief Construct an instance.
+  /// @param node_name_base Base node name. The node name is [node_name_base]_[pid].
+  /// @param lttng_session Instance of lttng session
+  /// @param data_container Instance of data container.
+  /// @param level Log level.
+  /// @param use_log Flag to toggle log use.
   TraceNode(
-    std::string node_names, std::shared_ptr<LttngSession> lttng_session,
+    std::string node_name_base, std::shared_ptr<LttngSession> lttng_session,
     std::shared_ptr<DataContainerInterface> data_container,
     rclcpp::Logger::Level level = rclcpp::Logger::Level::Info, bool use_log = false);
 
   ~TraceNode();
 
+  /// @brief Check whther current status allows recording.
+  /// @return True if recording is allowed, false otherwise.
   bool is_recording_allowed() const override;
+
+  /// @brief Check if recording timer is running.
+  /// @return True if timer is running, false otherwise.
   bool is_timer_running() const override;
+
+  /// @brief Timer callback for recording.
   void timer_callback();
+
+  /// @brief Subscription callback for start message.
+  /// @param msg start message.
   void start_callback(caret_msgs::msg::Start::UniquePtr msg);
+
+  /// @brief Subscription callback for end message
+  /// @param msg end message
   void end_callback(caret_msgs::msg::End::UniquePtr msg);
 
+  /// @brief Get data container instance.
+  /// @return data container.
   DataContainerInterface & get_data_container() override;
 
+  /// @brief Get status.
+  /// @return Current recording status.
   const TRACE_STATUS & get_status() const override;
 
 private:

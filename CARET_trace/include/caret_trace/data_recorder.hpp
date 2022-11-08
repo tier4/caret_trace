@@ -25,19 +25,44 @@
 
 #ifndef CARET_TRACE__DATA_RECORDER_HPP_
 
+/// @brief Class that manages the recording of all trace data.
 class DataRecorder
 {
 public:
+  /// @brief Construct an instance.
   DataRecorder();
+
+  /// @brief Construct an instance.
+  /// @param data Data to be record controlled.
   explicit DataRecorder(std::initializer_list<std::shared_ptr<RecordableDataInterface>> data);
+
+  /// @brief Construct an instance.
+  /// @param data Data to be record controlled.
   explicit DataRecorder(std::vector<std::shared_ptr<RecordableDataInterface>> data);
 
+  /// @brief Check whether recording has finished.
+  /// @return True if recording has finished, false otherwise.
   bool finished() const;
+
+  /// @brief Check whether recording is ongoing.
+  /// @return True if recording is ongoing, false otherwise.
   bool is_recording() const;
+
+  /// @brief Get data size.
+  /// @return Total number of recorded data.
   size_t size() const;
+
+  /// @brief Get trace point names.
+  /// @return trace pointt names.
   std::vector<std::string> trace_points() const;
+
+  /// @brief Move to start state.
   void start();
+
+  /// @brief Record next data.
   void record_next_one();
+
+  /// @brief Reset recording status.
   void reset();
 
 private:

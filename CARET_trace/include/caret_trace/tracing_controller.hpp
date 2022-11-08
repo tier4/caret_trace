@@ -19,32 +19,78 @@
 #include <unordered_map>
 #include <unordered_set>
 
+/// @brief Classes that implement trace filtering functions such as CARET_SELECT_NODES.
+/// @details Reads the environment variables CARET_SELECT_NODES,
+/// CARET_IGNORE_NODES, CARET_SELECT_TOPICS, and CARET_IGNORE_TOPICS.
+/// Tracepoints related to the specified node name or topic name are filtered
+/// so that they are not recoreded by LTTng.
+/// If both SELECT and IGNORE are specified, SELECT takes priority.
+/// @remark Tracepoints for which node names cannot be obtained,
+/// such as tracepoints without a DDS layer, are currently not filtered.
 class TracingController
 {
 public:
+  /// @brief Construct an instance.
   explicit TracingController(bool use_log = true);
+
+  /// @brief Register node name for rcl_node_init tracepoint hook.
+  /// @param node_handle Address of the node handle.
+  /// @param node_name Node name.
   void add_node(const void * node_handle, std::string node_name);
 
+  /// @brief Register topic name for rcl_subscription_init hook.
+  /// @param node_handle Address of the node handle.
+  /// @param subscription_handle Address of the subscription handle.
+  /// @param topic_name topic name.
   void add_subscription_handle(
     const void * node_handle, const void * subscription_handle, std::string topic_name);
 
+  /// @brief Register binding information for rclcpp_subscription_init tracepoint hook.
+  /// @param subscription_handle Address of the subscription handle.
+  /// @param subscription Address of subscription instance.
   void add_subscription(const void * subscription_handle, const void * subscription);
 
+  /// @brief Register binding information for rclcpp_subscription_callback_added tracepoint hook.
+  /// @param subscription Address of subscription instance.
+  /// @param callback Address of callback instance.
   void add_subscription_callback(const void * subscription, const void * callback);
 
+  /// @brief Register binding information for rclcpp_timer_link_node tracepoint hook.
+  /// @param node_handle Address of the node handle.
+  /// @param timer_handle Address of the timer handle.
   void add_timer_handle(const void * node_handle, const void * timer_handle);
 
+  /// @brief Register topic name for ros_trace_rcl_publisher_init
+  /// @param node_handle  Address of the node handle.
+  /// @param publisher_handle  Address of the publisher handle.
+  /// @param topic_name Topic name.
   void add_publisher_handle(
     const void * node_handle, const void * publisher_handle, std::string topic_name);
 
+  /// @brief Register binding information for rclcpp_timer_callback_added tracepoint hook.
+  /// @param timer_handle Address of the timer handle.
+  /// @param callback Address of callback instance.
   void add_timer_callback(const void * timer_handle, const void * callback);
 
+  /// @brief Check if trace point is a enabled callback
+  /// @param callback
+  /// @param callback Address of callback instance.
+  /// @return True if the callback is enabled, false otherwise.
   bool is_allowed_callback(const void * callback);
 
+  /// @brief Check if trace point is a enabled node
+  /// @param node_handle  Address of the node handle.
+  /// @return True if the node is enabled, false otherwise.
   bool is_allowed_node(const void * node_handle);
 
+  /// @brief Check if trace point is a enabled publisher
+  /// @param publisher_handle  Address of the publisher handle.
+  /// @return True if the publisher is enabled, false otherwise.
   bool is_allowed_publisher_handle(const void * publisher_handle);
 
+  /// @brief Check if trace point is a enabled subscription
+  /// @param subscription_handle Address of the subscription handle.
+  /// @return True if the subscription is enabled, false otherwise.
   bool is_allowed_subscription_handle(const void * subscription_handle);
 
 private:

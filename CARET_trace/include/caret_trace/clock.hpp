@@ -18,10 +18,15 @@
 
 #ifndef CARET_TRACE__CLOCK_HPP_
 
+/// @brief Clock class.
 class Clock
 {
 public:
+  /// @brief Construct an instance.
   Clock();
+
+  /// @brief Get current time in lttng clock. Default is monotonic clock.
+  /// @return Current time.
   int64_t now();
 
 private:

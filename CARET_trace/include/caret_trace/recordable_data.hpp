@@ -26,21 +26,44 @@
 #include <type_traits>
 #include <unordered_set>
 
+/// @brief Interface class for RecordableData.
+/// @details New data is stored pending during recording.
 class RecordableDataInterface
 {
 public:
   virtual ~RecordableDataInterface() {}
+
+  /// @brief Move on to recording state.
   virtual void start() = 0;
+
+  /// @brief Check whether recording is finished.
+  /// @return True if recording is finished, false otherwise.
   virtual bool finished() const = 0;
+
+  /// @brief Check whether recording is ongoing.
+  /// @return True if recording is ongoing, false otherwise.
   virtual bool is_recording() const = 0;
+
+  /// @brief Record next data.
   virtual void record_next_one() = 0;
+
+  /// @brief Reset recording status.
   virtual void reset() = 0;
+
+  /// @brief Get size.
+  /// @return data size.
   virtual size_t size() const = 0;
+
+  /// @brief Get pending data size.
+  /// @return pending data size.
   virtual size_t pending_size() const = 0;
+
+  /// @brief Get trace point name.
+  /// @return trace point name.
   virtual const std::string & trace_point() const = 0;
 };
 
-//  Dummy class instead of None.
+/// @brief Dummy class for RecordableData. This class is used instead of None.
 class DummyRecordableKeysSet : public RecordableDataInterface
 {
 public:
@@ -66,6 +89,8 @@ private:
   const std::string trace_point_;
 };
 
+/// @brief Data container class with sequential recording API.
+/// @tparam ...Args Trace point data types.
 template <typename... Args>
 class RecordableData : public RecordableDataInterface
 {
@@ -76,15 +101,21 @@ public:
   using FuncT = void(Args...);
   using StdFuncT = std::function<void(Args...)>;
 
+  /// @brief Construct an instance.
+  /// @param trace_point Trace point name for this instance.
   explicit RecordableData(std::string trace_point)
   : it_(nullptr), func_(nullptr), is_iterating_(false), trace_point_(trace_point)
   {
   }
 
-  explicit RecordableData(char * trace_point_) : RecordableData(std::string(trace_point_)) {}
+  /// @brief Construct an instance.
+  /// @param trace_point Trace point name for this instance.
+  explicit RecordableData(char * trace_point) : RecordableData(std::string(trace_point)) {}
 
   ~RecordableData() override {}
 
+  /// @brief Assign recording function.
+  /// @param function recording function.
   void assign(StdFuncT function)
   {
     std::lock_guard<std::shared_mutex> lock(mutex_);
@@ -103,6 +134,10 @@ public:
     is_end__ = is_end_iterator_();
   }
 
+  /// @brief Store new data.
+  /// @param data to store.
+  /// @return True, data was stored to pending set.
+  /// @return False, data was stored to set.
   bool store(Args... args)
   {
     std::lock_guard<std::shared_mutex> lock(mutex_);
@@ -123,6 +158,8 @@ public:
     reset_();
   }
 
+  /// @brief Check whether recording function is assigned.
+  /// @return True if recording function is assigned, false otherwise.
   bool is_assigned() const
   {
     std::shared_lock<std::shared_mutex> lock(mutex_);
@@ -166,6 +203,8 @@ public:
     try_merge_pending_data();
   }
 
+  /// @brief Det iterating data.
+  /// @return Current iterating data.
   const KeyT & get() const
   {
     assert(!finished());
@@ -193,12 +232,9 @@ private:
     pending_set_.clear();
   }
 
-  /**
-   * @brief merge_pending_data when iterator reached to the end.
-   *
-   * @return true : Succeed to merge.
-   * @return false : No data were merged.
-   */
+  /// @brief merge_pending_data when iterator reached to the end.
+  /// @return true : Succeed to merge.
+  /// @return false : No data were merged.
   bool try_merge_pending_data()
   {
     if (is_end__) {
