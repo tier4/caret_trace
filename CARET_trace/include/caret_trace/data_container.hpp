@@ -104,7 +104,7 @@ public:
   using RclClientInit = ContainerTraits<const void *, const void *, const void *, const char *>;
 
   /// @brief ContainerTraits for rclcpp_service_callback_added trace points.
-  using RclcppServiceCallbackAdded = ContainerTraits<const void *, const void *>;
+  using RclcppServiceCallbackAdded = ContainerTraits<const void *, const char *>;
 
   /// @brief ContainerTraits for rcl_service_init trace points.
   using RclServiceInit = ContainerTraits<const void *, const void *, const void *, const char *>;
