@@ -278,13 +278,21 @@ private:
       const auto & third = keys.third();
       const auto & fourth = keys.fourth();
       func_(first, second, third, fourth);
-    } else {
+    } else if constexpr (arg_size == 5) {  // NOLINT
       const auto & first = keys.first();
       const auto & second = keys.second();
       const auto & third = keys.third();
       const auto & fourth = keys.fourth();
       const auto & fifth = keys.fifth();
       func_(first, second, third, fourth, fifth);
+    } else {
+      const auto & first = keys.first();
+      const auto & second = keys.second();
+      const auto & third = keys.third();
+      const auto & fourth = keys.fourth();
+      const auto & fifth = keys.fifth();
+      const auto & sixth = keys.sixth();
+      func_(first, second, third, fourth, fifth, sixth);
     }
   }
 
