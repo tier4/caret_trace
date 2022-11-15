@@ -35,15 +35,16 @@ TEST(DataContainerTest, EmptyCase)
 TEST(DataContainerTest, DataConsumeCase)
 {
   DataContainer container;
-  container.store_rcl_node_init(nullptr, nullptr, "node_name", "ns_a");
-  container.store_rcl_node_init(nullptr, nullptr, "node_name", "ns_b");
-  container.store_rcl_init(nullptr);
+  container.store_rcl_node_init(nullptr, nullptr, "node_name", "ns_a", 0);
+  container.store_rcl_node_init(nullptr, nullptr, "node_name", "ns_b", 0);
+  container.store_rcl_init(nullptr, 0);
 
   EXPECT_FALSE(container.is_assigned_rcl_init());
   EXPECT_FALSE(container.is_assigned_rcl_node_init());
 
-  container.assign_rcl_init([](const void *) {});
-  container.assign_rcl_node_init([](const void *, const void *, const char *, const char *) {});
+  container.assign_rcl_init([](const void *, int64_t) {});
+  container.assign_rcl_node_init(
+    [](const void *, const void *, const char *, const char *, int64_t) {});
 
   EXPECT_TRUE(container.is_assigned_rcl_init());
   EXPECT_TRUE(container.is_assigned_rcl_node_init());

@@ -45,72 +45,77 @@ class DataContainer : public DataContainerInterface
 {
 public:
   /// @brief  for add_callback_group trace points.
-  using AddCallbackGroup = ContainerTraits<const void *, const void *, const char *>;
+  using AddCallbackGroup = ContainerTraits<const void *, const void *, const char *, int64_t>;
 
   /// @brief ContainerTraits for add_callback_group_static_executor trace points.
-  using AddCallbackGroupStaticExecutor = ContainerTraits<const void *, const void *, const char *>;
+  using AddCallbackGroupStaticExecutor =
+    ContainerTraits<const void *, const void *, const char *, int64_t>;
 
   /// @brief ContainerTraits for callback_group_add_client trace points.
-  using CallbackGroupAddClient = ContainerTraits<const void *, const void *>;
+  using CallbackGroupAddClient = ContainerTraits<const void *, const void *, int64_t>;
 
   /// @brief ContainerTraits for callback_group_add_service trace points.
-  using CallbackGroupAddService = ContainerTraits<const void *, const void *>;
+  using CallbackGroupAddService = ContainerTraits<const void *, const void *, int64_t>;
 
   /// @brief ContainerTraits for callback_group_add_subscription trace points.
-  using CallbackGroupAddSubscription = ContainerTraits<const void *, const void *>;
+  using CallbackGroupAddSubscription = ContainerTraits<const void *, const void *, int64_t>;
 
   /// @brief ContainerTraits for callback_group_add_timer trace points.
-  using CallbackGroupAddTimer = ContainerTraits<const void *, const void *>;
+  using CallbackGroupAddTimer = ContainerTraits<const void *, const void *, int64_t>;
 
   /// @brief ContainerTraits for construct_executor trace points.
-  using ConstructExecutor = ContainerTraits<const void *, const char *>;
+  using ConstructExecutor = ContainerTraits<const void *, const char *, int64_t>;
 
   /// @brief ContainerTraits for construct_static_executor trace points.
-  using ConstructStaticExecutor = ContainerTraits<const void *, const void *, const char *>;
+  using ConstructStaticExecutor =
+    ContainerTraits<const void *, const void *, const char *, int64_t>;
 
   /// @brief ContainerTraits for rcl_init trace points.
-  using RclInit = ContainerTraits<const void *>;
+  using RclInit = ContainerTraits<const void *, int64_t>;
 
   /// @brief ContainerTraits for rcl_node_init trace points.
-  using RclNodeInit = ContainerTraits<const void *, const void *, const char *, const char *>;
+  using RclNodeInit =
+    ContainerTraits<const void *, const void *, const char *, const char *, int64_t>;
 
   /// @brief ContainerTraits for rcl_subscription_init trace points.
   using RclSubscriptionInit =
-    ContainerTraits<const void *, const void *, const void *, const char *, size_t>;
+    ContainerTraits<const void *, const void *, const void *, const char *, size_t, int64_t>;
 
   /// @brief ContainerTraits for rclcpp_callback_register trace points.
-  using RclcppCallbackRegister = ContainerTraits<const void *, const char *>;
+  using RclcppCallbackRegister = ContainerTraits<const void *, const char *, int64_t>;
 
   /// @brief ContainerTraits for rclcpp_subscription_init trace points.
-  using RclcppSubscriptionInit = ContainerTraits<const void *, const void *>;
+  using RclcppSubscriptionInit = ContainerTraits<const void *, const void *, int64_t>;
 
   /// @brief ContainerTraits for rclcpp_subscription_callback_added trace points.
-  using RclcppSubscriptionCallbackAdded = ContainerTraits<const void *, const void *>;
+  using RclcppSubscriptionCallbackAdded = ContainerTraits<const void *, const void *, int64_t>;
 
   /// @brief ContainerTraits for rclcpp_timer_callback_added trace points.
-  using RclcppTimerCallbackAdded = ContainerTraits<const void *, const void *>;
+  using RclcppTimerCallbackAdded = ContainerTraits<const void *, const void *, int64_t>;
 
   /// @brief ContainerTraits for rclcpp_timer_link_node trace points.
-  using RclcppTimerLinkNode = ContainerTraits<const void *, const void *>;
+  using RclcppTimerLinkNode = ContainerTraits<const void *, const void *, int64_t>;
 
   /// @brief ContainerTraits for rcl_timer_init trace points.
   using RclTimerInit = ContainerTraits<const void *, int64_t, int64_t>;
 
   /// @brief ContainerTraits for rcl_publisher_init trace points.
   using RclPublisherInit =
-    ContainerTraits<const void *, const void *, const void *, const char *, size_t>;
+    ContainerTraits<const void *, const void *, const void *, const char *, size_t, int64_t>;
 
   /// @brief ContainerTraits for rcl_client_init trace points.
-  using RclClientInit = ContainerTraits<const void *, const void *, const void *, const char *>;
+  using RclClientInit =
+    ContainerTraits<const void *, const void *, const void *, const char *, int64_t>;
 
   /// @brief ContainerTraits for rclcpp_service_callback_added trace points.
-  using RclcppServiceCallbackAdded = ContainerTraits<const void *, const char *>;
+  using RclcppServiceCallbackAdded = ContainerTraits<const void *, const char *, int64_t>;
 
   /// @brief ContainerTraits for rcl_service_init trace points.
-  using RclServiceInit = ContainerTraits<const void *, const void *, const void *, const char *>;
+  using RclServiceInit =
+    ContainerTraits<const void *, const void *, const void *, const char *, int64_t>;
 
   /// @brief ContainerTraits for rmw_implementation trace points.
-  using RmwImplementation = ContainerTraits<const char *>;
+  using RmwImplementation = ContainerTraits<const char *, int64_t>;
 
   /// @brief Construct an instance.
   DataContainer();

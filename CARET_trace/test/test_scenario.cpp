@@ -41,7 +41,7 @@ void add_data(DataContainer & container, int loop)
   char * ptr = nullptr;
   for (auto i = 0; i < loop; i++) {
     ptr++;
-    container.store_rcl_init(ptr);
+    container.store_rcl_init(ptr, 0);
   }
 }
 
@@ -66,7 +66,7 @@ TEST(ScenarioTest, TestSingleThread)
   char * ptr = nullptr;
   for (auto i = 0; i < loop; i++) {
     ptr++;
-    EXPECT_CALL(rcl_init_mock, Call(ptr)).Times(1);
+    EXPECT_CALL(rcl_init_mock, Call(ptr, 0)).Times(1);
   }
 
   add_data(container, loop);
@@ -92,7 +92,7 @@ TEST(ScenarioTest, TestMultiThread)
   char * ptr = nullptr;
   for (auto i = 0; i < loop; i++) {
     ptr++;
-    EXPECT_CALL(rcl_init_mock, Call(ptr)).WillRepeatedly(Return());
+    EXPECT_CALL(rcl_init_mock, Call(ptr, 0)).WillRepeatedly(Return());
   }
 
   // NOTE: Ensure recording data. Avoid container.record() before add_data() is called.
@@ -118,8 +118,8 @@ TEST(ScenarioTest, RepetitiveRecordingCase)
 
   void * addr_0 = reinterpret_cast<void *>(0);
   void * addr_1 = reinterpret_cast<void *>(1);
-  container->store_rcl_init(addr_0);
-  container->store_rcl_init(addr_1);
+  container->store_rcl_init(addr_0, 0);
+  container->store_rcl_init(addr_1, 0);
 
   MockFunction<DataContainer::RclInit::FuncT> func;
   container->assign_rcl_init(func.AsStdFunction());
@@ -131,8 +131,8 @@ TEST(ScenarioTest, RepetitiveRecordingCase)
   EXPECT_EQ(node.get_status(), TRACE_STATUS::WAIT);
 
   {  // fist recording
-    EXPECT_CALL(func, Call(addr_0)).Times(1);
-    EXPECT_CALL(func, Call(addr_1)).Times(1);
+    EXPECT_CALL(func, Call(addr_0, 0)).Times(1);
+    EXPECT_CALL(func, Call(addr_1, 0)).Times(1);
 
     auto start_msg = std::make_unique<caret_msgs::msg::Start>();
     start_msg->recording_frequency = 1;  // record nullptr only.
@@ -148,8 +148,8 @@ TEST(ScenarioTest, RepetitiveRecordingCase)
   }
 
   {  // second recording
-    EXPECT_CALL(func, Call(addr_0)).Times(1);
-    EXPECT_CALL(func, Call(addr_1)).Times(1);
+    EXPECT_CALL(func, Call(addr_0, 0)).Times(1);
+    EXPECT_CALL(func, Call(addr_1, 0)).Times(1);
 
     auto start_msg = std::make_unique<caret_msgs::msg::Start>();
     start_msg->recording_frequency = 1;  // record nullptr only.
@@ -174,8 +174,8 @@ TEST(ScenarioTest, IsRecordingEnabled)
 
   void * addr_0 = reinterpret_cast<void *>(0);
   void * addr_1 = reinterpret_cast<void *>(1);
-  container->store_rcl_init(addr_0);
-  container->store_rcl_init(addr_1);
+  container->store_rcl_init(addr_0, 0);
+  container->store_rcl_init(addr_1, 0);
 
   auto lttng = std::make_shared<LttngSessionMock>();
   EXPECT_CALL(*lttng, started_session_running()).WillRepeatedly(Return(false));
@@ -219,15 +219,15 @@ TEST(ScenarioTest, Record)
   // container->store_rcl_init(nullptr)
 
   MockFunction<DataContainer::RclInit::FuncT> func;
-  EXPECT_CALL(func, Call(addr_1)).Times(1);
-  EXPECT_CALL(func, Call(addr_2)).Times(1);
-  EXPECT_CALL(func, Call(addr_3)).Times(0);
-  EXPECT_CALL(func, Call(addr_4)).Times(0);
+  EXPECT_CALL(func, Call(addr_1, 0)).Times(1);
+  EXPECT_CALL(func, Call(addr_2, 0)).Times(1);
+  EXPECT_CALL(func, Call(addr_3, 0)).Times(0);
+  EXPECT_CALL(func, Call(addr_4, 0)).Times(0);
 
   container->assign_rcl_init(func.AsStdFunction());
 
   // case: node is not initialized
-  pending = container->store_rcl_init(addr_1);
+  pending = container->store_rcl_init(addr_1, 0);
   EXPECT_EQ(keys->size(), (size_t)1);
   EXPECT_FALSE(pending);
 
@@ -239,7 +239,7 @@ TEST(ScenarioTest, Record)
 
   // case: WAIT status
   EXPECT_EQ(node->get_status(), TRACE_STATUS::WAIT);
-  pending = container->store_rcl_init(addr_2);
+  pending = container->store_rcl_init(addr_2, 0);
   EXPECT_EQ(keys->size(), (size_t)2);
   EXPECT_FALSE(pending);
 
@@ -249,7 +249,7 @@ TEST(ScenarioTest, Record)
   node->start_callback(std::move(start_msg));
 
   EXPECT_EQ(node->get_status(), TRACE_STATUS::PREPARE);
-  pending = container->store_rcl_init(addr_3);
+  pending = container->store_rcl_init(addr_3, 0);
   EXPECT_EQ(keys->size(), (size_t)2);
   EXPECT_EQ(keys->pending_size(), (size_t)1);
   EXPECT_TRUE(pending);  // NOTE: Data in PENDING should be recorded in real time.
@@ -260,6 +260,6 @@ TEST(ScenarioTest, Record)
   EXPECT_EQ(node->get_status(), TRACE_STATUS::RECORD);
   EXPECT_EQ(keys->size(), (size_t)3);
 
-  container->store_rcl_init(addr_4);
+  container->store_rcl_init(addr_4, 0);
   EXPECT_EQ(keys->size(), (size_t)4);
 }
