@@ -24,6 +24,7 @@
 #include "caret_trace/tp.h"
 #include "caret_trace/trace_node.hpp"
 #include "caret_trace/tracing_controller.hpp"
+#include "rcl/context.h"
 #include "rclcpp/rclcpp.hpp"
 
 #include <dlfcn.h>
@@ -51,6 +52,9 @@ std::unique_ptr<std::thread> trace_node_thread;
 
 void run_caret_trace_node()
 {
+  // When the python implementation node is executed,
+  // this thread is executed without obtaining a global interpreter lock.
+  // Therefore, this thread is executed asynchronously with the execution of the python node.
   std::string node_name_base = "caret_trace";
   auto & context = Singleton<Context>::get_instance();
   auto data_container = context.get_data_container_ptr();
@@ -59,14 +63,53 @@ void run_caret_trace_node()
   auto now = clock.now();
   tracepoint(TRACEPOINT_PROVIDER, caret_init, now);
 
-  if (rclcpp::ok()) {
-    // If you try to create a Node before the context is created, it will fail.
-    auto lttng = context.get_lttng_session_ptr();
-    auto trace_node = std::make_shared<TraceNode>(node_name_base, lttng, data_container);
-    context.assign_node(trace_node);
-    auto exec = rclcpp::executors::SingleThreadedExecutor();
-    exec.add_node(trace_node);
-    exec.spin();
+  // If you try to create a Node before the context is created, it will fail.
+  auto lttng = context.get_lttng_session_ptr();
+
+  // For nodes in the cpp implementation,
+  // a default context that has already been initialized is used.
+  // For nodes implemented outside of cpp, such as python,
+  // an uninitialized default context is used.
+  rclcpp::NodeOptions option;
+
+  if (!option.context()->is_valid()) {
+    // Initialize the context if it has not been initialized.
+    int argc = 1;
+    const char * argvs [] = {"caret_trace_node"};
+    option.context()->init(argc, argvs);
+  }
+  // Set global arguments to false to prevent the node to be generated from being renamed.
+  option.use_global_arguments(false);
+  auto trace_node = std::make_shared<TraceNode>(node_name_base, option, lttng, data_container);
+  RCLCPP_INFO(trace_node->get_logger(), "%s started", trace_node->get_fully_qualified_name());
+
+  context.assign_node(trace_node);
+  auto exec = rclcpp::executors::SingleThreadedExecutor();
+  exec.add_node(trace_node);
+  exec.spin();
+}
+
+void check_and_run_trace_node()
+{
+  // NOTE:
+  // This function should be executed after the context has been initialized.
+  // Execute at initialization trace points other than rcl_init.
+  // This function is called at the execution of various initialization functions,
+  // so it is executed recursively.
+  auto & context = Singleton<Context>::get_instance();
+  static std::mutex mtx;
+  if (context.is_node_initializing.load()){
+    return;
+  }
+
+  {  // Initialize TraceNode
+    std::lock_guard<std::mutex> lock(mtx);
+    if (!context.is_node_assigned() && !context.is_node_initializing.load()) {
+      // Only one of the first threads execute this block.
+      context.is_node_initializing.store(true);
+      trace_node_thread = std::make_unique<std::thread>(run_caret_trace_node);
+      trace_node_thread->detach();
+    }
   }
 }
 
@@ -125,16 +168,7 @@ void ros_trace_rcl_node_init(
       node_name, node_namespace, init_time);
   };
 
-  static std::mutex mtx;
-
-  {  // TraceNodeの初期化
-    std::lock_guard<std::mutex> lock(mtx);
-    if (!context.is_node_assigned() && !context.is_node_initializing.load()) {
-      context.is_node_initializing.store(true);
-      trace_node_thread = std::make_unique<std::thread>(run_caret_trace_node);
-      trace_node_thread->detach();
-    }
-  }
+  check_and_run_trace_node();
 
   if (!data_container.is_assigned_rcl_node_init()) {
     data_container.assign_rcl_node_init(record);
@@ -201,6 +235,8 @@ void ros_trace_rcl_subscription_init(
     data_container.assign_rcl_subscription_init(record);
   }
 
+  check_and_run_trace_node();
+
   auto now = clock.now();
   bool pending = data_container.store_rcl_subscription_init(
     subscription_handle, node_handle, rmw_subscription_handle, topic_name,
@@ -237,6 +273,8 @@ void ros_trace_rclcpp_subscription_init(
       subscription_handle, subscription, init_time);
   };
 
+  check_and_run_trace_node();
+
   controller.add_subscription(subscription_handle, subscription);
 
   if (!data_container.is_assigned_rclcpp_subscription_init()) {
@@ -271,6 +309,8 @@ void ros_trace_rclcpp_subscription_callback_added(
       subscription, callback, init_time);
   };
 
+  check_and_run_trace_node();
+
   controller.add_subscription_callback(subscription, callback);
 
   if (!data_container.is_assigned_rclcpp_subscription_callback_added()) {
@@ -302,6 +342,8 @@ void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_timer_callback_added, timer_handle, callback, init_time);
   };
 
+  check_and_run_trace_node();
+
   controller.add_timer_callback(timer_handle, callback);
 
   if (!data_container.is_assigned_rclcpp_timer_callback_added()) {
@@ -331,6 +373,8 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_timer_link_node, timer_handle, node_handle, init_time);
   };
 
+  check_and_run_trace_node();
+
   controller.add_timer_handle(node_handle, timer_handle);
 
   if (!data_container.is_assigned_rclcpp_timer_link_node()) {
@@ -354,6 +398,8 @@ void ros_trace_callback_start(const void * callback, bool is_intra_process)
 {
   static auto & context = Singleton<Context>::get_instance();
   static auto & controller = context.get_controller();
+
+  check_and_run_trace_node();
 
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(const void *, bool);
@@ -576,6 +622,8 @@ void ros_trace_rcl_publisher_init(
     data_container.assign_rcl_publisher_init(record);
   }
 
+  check_and_run_trace_node();
+
   auto now = clock.now();
   bool pending = data_container.store_rcl_publisher_init(
     publisher_handle,
@@ -647,6 +695,8 @@ void ros_trace_rcl_service_init(
     data_container.assign_rcl_service_init(record);
   }
 
+  check_and_run_trace_node();
+
   auto now = clock.now();
   bool pending = data_container.store_rcl_service_init(
     service_handle, node_handle, rmw_service_handle,
@@ -678,6 +728,8 @@ void ros_trace_rclcpp_service_callback_added(
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_service_callback_added,
       service_handle, callback, init_time);
   };
+
+  check_and_run_trace_node();
 
   if (!data_container.is_assigned_rclcpp_service_callback_added()) {
     data_container.assign_rclcpp_service_callback_added(record);
@@ -718,6 +770,8 @@ void ros_trace_rcl_client_init(
     data_container.assign_rcl_client_init(record);
   }
 
+  check_and_run_trace_node();
+
   auto now = clock.now();
   bool pending = data_container.store_rcl_client_init(
     client_handle, node_handle, rmw_client_handle,
@@ -747,6 +801,8 @@ void ros_trace_rclcpp_callback_register(
   static auto record = [](  const void * callback, const char * symbol, int64_t init_time) {
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_callback_register, callback, symbol, init_time);
   };
+
+  check_and_run_trace_node();
 
   if (!data_container.is_assigned_rclcpp_callback_register()) {
     data_container.assign_rclcpp_callback_register(record);
@@ -780,6 +836,7 @@ void ros_trace_rcl_lifecycle_state_machine_init(
       node_handle, state_machine, init_time);
   };
 
+  check_and_run_trace_node();
   auto now = clock.now();
 
   if (context.is_recording_enabled()) {

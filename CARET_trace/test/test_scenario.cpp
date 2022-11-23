@@ -127,7 +127,8 @@ TEST(ScenarioTest, RepetitiveRecordingCase)
   auto lttng = std::make_shared<LttngSessionMock>();
   EXPECT_CALL(*lttng, started_session_running()).WillRepeatedly(Return(false));
 
-  auto node = TraceNode("test", lttng, container, Logger::Level::Warn, false);
+  rclcpp::NodeOptions options;
+  auto node = TraceNode("test", options, lttng, container, Logger::Level::Warn, false);
   EXPECT_EQ(node.get_status(), TRACE_STATUS::WAIT);
 
   {  // fist recording
@@ -180,7 +181,8 @@ TEST(ScenarioTest, IsRecordingEnabled)
   auto lttng = std::make_shared<LttngSessionMock>();
   EXPECT_CALL(*lttng, started_session_running()).WillRepeatedly(Return(false));
 
-  auto node = std::make_shared<TraceNode>("test", lttng, container, Logger::Level::Warn, false);
+  rclcpp::NodeOptions options;
+  auto node = std::make_shared<TraceNode>("test", options, lttng, container, Logger::Level::Warn, false);
   context.assign_node(node);
 
   EXPECT_EQ(node->get_status(), TRACE_STATUS::WAIT);
@@ -234,7 +236,8 @@ TEST(ScenarioTest, Record)
   auto lttng = std::make_shared<LttngSessionMock>();
   EXPECT_CALL(*lttng, started_session_running()).WillRepeatedly(Return(false));
 
-  auto node = std::make_shared<TraceNode>("test", lttng, container, Logger::Level::Warn, false);
+  rclcpp::NodeOptions options;
+  auto node = std::make_shared<TraceNode>("test", options, lttng, container, Logger::Level::Warn, false);
   context.assign_node(node);
 
   // case: WAIT status

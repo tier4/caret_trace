@@ -100,8 +100,9 @@ private:
       node_ = nullptr;
     }
     set_lttng_session_return_value(true);
+    rclcpp::NodeOptions options;
     return std::make_unique<TraceNode>(
-      "node_name", lttng_session_, data_container_, rclcpp::Logger::Level::Warn, false);
+      "node_name", options, lttng_session_, data_container_, rclcpp::Logger::Level::Warn, false);
   }
 };
 
@@ -115,7 +116,8 @@ TEST(CaretTraceTest, TestStartTransition)
     auto lttng = std::make_shared<LttngSessionMock>();
     EXPECT_CALL(*lttng, started_session_running()).WillRepeatedly(Return(true));
 
-    auto node = TraceNode("test", lttng, data_container, rclcpp::Logger::Level::Warn, false);
+    rclcpp::NodeOptions options;
+    auto node = TraceNode("test", options, lttng, data_container, rclcpp::Logger::Level::Warn, false);
     EXPECT_TRUE(node.get_status() == TRACE_STATUS::RECORD);
   }
 
@@ -123,7 +125,8 @@ TEST(CaretTraceTest, TestStartTransition)
     auto lttng = std::make_shared<LttngSessionMock>();
     EXPECT_CALL(*lttng, started_session_running()).WillRepeatedly(Return(false));
 
-    auto node = TraceNode("node_name", lttng, data_container, rclcpp::Logger::Level::Warn);
+    rclcpp::NodeOptions options;
+    auto node = TraceNode("node_name", options, lttng, data_container, rclcpp::Logger::Level::Warn);
     EXPECT_TRUE(node.get_status() == TRACE_STATUS::WAIT);
   }
 }
