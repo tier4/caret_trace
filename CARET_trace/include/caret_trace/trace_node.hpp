@@ -67,8 +67,7 @@ public:
   /// @param level Log level.
   /// @param use_log Flag to toggle log use.
   TraceNode(
-    std::string node_name_base,
-    rclcpp::NodeOptions options,
+    std::string node_name_base, rclcpp::NodeOptions options,
     std::shared_ptr<LttngSession> lttng_session,
     std::shared_ptr<DataContainerInterface> data_container,
     rclcpp::Logger::Level level = rclcpp::Logger::Level::Info, bool use_log = false);

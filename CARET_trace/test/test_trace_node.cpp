@@ -117,7 +117,8 @@ TEST(CaretTraceTest, TestStartTransition)
     EXPECT_CALL(*lttng, started_session_running()).WillRepeatedly(Return(true));
 
     rclcpp::NodeOptions options;
-    auto node = TraceNode("test", options, lttng, data_container, rclcpp::Logger::Level::Warn, false);
+    auto node =
+      TraceNode("test", options, lttng, data_container, rclcpp::Logger::Level::Warn, false);
     EXPECT_TRUE(node.get_status() == TRACE_STATUS::RECORD);
   }
 

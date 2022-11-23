@@ -182,7 +182,8 @@ TEST(ScenarioTest, IsRecordingEnabled)
   EXPECT_CALL(*lttng, started_session_running()).WillRepeatedly(Return(false));
 
   rclcpp::NodeOptions options;
-  auto node = std::make_shared<TraceNode>("test", options, lttng, container, Logger::Level::Warn, false);
+  auto node =
+    std::make_shared<TraceNode>("test", options, lttng, container, Logger::Level::Warn, false);
   context.assign_node(node);
 
   EXPECT_EQ(node->get_status(), TRACE_STATUS::WAIT);
@@ -237,7 +238,8 @@ TEST(ScenarioTest, Record)
   EXPECT_CALL(*lttng, started_session_running()).WillRepeatedly(Return(false));
 
   rclcpp::NodeOptions options;
-  auto node = std::make_shared<TraceNode>("test", options, lttng, container, Logger::Level::Warn, false);
+  auto node =
+    std::make_shared<TraceNode>("test", options, lttng, container, Logger::Level::Warn, false);
   context.assign_node(node);
 
   // case: WAIT status

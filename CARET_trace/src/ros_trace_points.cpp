@@ -75,7 +75,7 @@ void run_caret_trace_node()
   if (!option.context()->is_valid()) {
     // Initialize the context if it has not been initialized.
     int argc = 1;
-    const char * argvs [] = {"caret_trace_node"};
+    const char * argvs[] = {"caret_trace_node"};
     option.context()->init(argc, argvs);
   }
   // Set global arguments to false to prevent the node to be generated from being renamed.
@@ -98,7 +98,7 @@ void check_and_run_trace_node()
   // so it is executed recursively.
   auto & context = Singleton<Context>::get_instance();
   static std::mutex mtx;
-  if (context.is_node_initializing.load()){
+  if (context.is_node_initializing.load()) {
     return;
   }
 

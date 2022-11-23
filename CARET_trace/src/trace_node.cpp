@@ -33,8 +33,7 @@
 using std::placeholders::_1;
 
 TraceNode::TraceNode(
-  std::string node_name_base,
-  rclcpp::NodeOptions options,
+  std::string node_name_base, rclcpp::NodeOptions options,
   std::shared_ptr<LttngSession> lttng_session,
   std::shared_ptr<DataContainerInterface> data_container, rclcpp::Logger::Level level, bool use_log)
 : rclcpp::Node(TraceNode::get_unique_node_name(node_name_base), options),
