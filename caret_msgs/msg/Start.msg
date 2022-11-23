@@ -1,1 +1,1 @@
-uint32 recording_frequency 1000
+uint32 recording_frequency 100
