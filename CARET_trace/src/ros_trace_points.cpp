@@ -159,11 +159,19 @@ void ros_trace_rcl_node_init(
   static auto & data_container = context.get_data_container();
   static auto & controller = context.get_controller();
 
-  static auto record = [](const void * node_handle,
-  const void * rmw_handle,
-  const char * node_name,
-  const char * node_namespace,
-  int64_t init_time) {
+  static auto record = [](
+    const void * node_handle,
+    const void * rmw_handle,
+    const char * node_name,
+    const char * node_namespace,
+    int64_t init_time
+  ) {
+    static auto & context = Singleton<Context>::get_instance();
+    static auto & controller = context.get_controller();
+
+    if (!controller.is_allowed_node(node_handle)) {
+      return;
+    }
     tracepoint(TRACEPOINT_PROVIDER, rcl_node_init, node_handle, rmw_handle,
       node_name, node_namespace, init_time);
 #ifdef DEBUG_OUTPUT
@@ -199,9 +207,7 @@ void ros_trace_rcl_node_init(
     node_namespace, now);
 
   bool recording_allowed = context.is_recording_enabled() || pending;
-  if (controller.is_allowed_node(node_handle) && recording_allowed) {
-    assert(ORIG_FUNC::ros_trace_rcl_node_init != nullptr);
-
+  if (recording_allowed) {
     record(node_handle, rmw_handle, node_name, node_namespace, now);
   }
 }
@@ -217,13 +223,20 @@ void ros_trace_rcl_subscription_init(
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto & controller = context.get_controller();
-  static auto record = [](  const void * subscription_handle,
+  static auto record = [](
+    const void * subscription_handle,
     const void * node_handle,
     const void * rmw_subscription_handle,
     const char * topic_name,
     const size_t queue_depth,
     int64_t init_time
   ) {
+    static auto & context = Singleton<Context>::get_instance();
+    static auto & controller = context.get_controller();
+
+    if (!controller.is_allowed_subscription_handle(subscription_handle)) {
+      return;
+    }
     tracepoint(TRACEPOINT_PROVIDER, rcl_subscription_init, subscription_handle,
       node_handle, rmw_subscription_handle, topic_name, queue_depth, init_time);
 #ifdef DEBUG_OUTPUT
@@ -250,7 +263,7 @@ void ros_trace_rcl_subscription_init(
     reinterpret_cast<size_t>(queue_depth), now);
 
   bool recording_allowed = context.is_recording_enabled() || pending;
-  if (controller.is_allowed_subscription_handle(subscription_handle) && recording_allowed) {
+  if (recording_allowed) {
     record(
       subscription_handle, node_handle, rmw_subscription_handle, topic_name,
       queue_depth, now);
@@ -265,9 +278,16 @@ void ros_trace_rclcpp_subscription_init(
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto & controller = context.get_controller();
-  static auto record = [](const void * subscription_handle,
-      const void * subscription,
-      int64_t init_time) {
+  static auto record = [](
+    const void * subscription_handle,
+    const void * subscription,
+    int64_t init_time
+  ) {
+    static auto & context = Singleton<Context>::get_instance();
+    static auto & controller = context.get_controller();
+    if (!controller.is_allowed_subscription_handle(subscription_handle)){
+      return;
+    }
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_subscription_init,
       subscription_handle, subscription, init_time);
 #ifdef DEBUG_OUTPUT
@@ -290,7 +310,7 @@ void ros_trace_rclcpp_subscription_init(
     subscription_handle, subscription, now);
   bool recording_allowed = context.is_recording_enabled() || pending;
 
-  if (controller.is_allowed_subscription_handle(subscription_handle) && recording_allowed) {
+  if (recording_allowed) {
     record(subscription_handle, subscription, now);
   }
 }
@@ -303,7 +323,14 @@ void ros_trace_rclcpp_subscription_callback_added(
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto & controller = context.get_controller();
-  static auto record = [](  const void * subscription, const void * callback, int64_t init_time) {
+  static auto record = [](
+    const void * subscription,
+    const void * callback,
+    int64_t init_time
+  ) {
+    if (!controller.is_allowed_callback(callback)) {
+      return;
+    }
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_subscription_callback_added,
       subscription, callback, init_time);
 #ifdef DEBUG_OUTPUT
@@ -326,7 +353,7 @@ void ros_trace_rclcpp_subscription_callback_added(
     subscription, callback, now);
   bool recording_allowed = context.is_recording_enabled() || pending;
 
-  if (controller.is_allowed_callback(callback) && recording_allowed) {
+  if (recording_allowed) {
     record(subscription, callback, now);
   }
 }
@@ -337,7 +364,14 @@ void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto & controller = context.get_controller();
-  static auto record = [](const void * timer_handle, const void * callback, int64_t init_time) {
+  static auto record = [](
+    const void * timer_handle,
+    const void * callback,
+    int64_t init_time
+  ) {
+  if (!controller.is_allowed_callback(callback)) {
+    return;
+  }
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_timer_callback_added, timer_handle, callback, init_time);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_timer_callback_added," <<
@@ -357,7 +391,7 @@ void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void
   auto now = clock.now();
   bool pending = data_container.store_rclcpp_timer_callback_added(timer_handle, callback, now);
   bool recordindg_enabled = context.is_recording_enabled() || pending;
-  if (controller.is_allowed_callback(callback) && recordindg_enabled) {
+  if (recordindg_enabled) {
     record(timer_handle, callback, now);
   }
 }
@@ -368,7 +402,14 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto & controller = context.get_controller();
-  static auto record = [](const void * timer_handle, const void * node_handle, int64_t init_time) {
+  static auto record = [](
+    const void * timer_handle,
+    const void * node_handle,
+    int64_t init_time
+  ) {
+  if (!controller.is_allowed_node(node_handle)) {
+    return;
+  }
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_timer_link_node, timer_handle, node_handle, init_time);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_timer_link_node," <<
@@ -388,7 +429,7 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
   auto now = clock.now();
   bool pending = data_container.store_rclcpp_timer_link_node(timer_handle, node_handle, now);
   bool recording_allowed = context.is_recording_enabled() || pending;
-  if (controller.is_allowed_node(node_handle) && recording_allowed) {
+  if (recording_allowed) {
     record(timer_handle, node_handle, now);
   }
 }
@@ -550,7 +591,8 @@ void ros_trace_rcl_timer_init(
   auto now = clock.now();
 
   bool pending = data_container.store_rcl_timer_init(timer_handle, period, now);
-  if (context.is_recording_enabled() || pending) {
+  bool recording_enabled = context.is_recording_enabled() || pending;
+  if (recording_enabled) {
     record(timer_handle, period, now);
 
 #ifdef DEBUG_OUTPUT
@@ -578,7 +620,8 @@ void ros_trace_rcl_init(
 
   auto now = clock.now();
   bool pending = data_container.store_rcl_init(context_handle, now);
-  if (context.is_recording_enabled() || pending) {
+  bool recording_enabled = context.is_recording_enabled() || pending;
+  if (recording_enabled) {
     record(context_handle, now);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rcl_init," <<
@@ -632,7 +675,8 @@ void ros_trace_rcl_publisher_init(
     queue_depth,
     now);
 
-  if (context.is_recording_enabled() || pending) {
+  bool recording_allowed = context.is_recording_enabled() || pending;
+  if (recording_allowed) {
     record(
       publisher_handle,
       node_handle,
@@ -708,7 +752,8 @@ void ros_trace_rcl_service_init(
   bool pending = data_container.store_rcl_service_init(
     service_handle, node_handle, rmw_service_handle,
     service_name, now);
-  if (context.is_recording_enabled() || pending) {
+  bool recording_allowed = context.is_recording_enabled() || pending;
+  if (recording_allowed) {
     record(service_handle, node_handle, rmw_service_handle, service_name, now);
   }
 }
@@ -742,7 +787,8 @@ void ros_trace_rclcpp_service_callback_added(
   auto now = clock.now();
   bool pending = data_container.store_rclcpp_service_callback_added(service_handle, callback, now);
 
-  if (context.is_recording_enabled() || pending) {
+  bool recording_allowed = context.is_recording_enabled() || pending;
+  if (recording_allowed) {
     record(service_handle, callback, now);
   }
 }
@@ -783,7 +829,8 @@ void ros_trace_rcl_client_init(
   bool pending = data_container.store_rcl_client_init(
     client_handle, node_handle, rmw_client_handle,
     service_name, now);
-  if (context.is_recording_enabled() || pending) {
+  bool recording_allowed = context.is_recording_enabled() || pending;
+  if (recording_allowed) {
     record(client_handle, node_handle, rmw_client_handle, service_name, now);
   }
 }
@@ -795,9 +842,17 @@ void ros_trace_rclcpp_callback_register(
   static auto & context = Singleton<Context>::get_instance();
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
-  static auto & controller = context.get_controller();
 
-  static auto record = [](  const void * callback, const char * symbol, int64_t init_time) {
+  static auto record = [](
+    const void * callback,
+    const char * symbol,
+    int64_t init_time
+  ) {
+    static auto & context = Singleton<Context>::get_instance();
+    static auto & controller = context.get_controller();
+    if (!controller.is_allowed_callback(callback)) {
+      return;
+    }
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_callback_register, callback, symbol, init_time);
 
 #ifdef DEBUG_OUTPUT
@@ -817,7 +872,7 @@ void ros_trace_rclcpp_callback_register(
   bool pending = data_container.store_rclcpp_callback_register(callback, symbol, now);
   bool recording_allowed = context.is_recording_enabled() || pending;
 
-  if (controller.is_allowed_callback(callback) && recording_allowed) {
+  if (recording_allowed) {
     record(callback, symbol, now);
   }
 }
