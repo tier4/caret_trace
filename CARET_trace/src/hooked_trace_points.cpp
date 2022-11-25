@@ -264,6 +264,10 @@ void _ZN6rclcpp9executors22SingleThreadedExecutorC1ERKNS_15ExecutorOptionsE(
   static auto & data_container = context.get_data_container();
   static auto record = [](const void * obj, const char * executor_type_name, int64_t init_time) {
     tracepoint(TRACEPOINT_PROVIDER, construct_executor, obj, executor_type_name, init_time);
+
+#ifdef DEBUG_OUTPUT
+    std::cerr << "construct_executor," << executor_type_name << "," << obj << std::endl;
+#endif
   };
   using functionT = void (*)(void *, const void *);
   ((functionT)orig_func)(obj, option);
@@ -277,10 +281,6 @@ void _ZN6rclcpp9executors22SingleThreadedExecutorC1ERKNS_15ExecutorOptionsE(
   bool pending = data_container.store_construct_executor(obj, executor_type_name.c_str(), now);
   if (context.is_recording_enabled() || pending) {
     record(obj, executor_type_name.c_str(), now);
-
-#ifdef DEBUG_OUTPUT
-    std::cerr << "construct_executor," << executor_type_name << "," << obj << std::endl;
-#endif
   }
 }
 
@@ -296,6 +296,9 @@ void SYMBOL_CONCAT_2(
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   static auto record = [](const void * obj, const char * executor_type_name, int64_t init_time) {
     tracepoint(TRACEPOINT_PROVIDER, construct_executor, obj, executor_type_name, init_time);
+#ifdef DEBUG_OUTPUT
+    std::cerr << "construct_executor," << executor_type_name << "," << obj << std::endl;
+#endif
   };
   using functionT = void (*)(void *, const void *, size_t, bool, const void *);
   ((functionT)orig_func)(obj, option, number_of_thread, yield_before_execute, timeout);
@@ -312,9 +315,6 @@ void SYMBOL_CONCAT_2(
   bool pending = data_container.store_construct_executor(obj, executor_type_name.c_str(), now);
   if (context.is_recording_enabled() || pending) {
     record(obj, executor_type_name.c_str(), now);
-#ifdef DEBUG_OUTPUT
-    std::cerr << "construct_executor," << executor_type_name << "," << obj << std::endl;
-#endif
   }
 }
 
@@ -333,6 +333,12 @@ void _ZN6rclcpp9executors28StaticSingleThreadedExecutorC1ERKNS_15ExecutorOptions
     tracepoint(
       TRACEPOINT_PROVIDER, construct_static_executor, obj, entities_collector_ptr, executor_type,
       init_time);
+
+#ifdef DEBUG_OUTPUT
+    std::cerr << "construct_static_executor,"
+              << "static_single_threaded_executor"
+              << "," << obj << "," << entities_collector_ptr << std::endl;
+#endif
   };
   using functionT = void (*)(void *, const void *);
   ((functionT)orig_func)(obj, option);
@@ -348,13 +354,9 @@ void _ZN6rclcpp9executors28StaticSingleThreadedExecutorC1ERKNS_15ExecutorOptions
   auto now = clock.now();
   bool pending = data_container.store_add_callback_group_static_executor(
     obj, entities_collector_ptr, "static_single_threaded_executor", now);
-  if (context.is_recording_enabled() || pending) {
+  bool recording_allowed = context.is_recording_enabled() || pending;
+  if (recording_allowed) {
     record(obj, entities_collector_ptr, "static_single_threaded_executor", now);
-#ifdef DEBUG_OUTPUT
-    std::cerr << "construct_static_executor,"
-              << "static_single_threaded_executor"
-              << "," << obj << "," << entities_collector_ptr << std::endl;
-#endif
   }
 }
 
@@ -382,6 +384,11 @@ void SYMBOL_CONCAT_3(
     [](const void * obj, const void * group_addr, const char * group_type_name, int64_t init_time) {
       tracepoint(
         TRACEPOINT_PROVIDER, add_callback_group, obj, group_addr, group_type_name, init_time);
+
+#ifdef DEBUG_OUTPUT
+      std::cerr << "add_callback_group," << obj << "," << group_addr << "," << group_type_name
+                << std::endl;
+#endif
     };
 
   using functionT =
@@ -416,10 +423,6 @@ void SYMBOL_CONCAT_3(
     recorded_args.insert(obj, group_addr_, node_ptr_);
 
     record(obj, group_addr, group_type_name.c_str(), now);
-#ifdef DEBUG_OUTPUT
-    std::cerr << "add_callback_group," << obj << "," << group_addr << "," << group_type_name
-              << std::endl;
-#endif
   }
 }
 
@@ -443,6 +446,11 @@ bool SYMBOL_CONCAT_3(
       tracepoint(
         TRACEPOINT_PROVIDER, add_callback_group_static_executor, obj, group_addr, group_type_name,
         init_time);
+
+#ifdef DEBUG_OUTPUT
+      std::cerr << "add_callback_group_static_executor," << obj << "," << group_addr << ","
+                << group_type_name << std::endl;
+#endif
     };
 
   auto group_addr = static_cast<const void *>(group_ptr.get());
@@ -465,10 +473,6 @@ bool SYMBOL_CONCAT_3(
     obj, group_addr, group_type_name.c_str(), now);
   if (context.is_recording_enabled() || pending) {
     record(obj, group_addr, group_type_name.c_str(), now);
-#ifdef DEBUG_OUTPUT
-    std::cerr << "add_callback_group_static_executor," << obj << "," << group_addr << ","
-              << group_type_name << std::endl;
-#endif
   }
 
   return ret;
@@ -486,6 +490,10 @@ void _ZN6rclcpp13CallbackGroup9add_timerESt10shared_ptrINS_9TimerBaseEE(
   static auto & data_container = context.get_data_container();
   static auto record = [](const void * obj, const void * timer_handle, int64_t init_time) {
     tracepoint(TRACEPOINT_PROVIDER, callback_group_add_timer, obj, timer_handle, init_time);
+
+#ifdef DEBUG_OUTPUT
+    std::cerr << "callback_group_add_timer," << obj << "," << timer_handle << std::endl;
+#endif
   };
 
   auto timer_handle = static_cast<const void *>(timer_ptr->get_timer_handle().get());
@@ -499,10 +507,6 @@ void _ZN6rclcpp13CallbackGroup9add_timerESt10shared_ptrINS_9TimerBaseEE(
   bool pending = data_container.store_callback_group_add_timer(obj, timer_handle, now);
   if (context.is_recording_enabled() || pending) {
     record(obj, timer_handle, now);
-
-#ifdef DEBUG_OUTPUT
-    std::cerr << "callback_group_add_timer," << obj << "," << timer_handle << std::endl;
-#endif
   }
 }
 
@@ -518,6 +522,11 @@ void _ZN6rclcpp13CallbackGroup16add_subscriptionESt10shared_ptrINS_16Subscriptio
   static auto record = [](const void * obj, const void * subscription_handle, int64_t init_time) {
     tracepoint(
       TRACEPOINT_PROVIDER, callback_group_add_subscription, obj, subscription_handle, init_time);
+
+#ifdef DEBUG_OUTPUT
+    std::cerr << "callback_group_add_subscription," << obj << "," << subscription_handle
+              << std::endl;
+#endif
   };
 
   auto subscription_handle =
@@ -533,11 +542,6 @@ void _ZN6rclcpp13CallbackGroup16add_subscriptionESt10shared_ptrINS_16Subscriptio
     data_container.store_callback_group_add_subscription(obj, subscription_handle, now);
   if (context.is_recording_enabled() || pending) {
     record(obj, subscription_handle, now);
-
-#ifdef DEBUG_OUTPUT
-    std::cerr << "callback_group_add_subscription," << obj << "," << subscription_handle
-              << std::endl;
-#endif
   }
 }
 
@@ -552,6 +556,10 @@ void _ZN6rclcpp13CallbackGroup11add_serviceESt10shared_ptrINS_11ServiceBaseEE(
   static auto & data_container = context.get_data_container();
   static auto record = [](const void * obj, const void * service_handle, int64_t init_time) {
     tracepoint(TRACEPOINT_PROVIDER, callback_group_add_service, obj, service_handle, init_time);
+
+#ifdef DEBUG_OUTPUT
+    std::cerr << "callback_group_add_service," << obj << "," << service_handle << std::endl;
+#endif
   };
 
   auto service_handle = static_cast<const void *>(service_ptr->get_service_handle().get());
@@ -565,10 +573,6 @@ void _ZN6rclcpp13CallbackGroup11add_serviceESt10shared_ptrINS_11ServiceBaseEE(
   bool pending = data_container.store_callback_group_add_service(obj, service_handle, now);
   if (context.is_recording_enabled() || pending) {
     record(obj, service_handle, now);
-
-#ifdef DEBUG_OUTPUT
-    std::cerr << "callback_group_add_service," << obj << "," << service_handle << std::endl;
-#endif
   }
 }
 
@@ -583,6 +587,10 @@ void _ZN6rclcpp13CallbackGroup10add_clientESt10shared_ptrINS_10ClientBaseEE(
   static auto & data_container = context.get_data_container();
   static auto record = [](const void * obj, const void * client_handle, int64_t init_time) {
     tracepoint(TRACEPOINT_PROVIDER, callback_group_add_client, obj, client_handle, init_time);
+
+#ifdef DEBUG_OUTPUT
+    std::cerr << "callback_group_add_client," << obj << "," << client_handle << std::endl;
+#endif
   };
 
   auto client_handle = static_cast<const void *>(client_ptr->get_client_handle().get());
@@ -596,9 +604,6 @@ void _ZN6rclcpp13CallbackGroup10add_clientESt10shared_ptrINS_10ClientBaseEE(
   bool pending = data_container.store_callback_group_add_client(obj, client_handle, now);
   if (context.is_recording_enabled() || pending) {
     record(obj, client_handle, now);
-#ifdef DEBUG_OUTPUT
-    std::cerr << "callback_group_add_client," << obj << "," << client_handle << std::endl;
-#endif
   }
 }
 }
