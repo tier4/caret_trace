@@ -55,13 +55,14 @@ void run_caret_trace_node()
   // When the python implementation node is executed,
   // this thread is executed without obtaining a global interpreter lock.
   // Therefore, this thread is executed asynchronously with the execution of the python node.
-  std::string node_name_base = "caret_trace";
   auto & context = Singleton<Context>::get_instance();
-  auto data_container = context.get_data_container_ptr();
   auto clock = context.get_clock();
 
   auto now = clock.now();
   tracepoint(TRACEPOINT_PROVIDER, caret_init, now);
+
+  std::string node_name_base = "caret_trace";
+  auto data_container = context.get_data_container_ptr();
 
   // If you try to create a Node before the context is created, it will fail.
   auto lttng = context.get_lttng_session_ptr();
@@ -183,6 +184,8 @@ void ros_trace_rcl_node_init(
 #endif
   };
 
+  auto now = clock.now();
+
   check_and_run_trace_node();
 
   if (!data_container.is_assigned_rcl_node_init()) {
@@ -200,7 +203,6 @@ void ros_trace_rcl_node_init(
 
   controller.add_node(node_handle, node_ns_and_name);
 
-  auto now = clock.now();
 
   bool pending = data_container.store_rcl_node_init(
     node_handle, rmw_handle, node_name,
@@ -249,6 +251,8 @@ void ros_trace_rcl_subscription_init(
 #endif
   };
 
+  auto now = clock.now();
+
   controller.add_subscription_handle(node_handle, subscription_handle, topic_name);
 
   if (!data_container.is_assigned_rcl_subscription_init()) {
@@ -257,7 +261,6 @@ void ros_trace_rcl_subscription_init(
 
   check_and_run_trace_node();
 
-  auto now = clock.now();
   bool pending = data_container.store_rcl_subscription_init(
     subscription_handle, node_handle, rmw_subscription_handle, topic_name,
     reinterpret_cast<size_t>(queue_depth), now);
@@ -297,6 +300,7 @@ void ros_trace_rclcpp_subscription_init(
 #endif
   };
 
+  auto now = clock.now();
   check_and_run_trace_node();
 
   controller.add_subscription(subscription_handle, subscription);
@@ -305,7 +309,6 @@ void ros_trace_rclcpp_subscription_init(
     data_container.assign_rclcpp_subscription_init(record);
   }
 
-  auto now = clock.now();
   bool pending = data_container.store_rclcpp_subscription_init(
     subscription_handle, subscription, now);
   bool recording_allowed = context.is_recording_enabled() || pending;
@@ -340,6 +343,7 @@ void ros_trace_rclcpp_subscription_callback_added(
 #endif
   };
 
+  auto now = clock.now();
   check_and_run_trace_node();
 
   controller.add_subscription_callback(subscription, callback);
@@ -348,7 +352,6 @@ void ros_trace_rclcpp_subscription_callback_added(
     data_container.assign_rclcpp_subscription_callback_added(record);
   }
 
-  auto now = clock.now();
   bool pending = data_container.store_rclcpp_subscription_callback_added(
     subscription, callback, now);
   bool recording_allowed = context.is_recording_enabled() || pending;
@@ -380,6 +383,7 @@ void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void
 #endif
   };
 
+  auto now = clock.now();
   check_and_run_trace_node();
 
   controller.add_timer_callback(timer_handle, callback);
@@ -388,7 +392,6 @@ void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void
     data_container.assign_rclcpp_timer_callback_added(record);
   }
 
-  auto now = clock.now();
   bool pending = data_container.store_rclcpp_timer_callback_added(timer_handle, callback, now);
   bool recordindg_enabled = context.is_recording_enabled() || pending;
   if (recordindg_enabled) {
@@ -418,6 +421,7 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
 #endif
   };
 
+  auto now = clock.now();
   check_and_run_trace_node();
 
   controller.add_timer_handle(node_handle, timer_handle);
@@ -426,7 +430,6 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
     data_container.assign_rclcpp_timer_link_node(record);
   }
 
-  auto now = clock.now();
   bool pending = data_container.store_rclcpp_timer_link_node(timer_handle, node_handle, now);
   bool recording_allowed = context.is_recording_enabled() || pending;
   if (recording_allowed) {
@@ -585,10 +588,10 @@ void ros_trace_rcl_timer_init(
     tracepoint(TRACEPOINT_PROVIDER, rcl_timer_init, timer_handle, period, init_time);
   };
 
+  auto now = clock.now();
   if (!data_container.is_assigned_rcl_timer_init()) {
     data_container.assign_rcl_timer_init(record);
   }
-  auto now = clock.now();
 
   bool pending = data_container.store_rcl_timer_init(timer_handle, period, now);
   bool recording_enabled = context.is_recording_enabled() || pending;
@@ -614,11 +617,11 @@ void ros_trace_rcl_init(
     tracepoint(TRACEPOINT_PROVIDER, rcl_init, context_handle, init_time);
   };
 
+  auto now = clock.now();
   if (!data_container.is_assigned_rcl_init()) {
     data_container.assign_rcl_init(record);
   }
 
-  auto now = clock.now();
   bool pending = data_container.store_rcl_init(context_handle, now);
   bool recording_enabled = context.is_recording_enabled() || pending;
   if (recording_enabled) {
@@ -655,6 +658,7 @@ void ros_trace_rcl_publisher_init(
     rmw_publisher_handle, topic_name, queue_depth, init_time);
   };
 
+  auto now = clock.now();
   controller.add_publisher_handle(node_handle, publisher_handle, topic_name);
 
   // TODO(hsgwa): support topic_name filtering
@@ -666,7 +670,6 @@ void ros_trace_rcl_publisher_init(
 
   check_and_run_trace_node();
 
-  auto now = clock.now();
   bool pending = data_container.store_rcl_publisher_init(
     publisher_handle,
     node_handle,
@@ -742,13 +745,13 @@ void ros_trace_rcl_service_init(
 #endif
   };
 
+  auto now = clock.now();
   if (!data_container.is_assigned_rcl_service_init()) {
     data_container.assign_rcl_service_init(record);
   }
 
   check_and_run_trace_node();
 
-  auto now = clock.now();
   bool pending = data_container.store_rcl_service_init(
     service_handle, node_handle, rmw_service_handle,
     service_name, now);
@@ -778,13 +781,13 @@ void ros_trace_rclcpp_service_callback_added(
       callback << std::endl;
 #endif
   };
+  auto now = clock.now();
 
   check_and_run_trace_node();
 
   if (!data_container.is_assigned_rclcpp_service_callback_added()) {
     data_container.assign_rclcpp_service_callback_added(record);
   }
-  auto now = clock.now();
   bool pending = data_container.store_rclcpp_service_callback_added(service_handle, callback, now);
 
   bool recording_allowed = context.is_recording_enabled() || pending;
@@ -818,6 +821,7 @@ void ros_trace_rcl_client_init(
       service_name << std::endl;
 #endif
   };
+  auto now = clock.now();
 
   if (!data_container.is_assigned_rcl_client_init()) {
     data_container.assign_rcl_client_init(record);
@@ -825,7 +829,6 @@ void ros_trace_rcl_client_init(
 
   check_and_run_trace_node();
 
-  auto now = clock.now();
   bool pending = data_container.store_rcl_client_init(
     client_handle, node_handle, rmw_client_handle,
     service_name, now);
@@ -861,6 +864,7 @@ void ros_trace_rclcpp_callback_register(
       symbol << std::endl;
 #endif
   };
+  auto now = clock.now();
 
   check_and_run_trace_node();
 
@@ -868,7 +872,6 @@ void ros_trace_rclcpp_callback_register(
     data_container.assign_rclcpp_callback_register(record);
   }
 
-  auto now = clock.now();
   bool pending = data_container.store_rclcpp_callback_register(callback, symbol, now);
   bool recording_allowed = context.is_recording_enabled() || pending;
 
@@ -896,9 +899,9 @@ void ros_trace_rcl_lifecycle_state_machine_init(
       state_machine << std::endl;
 #endif
   };
+  auto now = clock.now();
 
   check_and_run_trace_node();
-  auto now = clock.now();
 
   if (context.is_recording_enabled()) {
     record(node_handle, state_machine, now);

@@ -145,6 +145,7 @@ void update_dds_function_addr()
   static auto & context = Singleton<Context>::get_instance();
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
+  auto now = clock.now();
 
   static std::mutex mutex;
   std::lock_guard<std::mutex> lock(mutex);
@@ -190,7 +191,6 @@ void update_dds_function_addr()
     data_container.assign_rmw_implementation(record);
   }
 
-  auto now = clock.now();
   bool pending = data_container.store_rmw_implementation(env_var.c_str(), now);
 
   if (context.is_recording_enabled() || pending) {
@@ -269,15 +269,16 @@ void _ZN6rclcpp9executors22SingleThreadedExecutorC1ERKNS_15ExecutorOptionsE(
     std::cerr << "construct_executor," << executor_type_name << "," << obj << std::endl;
 #endif
   };
+  auto now = clock.now();
   using functionT = void (*)(void *, const void *);
   ((functionT)orig_func)(obj, option);
+
   const std::string executor_type_name = "single_threaded_executor";
 
   if (!data_container.is_assigned_construct_executor()) {
     data_container.assign_construct_executor(record);
   }
 
-  auto now = clock.now();
   bool pending = data_container.store_construct_executor(obj, executor_type_name.c_str(), now);
   if (context.is_recording_enabled() || pending) {
     record(obj, executor_type_name.c_str(), now);
@@ -300,18 +301,20 @@ void SYMBOL_CONCAT_2(
     std::cerr << "construct_executor," << executor_type_name << "," << obj << std::endl;
 #endif
   };
-  using functionT = void (*)(void *, const void *, size_t, bool, const void *);
-  ((functionT)orig_func)(obj, option, number_of_thread, yield_before_execute, timeout);
   static auto & context = Singleton<Context>::get_instance();
   static auto & clock = context.get_clock();
+  auto now = clock.now();
+
   static auto & data_container = context.get_data_container();
   const std::string executor_type_name = "multi_threaded_executor";
+
+  using functionT = void (*)(void *, const void *, size_t, bool, const void *);
+  ((functionT)orig_func)(obj, option, number_of_thread, yield_before_execute, timeout);
 
   if (!data_container.is_assigned_construct_executor()) {
     data_container.assign_construct_executor(record);
   }
 
-  auto now = clock.now();
   bool pending = data_container.store_construct_executor(obj, executor_type_name.c_str(), now);
   if (context.is_recording_enabled() || pending) {
     record(obj, executor_type_name.c_str(), now);
@@ -340,6 +343,8 @@ void _ZN6rclcpp9executors28StaticSingleThreadedExecutorC1ERKNS_15ExecutorOptions
               << "," << obj << "," << entities_collector_ptr << std::endl;
 #endif
   };
+  auto now = clock.now();
+
   using functionT = void (*)(void *, const void *);
   ((functionT)orig_func)(obj, option);
 
@@ -351,7 +356,6 @@ void _ZN6rclcpp9executors28StaticSingleThreadedExecutorC1ERKNS_15ExecutorOptions
   }
 
   auto entities_collector_ptr = static_cast<const void *>(exec_ptr->entities_collector_.get());
-  auto now = clock.now();
   bool pending = data_container.store_add_callback_group_static_executor(
     obj, entities_collector_ptr, "static_single_threaded_executor", now);
   bool recording_allowed = context.is_recording_enabled() || pending;
@@ -390,6 +394,7 @@ void SYMBOL_CONCAT_3(
                 << std::endl;
 #endif
     };
+  auto now = clock.now();
 
   using functionT =
     void (*)(void *, rclcpp::CallbackGroup::SharedPtr, const void *, const void *, bool);
@@ -414,7 +419,6 @@ void SYMBOL_CONCAT_3(
     group_type_name = "reentrant";
   }
 
-  auto now = clock.now();
   bool pending =
     data_container.store_add_callback_group(obj, group_addr, group_type_name.c_str(), now);
   if (
@@ -453,6 +457,7 @@ bool SYMBOL_CONCAT_3(
 #endif
     };
 
+  auto now = clock.now();
   auto group_addr = static_cast<const void *>(group_ptr.get());
   std::string group_type_name = "unknown";
   auto group_type = group_ptr->type();
@@ -468,7 +473,6 @@ bool SYMBOL_CONCAT_3(
     data_container.assign_add_callback_group_static_executor(record);
   }
 
-  auto now = clock.now();
   bool pending = data_container.store_add_callback_group_static_executor(
     obj, group_addr, group_type_name.c_str(), now);
   if (context.is_recording_enabled() || pending) {
@@ -496,6 +500,7 @@ void _ZN6rclcpp13CallbackGroup9add_timerESt10shared_ptrINS_9TimerBaseEE(
 #endif
   };
 
+  auto now = clock.now();
   auto timer_handle = static_cast<const void *>(timer_ptr->get_timer_handle().get());
   ((functionT)orig_func)(obj, timer_ptr);
 
@@ -503,7 +508,6 @@ void _ZN6rclcpp13CallbackGroup9add_timerESt10shared_ptrINS_9TimerBaseEE(
     data_container.assign_callback_group_add_timer(record);
   }
 
-  auto now = clock.now();
   bool pending = data_container.store_callback_group_add_timer(obj, timer_handle, now);
   if (context.is_recording_enabled() || pending) {
     record(obj, timer_handle, now);
@@ -529,6 +533,7 @@ void _ZN6rclcpp13CallbackGroup16add_subscriptionESt10shared_ptrINS_16Subscriptio
 #endif
   };
 
+  auto now = clock.now();
   auto subscription_handle =
     static_cast<const void *>(subscription_ptr->get_subscription_handle().get());
   ((functionT)orig_func)(obj, subscription_ptr);
@@ -537,7 +542,6 @@ void _ZN6rclcpp13CallbackGroup16add_subscriptionESt10shared_ptrINS_16Subscriptio
     data_container.assign_callback_group_add_subscription(record);
   }
 
-  auto now = clock.now();
   bool pending =
     data_container.store_callback_group_add_subscription(obj, subscription_handle, now);
   if (context.is_recording_enabled() || pending) {
@@ -562,6 +566,7 @@ void _ZN6rclcpp13CallbackGroup11add_serviceESt10shared_ptrINS_11ServiceBaseEE(
 #endif
   };
 
+  auto now = clock.now();
   auto service_handle = static_cast<const void *>(service_ptr->get_service_handle().get());
   ((functionT)orig_func)(obj, service_ptr);
 
@@ -569,7 +574,6 @@ void _ZN6rclcpp13CallbackGroup11add_serviceESt10shared_ptrINS_11ServiceBaseEE(
     data_container.assign_callback_group_add_service(record);
   }
 
-  auto now = clock.now();
   bool pending = data_container.store_callback_group_add_service(obj, service_handle, now);
   if (context.is_recording_enabled() || pending) {
     record(obj, service_handle, now);
@@ -593,6 +597,7 @@ void _ZN6rclcpp13CallbackGroup10add_clientESt10shared_ptrINS_10ClientBaseEE(
 #endif
   };
 
+  auto now = clock.now();
   auto client_handle = static_cast<const void *>(client_ptr->get_client_handle().get());
   ((functionT)orig_func)(obj, client_ptr);
 
@@ -600,7 +605,6 @@ void _ZN6rclcpp13CallbackGroup10add_clientESt10shared_ptrINS_10ClientBaseEE(
     data_container.assign_callback_group_add_client(record);
   }
 
-  auto now = clock.now();
   bool pending = data_container.store_callback_group_add_client(obj, client_handle, now);
   if (context.is_recording_enabled() || pending) {
     record(obj, client_handle, now);
