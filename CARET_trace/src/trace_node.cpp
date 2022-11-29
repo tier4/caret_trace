@@ -35,12 +35,14 @@ using std::placeholders::_1;
 TraceNode::TraceNode(
   std::string node_name_base, rclcpp::NodeOptions options,
   std::shared_ptr<LttngSession> lttng_session,
-  std::shared_ptr<DataContainerInterface> data_container, rclcpp::Logger::Level level, bool use_log)
+  std::shared_ptr<DataContainerInterface> data_container, rclcpp::Logger::Level level, bool use_log,
+  bool execute_timer_on_run)
 : rclcpp::Node(TraceNode::get_unique_node_name(node_name_base), options),
   status_(TRACE_STATUS::UNINITIALIZED),
   record_block_size_(100),
   use_log_(use_log),
-  data_container_(data_container)
+  data_container_(data_container),
+  execute_timer_on_run_(execute_timer_on_run)
 {
   set_log_level(level);
 
@@ -106,7 +108,9 @@ void TraceNode::run_timer()
 {
   debug("Started recording timer .");
   timer_->reset();
-  timer_->execute_callback();
+  if (execute_timer_on_run_) {
+    timer_->execute_callback();
+  }
 }
 
 void TraceNode::set_log_level(rclcpp::Logger::Level level)
@@ -147,7 +151,6 @@ void TraceNode::start_callback(caret_msgs::msg::Start::UniquePtr msg)
   auto now = clock.now();
   tracepoint(TRACEPOINT_PROVIDER, caret_init, now);
 
-  bool is_wait_to_prepare_transition = status_ == TRACE_STATUS::WAIT;
   status_ = TRACE_STATUS::PREPARE;
 
   publish_status(status_);
@@ -155,13 +158,11 @@ void TraceNode::start_callback(caret_msgs::msg::Start::UniquePtr msg)
 
   data_container_->reset();
 
-  if (is_wait_to_prepare_transition) {
-    record_block_size_ = msg->recording_frequency / 10;  // 100ms timer: 10Hz
-    if (record_block_size_ <= 0) {
-      record_block_size_ = 1;
-    }
-    run_timer();
+  record_block_size_ = msg->recording_frequency / 10;  // 100ms timer: 10Hz
+  if (record_block_size_ <= 0) {
+    record_block_size_ = 1;
   }
+  run_timer();
 }
 
 bool TraceNode::is_timer_running() const { return !timer_->is_canceled(); }

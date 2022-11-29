@@ -102,7 +102,8 @@ private:
     set_lttng_session_return_value(true);
     rclcpp::NodeOptions options;
     return std::make_unique<TraceNode>(
-      "node_name", options, lttng_session_, data_container_, rclcpp::Logger::Level::Warn, false);
+      "node_name", options, lttng_session_, data_container_, rclcpp::Logger::Level::Warn, false,
+      false);
   }
 };
 

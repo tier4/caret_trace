@@ -66,11 +66,13 @@ public:
   /// @param data_container Instance of data container.
   /// @param level Log level.
   /// @param use_log Flag to toggle log use.
+  /// @param execute_timer_on_run If True, timer_callback is executed after start_callback.
   TraceNode(
     std::string node_name_base, rclcpp::NodeOptions options,
     std::shared_ptr<LttngSession> lttng_session,
     std::shared_ptr<DataContainerInterface> data_container,
-    rclcpp::Logger::Level level = rclcpp::Logger::Level::Info, bool use_log = false);
+    rclcpp::Logger::Level level = rclcpp::Logger::Level::Info, bool use_log = false,
+    bool execute_timer_on_run = true);
 
   ~TraceNode();
 
@@ -120,6 +122,7 @@ private:
   rclcpp::Publisher<caret_msgs::msg::Status>::SharedPtr status_pub_;
   rclcpp::TimerBase::SharedPtr timer_;
   std::shared_ptr<DataContainerInterface> data_container_;
+  bool execute_timer_on_run_;
 };
 
 #endif  // CARET_TRACE__TRACE_NODE_HPP_
