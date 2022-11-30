@@ -193,7 +193,7 @@ void update_dds_function_addr()
 
   bool pending = data_container.store_rmw_implementation(env_var.c_str(), now);
 
-  if (context.is_recording_enabled() || pending) {
+  if (context.is_recording_allowed() || pending) {
     record(env_var.c_str(), now);
   }
 
@@ -224,7 +224,7 @@ int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
   }
   int dds_return = ((functionT)CYCLONEDDS::DDS_WRITE_IMPL)(wr, data, tstamp, action);
 
-  if (context.is_recording_enabled()) {
+  if (context.is_recording_allowed()) {
     tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, data, tstamp);
 #ifdef DEBUG_OUTPUT
     std::cerr << "dds_bind_addr_to_stamp," << data << "," << tstamp << std::endl;
@@ -245,7 +245,7 @@ void _ZN8eprosima8fastrtps4rtps13WriterHistory13set_fragmentsEPNS1_13CacheChange
     update_dds_function_addr();
   }
   ((functionT)FASTDDS::SET_FRAGMENTS)(obj, change);
-  if (context.is_recording_enabled()) {
+  if (context.is_recording_allowed()) {
     tracepoint(
       TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, nullptr, change->sourceTimestamp.to_ns());
 #ifdef DEBUG_OUTPUT
@@ -280,7 +280,7 @@ void _ZN6rclcpp9executors22SingleThreadedExecutorC1ERKNS_15ExecutorOptionsE(
   }
 
   bool pending = data_container.store_construct_executor(obj, executor_type_name.c_str(), now);
-  if (context.is_recording_enabled() || pending) {
+  if (context.is_recording_allowed() || pending) {
     record(obj, executor_type_name.c_str(), now);
   }
 }
@@ -316,7 +316,7 @@ void SYMBOL_CONCAT_2(
   }
 
   bool pending = data_container.store_construct_executor(obj, executor_type_name.c_str(), now);
-  if (context.is_recording_enabled() || pending) {
+  if (context.is_recording_allowed() || pending) {
     record(obj, executor_type_name.c_str(), now);
   }
 }
@@ -358,7 +358,7 @@ void _ZN6rclcpp9executors28StaticSingleThreadedExecutorC1ERKNS_15ExecutorOptions
   auto entities_collector_ptr = static_cast<const void *>(exec_ptr->entities_collector_.get());
   bool pending = data_container.store_add_callback_group_static_executor(
     obj, entities_collector_ptr, "static_single_threaded_executor", now);
-  bool recording_allowed = context.is_recording_enabled() || pending;
+  bool recording_allowed = context.is_recording_allowed() || pending;
   if (recording_allowed) {
     record(obj, entities_collector_ptr, "static_single_threaded_executor", now);
   }
@@ -422,7 +422,7 @@ void SYMBOL_CONCAT_3(
   bool pending =
     data_container.store_add_callback_group(obj, group_addr, group_type_name.c_str(), now);
   if (
-    (context.is_recording_enabled() || pending) &&
+    (context.is_recording_allowed() || pending) &&
     !recorded_args.has(obj, group_addr_, node_ptr_)) {
     recorded_args.insert(obj, group_addr_, node_ptr_);
 
@@ -475,7 +475,7 @@ bool SYMBOL_CONCAT_3(
 
   bool pending = data_container.store_add_callback_group_static_executor(
     obj, group_addr, group_type_name.c_str(), now);
-  if (context.is_recording_enabled() || pending) {
+  if (context.is_recording_allowed() || pending) {
     record(obj, group_addr, group_type_name.c_str(), now);
   }
 
@@ -509,7 +509,7 @@ void _ZN6rclcpp13CallbackGroup9add_timerESt10shared_ptrINS_9TimerBaseEE(
   }
 
   bool pending = data_container.store_callback_group_add_timer(obj, timer_handle, now);
-  if (context.is_recording_enabled() || pending) {
+  if (context.is_recording_allowed() || pending) {
     record(obj, timer_handle, now);
   }
 }
@@ -544,7 +544,7 @@ void _ZN6rclcpp13CallbackGroup16add_subscriptionESt10shared_ptrINS_16Subscriptio
 
   bool pending =
     data_container.store_callback_group_add_subscription(obj, subscription_handle, now);
-  if (context.is_recording_enabled() || pending) {
+  if (context.is_recording_allowed() || pending) {
     record(obj, subscription_handle, now);
   }
 }
@@ -575,7 +575,7 @@ void _ZN6rclcpp13CallbackGroup11add_serviceESt10shared_ptrINS_11ServiceBaseEE(
   }
 
   bool pending = data_container.store_callback_group_add_service(obj, service_handle, now);
-  if (context.is_recording_enabled() || pending) {
+  if (context.is_recording_allowed() || pending) {
     record(obj, service_handle, now);
   }
 }
@@ -606,7 +606,7 @@ void _ZN6rclcpp13CallbackGroup10add_clientESt10shared_ptrINS_10ClientBaseEE(
   }
 
   bool pending = data_container.store_callback_group_add_client(obj, client_handle, now);
-  if (context.is_recording_enabled() || pending) {
+  if (context.is_recording_allowed() || pending) {
     record(obj, client_handle, now);
   }
 }

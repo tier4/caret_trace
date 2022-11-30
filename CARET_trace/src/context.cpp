@@ -65,7 +65,7 @@ Clock & Context::get_clock()
   return *clock_;
 }
 
-bool Context::is_recording_enabled() const
+bool Context::is_recording_allowed() const
 {
   if (is_node_assigned()) {
     return node_->is_recording_allowed();
