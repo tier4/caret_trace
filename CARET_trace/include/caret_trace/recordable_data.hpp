@@ -197,7 +197,8 @@ public:
 
   void record_next_one() override
   {
-    std::shared_lock<std::shared_mutex> lock(mutex_);
+    std::lock_guard<std::shared_mutex> lock(mutex_);
+
     record_one_();
     next_();
     try_merge_pending_data();
