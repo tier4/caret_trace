@@ -47,13 +47,15 @@ TraceNode::TraceNode(
 {
   set_log_level(level);
 
+  auto sub_qos = rclcpp::QoS(1).reliable();
   start_sub_ = create_subscription<caret_msgs::msg::Start>(
-    "/caret/start_record", 10, std::bind(&TraceNode::start_callback, this, _1));
+    "/caret/start_record", sub_qos, std::bind(&TraceNode::start_callback, this, _1));
 
   end_sub_ = create_subscription<caret_msgs::msg::End>(
-    "/caret/end_record", 10, std::bind(&TraceNode::end_callback, this, _1));
+    "/caret/end_record", sub_qos, std::bind(&TraceNode::end_callback, this, _1));
 
-  status_pub_ = create_publisher<caret_msgs::msg::Status>("/caret/status", 10);
+  auto pub_qos = rclcpp::QoS(1).reliable();
+  status_pub_ = create_publisher<caret_msgs::msg::Status>("/caret/status", pub_qos);
 
   // Here, the frequency is fixed at 10 Hz
   // because the overhead of ros becomes large for high frequency timers.
@@ -142,6 +144,7 @@ bool TraceNode::is_recording_allowed() const
 
 bool TraceNode::is_recording_allowed_init() const
 {
+  return true;
   std::shared_lock<std::shared_mutex> lock(mutex_);
 
   // NOTE: Since PREPARE to RECORD is a continuous state transition

@@ -71,7 +71,8 @@ bool Context::is_recording_allowed() const
     return node_->is_recording_allowed();
   }
 
-  return lttng_->started_session_running();
+  // NOTE: Prohibited to suppress DISCARDED.
+  return false;
 }
 
 bool Context::is_recording_allowed_init() const
@@ -80,7 +81,8 @@ bool Context::is_recording_allowed_init() const
     return node_->is_recording_allowed_init();
   }
 
-  return lttng_->started_session_running();
+  // NOTE: Allow to support the case where a LTTng session has been started in advance.
+  return true;
 }
 
 void Context::assign_node(std::shared_ptr<TraceNodeInterface> node) { node_ = node; }

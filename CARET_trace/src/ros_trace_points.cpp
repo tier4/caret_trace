@@ -206,9 +206,7 @@ void ros_trace_rcl_node_init(
 
   data_container.store_rcl_node_init(node_handle, rmw_handle, node_name, node_namespace, now);
 
-  if (context.is_recording_allowed_init()) {
     record(node_handle, rmw_handle, node_name, node_namespace, now);
-  }
 }
 
 void ros_trace_rcl_subscription_init(
@@ -262,11 +260,9 @@ void ros_trace_rcl_subscription_init(
     subscription_handle, node_handle, rmw_subscription_handle, topic_name,
     reinterpret_cast<size_t>(queue_depth), now);
 
-  if (context.is_recording_allowed_init()) {
     record(
       subscription_handle, node_handle, rmw_subscription_handle, topic_name,
       queue_depth, now);
-  }
 }
 
 void ros_trace_rclcpp_subscription_init(
@@ -308,9 +304,7 @@ void ros_trace_rclcpp_subscription_init(
   data_container.store_rclcpp_subscription_init(
     subscription_handle, subscription, now);
 
-  if (context.is_recording_allowed_init()) {
     record(subscription_handle, subscription, now);
-  }
 }
 
 void ros_trace_rclcpp_subscription_callback_added(
@@ -350,9 +344,7 @@ void ros_trace_rclcpp_subscription_callback_added(
   data_container.store_rclcpp_subscription_callback_added(
     subscription, callback, now);
 
-  if (context.is_recording_allowed_init()) {
     record(subscription, callback, now);
-  }
 }
 
 void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void * callback)
@@ -387,9 +379,7 @@ void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void
   }
 
   data_container.store_rclcpp_timer_callback_added(timer_handle, callback, now);
-  if (context.is_recording_allowed_init()) {
     record(timer_handle, callback, now);
-  }
 }
 
 void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * node_handle)
@@ -424,17 +414,13 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
   }
 
   data_container.store_rclcpp_timer_link_node(timer_handle, node_handle, now);
-  if (context.is_recording_allowed_init()) {
     record(timer_handle, node_handle, now);
-  }
 }
 
 void ros_trace_callback_start(const void * callback, bool is_intra_process)
 {
   static auto & context = Singleton<Context>::get_instance();
   static auto & controller = context.get_controller();
-
-  check_and_run_trace_node();
 
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(const void *, bool);
@@ -586,7 +572,6 @@ void ros_trace_rcl_timer_init(
   }
 
   data_container.store_rcl_timer_init(timer_handle, period, now);
-  if (context.is_recording_allowed_init()) {
     record(timer_handle, period, now);
 
 #ifdef DEBUG_OUTPUT
@@ -594,7 +579,6 @@ void ros_trace_rcl_timer_init(
       timer_handle << "," <<
       period << std::endl;
 #endif
-  }
 }
 
 void ros_trace_rcl_init(
@@ -614,13 +598,11 @@ void ros_trace_rcl_init(
   }
 
   data_container.store_rcl_init(context_handle, now);
-  if (context.is_recording_allowed_init()) {
     record(context_handle, now);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rcl_init," <<
       context_handle << std::endl;
 #endif
-  }
 }
 
 
@@ -668,7 +650,6 @@ void ros_trace_rcl_publisher_init(
     queue_depth,
     now);
 
-  if (context.is_recording_allowed_init()) {
     record(
       publisher_handle,
       node_handle,
@@ -684,7 +665,6 @@ void ros_trace_rcl_publisher_init(
       topic_name << "," <<
       queue_depth << std::endl;
 #endif
-  }
 }
 
 void ros_trace_rcl_publish(
@@ -744,9 +724,7 @@ void ros_trace_rcl_service_init(
   data_container.store_rcl_service_init(
     service_handle, node_handle, rmw_service_handle,
     service_name, now);
-  if (context.is_recording_allowed_init()) {
     record(service_handle, node_handle, rmw_service_handle, service_name, now);
-  }
 }
 
 void ros_trace_rclcpp_service_callback_added(
@@ -778,9 +756,7 @@ void ros_trace_rclcpp_service_callback_added(
   }
   data_container.store_rclcpp_service_callback_added(service_handle, callback, now);
 
-  if (context.is_recording_allowed()) {
-    record(service_handle, callback, now);
-  }
+  record(service_handle, callback, now);
 }
 
 void ros_trace_rcl_client_init(
@@ -819,9 +795,7 @@ void ros_trace_rcl_client_init(
   data_container.store_rcl_client_init(
     client_handle, node_handle, rmw_client_handle,
     service_name, now);
-  if (context.is_recording_allowed()) {
-    record(client_handle, node_handle, rmw_client_handle, service_name, now);
-  }
+  record(client_handle, node_handle, rmw_client_handle, service_name, now);
 }
 
 void ros_trace_rclcpp_callback_register(
@@ -860,9 +834,7 @@ void ros_trace_rclcpp_callback_register(
 
   data_container.store_rclcpp_callback_register(callback, symbol, now);
 
-  if (context.is_recording_allowed()) {
-    record(callback, symbol, now);
-  }
+  record(callback, symbol, now);
 }
 
 void ros_trace_rcl_lifecycle_state_machine_init(
@@ -888,9 +860,7 @@ void ros_trace_rcl_lifecycle_state_machine_init(
 
   check_and_run_trace_node();
 
-  if (context.is_recording_allowed()) {
-    record(node_handle, state_machine, now);
-  }
+  record(node_handle, state_machine, now);
 }
 
 void ros_trace_rcl_lifecycle_transition(
