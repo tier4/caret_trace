@@ -74,6 +74,15 @@ bool Context::is_recording_allowed() const
   return lttng_->started_session_running();
 }
 
+bool Context::is_recording_allowed_init() const
+{
+  if (is_node_assigned()) {
+    return node_->is_recording_allowed_init();
+  }
+
+  return lttng_->started_session_running();
+}
+
 void Context::assign_node(std::shared_ptr<TraceNodeInterface> node) { node_ = node; }
 
 bool Context::is_node_assigned() const { return static_cast<bool>(node_); }

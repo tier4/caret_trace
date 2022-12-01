@@ -188,6 +188,13 @@ bool DataContainer::record(uint64_t loop_count)
   return recorder_->finished();
 }
 
+void DataContainer::start_recording()
+{
+  if (!recorder_->is_recording()) {
+    recorder_->start();
+  }
+}
+
 void DataContainer::reset() { recorder_->reset(); }
 
 std::vector<std::string> DataContainer::trace_points() const { return recorder_->trace_points(); }

@@ -43,6 +43,10 @@ public:
   /// @return True if recording is allowed, false otherwise.
   virtual bool is_recording_allowed() const = 0;
 
+  /// @brief Check whther current status allows recording. For initialization trace points.
+  /// @return True if recording is allowed, false otherwise.
+  virtual bool is_recording_allowed_init() const = 0;
+
   /// @brief Check if recording timer is running.
   /// @return True if timer is running, false otherwise.
   virtual bool is_timer_running() const = 0;
@@ -79,6 +83,10 @@ public:
   /// @brief Check whther current status allows recording.
   /// @return True if recording is allowed, false otherwise.
   bool is_recording_allowed() const override;
+
+  /// @brief Check whther current status allows recording. For initialization trace points.
+  /// @return True if recording is allowed, false otherwise.
+  bool is_recording_allowed_init() const override;
 
   /// @brief Check if recording timer is running.
   /// @return True if timer is running, false otherwise.
@@ -123,6 +131,8 @@ private:
   rclcpp::TimerBase::SharedPtr timer_;
   std::shared_ptr<DataContainerInterface> data_container_;
   bool execute_timer_on_run_;
+
+  mutable std::shared_mutex mutex_;
 };
 
 #endif  // CARET_TRACE__TRACE_NODE_HPP_

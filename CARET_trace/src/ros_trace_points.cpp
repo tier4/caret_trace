@@ -204,12 +204,9 @@ void ros_trace_rcl_node_init(
   controller.add_node(node_handle, node_ns_and_name);
 
 
-  bool pending = data_container.store_rcl_node_init(
-    node_handle, rmw_handle, node_name,
-    node_namespace, now);
+  data_container.store_rcl_node_init(node_handle, rmw_handle, node_name, node_namespace, now);
 
-  bool recording_allowed = context.is_recording_allowed() || pending;
-  if (recording_allowed) {
+  if (context.is_recording_allowed_init()) {
     record(node_handle, rmw_handle, node_name, node_namespace, now);
   }
 }
@@ -261,12 +258,11 @@ void ros_trace_rcl_subscription_init(
 
   check_and_run_trace_node();
 
-  bool pending = data_container.store_rcl_subscription_init(
+  data_container.store_rcl_subscription_init(
     subscription_handle, node_handle, rmw_subscription_handle, topic_name,
     reinterpret_cast<size_t>(queue_depth), now);
 
-  bool recording_allowed = context.is_recording_allowed() || pending;
-  if (recording_allowed) {
+  if (context.is_recording_allowed_init()) {
     record(
       subscription_handle, node_handle, rmw_subscription_handle, topic_name,
       queue_depth, now);
@@ -309,11 +305,10 @@ void ros_trace_rclcpp_subscription_init(
     data_container.assign_rclcpp_subscription_init(record);
   }
 
-  bool pending = data_container.store_rclcpp_subscription_init(
+  data_container.store_rclcpp_subscription_init(
     subscription_handle, subscription, now);
-  bool recording_allowed = context.is_recording_allowed() || pending;
 
-  if (recording_allowed) {
+  if (context.is_recording_allowed_init()) {
     record(subscription_handle, subscription, now);
   }
 }
@@ -352,11 +347,10 @@ void ros_trace_rclcpp_subscription_callback_added(
     data_container.assign_rclcpp_subscription_callback_added(record);
   }
 
-  bool pending = data_container.store_rclcpp_subscription_callback_added(
+  data_container.store_rclcpp_subscription_callback_added(
     subscription, callback, now);
-  bool recording_allowed = context.is_recording_allowed() || pending;
 
-  if (recording_allowed) {
+  if (context.is_recording_allowed_init()) {
     record(subscription, callback, now);
   }
 }
@@ -392,9 +386,8 @@ void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void
     data_container.assign_rclcpp_timer_callback_added(record);
   }
 
-  bool pending = data_container.store_rclcpp_timer_callback_added(timer_handle, callback, now);
-  bool recordindg_enabled = context.is_recording_allowed() || pending;
-  if (recordindg_enabled) {
+  data_container.store_rclcpp_timer_callback_added(timer_handle, callback, now);
+  if (context.is_recording_allowed_init()) {
     record(timer_handle, callback, now);
   }
 }
@@ -430,9 +423,8 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
     data_container.assign_rclcpp_timer_link_node(record);
   }
 
-  bool pending = data_container.store_rclcpp_timer_link_node(timer_handle, node_handle, now);
-  bool recording_allowed = context.is_recording_allowed() || pending;
-  if (recording_allowed) {
+  data_container.store_rclcpp_timer_link_node(timer_handle, node_handle, now);
+  if (context.is_recording_allowed_init()) {
     record(timer_handle, node_handle, now);
   }
 }
@@ -593,9 +585,8 @@ void ros_trace_rcl_timer_init(
     data_container.assign_rcl_timer_init(record);
   }
 
-  bool pending = data_container.store_rcl_timer_init(timer_handle, period, now);
-  bool recording_enabled = context.is_recording_allowed() || pending;
-  if (recording_enabled) {
+  data_container.store_rcl_timer_init(timer_handle, period, now);
+  if (context.is_recording_allowed_init()) {
     record(timer_handle, period, now);
 
 #ifdef DEBUG_OUTPUT
@@ -622,9 +613,8 @@ void ros_trace_rcl_init(
     data_container.assign_rcl_init(record);
   }
 
-  bool pending = data_container.store_rcl_init(context_handle, now);
-  bool recording_enabled = context.is_recording_allowed() || pending;
-  if (recording_enabled) {
+  data_container.store_rcl_init(context_handle, now);
+  if (context.is_recording_allowed_init()) {
     record(context_handle, now);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rcl_init," <<
@@ -670,7 +660,7 @@ void ros_trace_rcl_publisher_init(
 
   check_and_run_trace_node();
 
-  bool pending = data_container.store_rcl_publisher_init(
+  data_container.store_rcl_publisher_init(
     publisher_handle,
     node_handle,
     rmw_publisher_handle,
@@ -678,8 +668,7 @@ void ros_trace_rcl_publisher_init(
     queue_depth,
     now);
 
-  bool recording_allowed = context.is_recording_allowed() || pending;
-  if (recording_allowed) {
+  if (context.is_recording_allowed_init()) {
     record(
       publisher_handle,
       node_handle,
@@ -752,11 +741,10 @@ void ros_trace_rcl_service_init(
 
   check_and_run_trace_node();
 
-  bool pending = data_container.store_rcl_service_init(
+  data_container.store_rcl_service_init(
     service_handle, node_handle, rmw_service_handle,
     service_name, now);
-  bool recording_allowed = context.is_recording_allowed() || pending;
-  if (recording_allowed) {
+  if (context.is_recording_allowed_init()) {
     record(service_handle, node_handle, rmw_service_handle, service_name, now);
   }
 }
@@ -788,10 +776,9 @@ void ros_trace_rclcpp_service_callback_added(
   if (!data_container.is_assigned_rclcpp_service_callback_added()) {
     data_container.assign_rclcpp_service_callback_added(record);
   }
-  bool pending = data_container.store_rclcpp_service_callback_added(service_handle, callback, now);
+  data_container.store_rclcpp_service_callback_added(service_handle, callback, now);
 
-  bool recording_allowed = context.is_recording_allowed() || pending;
-  if (recording_allowed) {
+  if (context.is_recording_allowed()) {
     record(service_handle, callback, now);
   }
 }
@@ -829,11 +816,10 @@ void ros_trace_rcl_client_init(
 
   check_and_run_trace_node();
 
-  bool pending = data_container.store_rcl_client_init(
+  data_container.store_rcl_client_init(
     client_handle, node_handle, rmw_client_handle,
     service_name, now);
-  bool recording_allowed = context.is_recording_allowed() || pending;
-  if (recording_allowed) {
+  if (context.is_recording_allowed()) {
     record(client_handle, node_handle, rmw_client_handle, service_name, now);
   }
 }
@@ -872,10 +858,9 @@ void ros_trace_rclcpp_callback_register(
     data_container.assign_rclcpp_callback_register(record);
   }
 
-  bool pending = data_container.store_rclcpp_callback_register(callback, symbol, now);
-  bool recording_allowed = context.is_recording_allowed() || pending;
+  data_container.store_rclcpp_callback_register(callback, symbol, now);
 
-  if (recording_allowed) {
+  if (context.is_recording_allowed()) {
     record(callback, symbol, now);
   }
 }

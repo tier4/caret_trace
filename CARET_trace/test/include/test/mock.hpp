@@ -30,6 +30,7 @@ class CaretTraceNodeModeMock : public TraceNodeInterface
 {
 public:
   MOCK_CONST_METHOD0(is_recording_allowed, bool());
+  MOCK_CONST_METHOD0(is_recording_allowed_init, bool());
   MOCK_CONST_METHOD0(is_timer_running, bool());
   MOCK_METHOD0(get_data_container, DataContainerInterface &());
   MOCK_CONST_METHOD0(get_status, const TRACE_STATUS &());
@@ -50,6 +51,7 @@ class DataContainerMock : public DataContainerInterface
 {
 public:
   MOCK_METHOD1(record, bool(uint64_t));
+  MOCK_METHOD0(start_recording, void());
   MOCK_METHOD0(reset, void());
 };
 

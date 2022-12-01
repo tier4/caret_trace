@@ -36,6 +36,9 @@ public:
   /// @return True if record has finished, false otherwise.
   virtual bool record(uint64_t loop_count = 1) = 0;
 
+  /// @brief transitionto recording state.
+  virtual void start_recording() = 0;
+
   /// @brief Reset recording state.
   virtual void reset() = 0;
 };
@@ -171,6 +174,8 @@ public:
     std::shared_ptr<RmwImplementation::KeysT> rmw_implementation);
 
   bool record(uint64_t loop_count = 1);
+
+  void start_recording();
 
   void reset();
 

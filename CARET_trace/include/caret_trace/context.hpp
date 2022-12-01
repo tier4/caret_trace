@@ -73,6 +73,10 @@ public:
   /// @return True is recording is enabled, false otherwise.
   bool is_recording_allowed() const;
 
+  /// @brief Check whether current status enables recording. For initialization trace points.
+  /// @return True is recording is enabled, false otherwise.
+  bool is_recording_allowed_init() const;
+
   /// @brief Initializing flag for TraceNode.
   std::atomic<bool> is_node_initializing;
 

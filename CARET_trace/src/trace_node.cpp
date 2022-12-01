@@ -27,6 +27,7 @@
 
 #include <chrono>
 #include <memory>
+#include <shared_mutex>
 #include <string>
 #include <utility>
 
@@ -54,6 +55,9 @@ TraceNode::TraceNode(
 
   status_pub_ = create_publisher<caret_msgs::msg::Status>("/caret/status", 10);
 
+  // Here, the frequency is fixed at 10 Hz
+  // because the overhead of ros becomes large for high frequency timers.
+  // The 100ms cycle callback records initialization trace points in blocks.
   timer_ =
     create_wall_timer(std::chrono::milliseconds(100), std::bind(&TraceNode::timer_callback, this));
   timer_->cancel();
@@ -128,7 +132,23 @@ void TraceNode::stop_timer()
   timer_->cancel();
 }
 
-bool TraceNode::is_recording_allowed() const { return status_ == TRACE_STATUS::RECORD; }
+bool TraceNode::is_recording_allowed() const
+{
+  // NOTE: Trace points for measurement are recorded without storing in memory.
+  // The trace point for measurement should be forbidden in PREPARE state to suppress DISCARDED.
+  // No strict control is required, so no mutex is needed.
+  return status_ == TRACE_STATUS::RECORD;
+}
+
+bool TraceNode::is_recording_allowed_init() const
+{
+  std::shared_lock<std::shared_mutex> lock(mutex_);
+
+  // NOTE: Since PREPARE to RECORD is a continuous state transition
+  // with a return value of TRUE, no mutex is required.
+  // On the other hand, the transition to the PREPARE state is a boundary, so a mutex is required.
+  return status_ == TRACE_STATUS::RECORD || status_ == TRACE_STATUS::PREPARE;
+}
 
 const TRACE_STATUS & TraceNode::get_status() const { return status_; }
 
@@ -142,21 +162,25 @@ void TraceNode::publish_status(TRACE_STATUS status) const
 
 void TraceNode::start_callback(caret_msgs::msg::Start::UniquePtr msg)
 {
+  std::lock_guard<std::shared_mutex> lock(mutex_);
+
   (void)msg;
   static auto & context = Singleton<Context>::get_instance();
   static auto & clock = context.get_clock();
 
   debug("Received start message.");
 
-  auto now = clock.now();
-  tracepoint(TRACEPOINT_PROVIDER, caret_init, now);
+  // Tracepoints for monotonic time and system time conversion
+  tracepoint(TRACEPOINT_PROVIDER, caret_init, clock.now());
 
+  data_container_->reset();
+
+  // As long as PREPARE state, data of initialization trace point are stored into pending.
   status_ = TRACE_STATUS::PREPARE;
+  data_container_->start_recording();
 
   publish_status(status_);
   debug("Transitioned to PREPARE status.");
-
-  data_container_->reset();
 
   record_block_size_ = msg->recording_frequency / 10;  // 100ms timer: 10Hz
   if (record_block_size_ <= 0) {
@@ -169,7 +193,10 @@ bool TraceNode::is_timer_running() const { return !timer_->is_canceled(); }
 
 void TraceNode::timer_callback()
 {
+  // NOTE: This function is executed only in the PREPARE state.
   auto record_finished = data_container_->record(record_block_size_);
+  // NOTE: There is a delay here from the moment the return value is determined to be True
+  // (pending=False) until the state becomes RECORD.
   if (record_finished) {
     status_ = TRACE_STATUS::RECORD;
 

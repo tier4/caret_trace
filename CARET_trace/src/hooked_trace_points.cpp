@@ -191,9 +191,9 @@ void update_dds_function_addr()
     data_container.assign_rmw_implementation(record);
   }
 
-  bool pending = data_container.store_rmw_implementation(env_var.c_str(), now);
+  data_container.store_rmw_implementation(env_var.c_str(), now);
 
-  if (context.is_recording_allowed() || pending) {
+  if (context.is_recording_allowed_init()) {
     record(env_var.c_str(), now);
   }
 
@@ -279,8 +279,8 @@ void _ZN6rclcpp9executors22SingleThreadedExecutorC1ERKNS_15ExecutorOptionsE(
     data_container.assign_construct_executor(record);
   }
 
-  bool pending = data_container.store_construct_executor(obj, executor_type_name.c_str(), now);
-  if (context.is_recording_allowed() || pending) {
+  data_container.store_construct_executor(obj, executor_type_name.c_str(), now);
+  if (context.is_recording_allowed_init()) {
     record(obj, executor_type_name.c_str(), now);
   }
 }
@@ -315,8 +315,8 @@ void SYMBOL_CONCAT_2(
     data_container.assign_construct_executor(record);
   }
 
-  bool pending = data_container.store_construct_executor(obj, executor_type_name.c_str(), now);
-  if (context.is_recording_allowed() || pending) {
+  data_container.store_construct_executor(obj, executor_type_name.c_str(), now);
+  if (context.is_recording_allowed_init()) {
     record(obj, executor_type_name.c_str(), now);
   }
 }
@@ -356,10 +356,9 @@ void _ZN6rclcpp9executors28StaticSingleThreadedExecutorC1ERKNS_15ExecutorOptions
   }
 
   auto entities_collector_ptr = static_cast<const void *>(exec_ptr->entities_collector_.get());
-  bool pending = data_container.store_add_callback_group_static_executor(
+  data_container.store_add_callback_group_static_executor(
     obj, entities_collector_ptr, "static_single_threaded_executor", now);
-  bool recording_allowed = context.is_recording_allowed() || pending;
-  if (recording_allowed) {
+  if (context.is_recording_allowed()) {
     record(obj, entities_collector_ptr, "static_single_threaded_executor", now);
   }
 }
@@ -419,11 +418,8 @@ void SYMBOL_CONCAT_3(
     group_type_name = "reentrant";
   }
 
-  bool pending =
-    data_container.store_add_callback_group(obj, group_addr, group_type_name.c_str(), now);
-  if (
-    (context.is_recording_allowed() || pending) &&
-    !recorded_args.has(obj, group_addr_, node_ptr_)) {
+  data_container.store_add_callback_group(obj, group_addr, group_type_name.c_str(), now);
+  if (context.is_recording_allowed_init() && !recorded_args.has(obj, group_addr_, node_ptr_)) {
     recorded_args.insert(obj, group_addr_, node_ptr_);
 
     record(obj, group_addr, group_type_name.c_str(), now);
@@ -473,9 +469,9 @@ bool SYMBOL_CONCAT_3(
     data_container.assign_add_callback_group_static_executor(record);
   }
 
-  bool pending = data_container.store_add_callback_group_static_executor(
+  data_container.store_add_callback_group_static_executor(
     obj, group_addr, group_type_name.c_str(), now);
-  if (context.is_recording_allowed() || pending) {
+  if (context.is_recording_allowed_init()) {
     record(obj, group_addr, group_type_name.c_str(), now);
   }
 
@@ -508,8 +504,8 @@ void _ZN6rclcpp13CallbackGroup9add_timerESt10shared_ptrINS_9TimerBaseEE(
     data_container.assign_callback_group_add_timer(record);
   }
 
-  bool pending = data_container.store_callback_group_add_timer(obj, timer_handle, now);
-  if (context.is_recording_allowed() || pending) {
+  data_container.store_callback_group_add_timer(obj, timer_handle, now);
+  if (context.is_recording_allowed_init()) {
     record(obj, timer_handle, now);
   }
 }
@@ -542,9 +538,8 @@ void _ZN6rclcpp13CallbackGroup16add_subscriptionESt10shared_ptrINS_16Subscriptio
     data_container.assign_callback_group_add_subscription(record);
   }
 
-  bool pending =
-    data_container.store_callback_group_add_subscription(obj, subscription_handle, now);
-  if (context.is_recording_allowed() || pending) {
+  data_container.store_callback_group_add_subscription(obj, subscription_handle, now);
+  if (context.is_recording_allowed_init()) {
     record(obj, subscription_handle, now);
   }
 }
@@ -574,8 +569,8 @@ void _ZN6rclcpp13CallbackGroup11add_serviceESt10shared_ptrINS_11ServiceBaseEE(
     data_container.assign_callback_group_add_service(record);
   }
 
-  bool pending = data_container.store_callback_group_add_service(obj, service_handle, now);
-  if (context.is_recording_allowed() || pending) {
+  data_container.store_callback_group_add_service(obj, service_handle, now);
+  if (context.is_recording_allowed_init()) {
     record(obj, service_handle, now);
   }
 }
@@ -605,8 +600,8 @@ void _ZN6rclcpp13CallbackGroup10add_clientESt10shared_ptrINS_10ClientBaseEE(
     data_container.assign_callback_group_add_client(record);
   }
 
-  bool pending = data_container.store_callback_group_add_client(obj, client_handle, now);
-  if (context.is_recording_allowed() || pending) {
+  data_container.store_callback_group_add_client(obj, client_handle, now);
+  if (context.is_recording_allowed_init()) {
     record(obj, client_handle, now);
   }
 }
