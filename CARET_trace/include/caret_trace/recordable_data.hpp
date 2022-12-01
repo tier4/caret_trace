@@ -130,7 +130,7 @@ public:
     reset_();
 
     it_ = set_.begin();
-    is_iterating_ = true;
+    is_iterating_ = true;  // transition to PREPARE state
     is_end__ = is_end_iterator_();
   }
 
@@ -143,9 +143,11 @@ public:
     std::lock_guard<std::shared_mutex> lock(mutex_);
 
     if (is_iterating_) {
+      // PREPARE state
       pending_set_.insert(args...);
       return true;
     } else {
+      // OTHER state
       set_.insert(args...);
       return false;
     }
@@ -183,7 +185,7 @@ public:
 
   bool finished() const override
   {
-    std::shared_lock<std::shared_mutex> lock(mutex_);
+    std::shared_lock<std::shared_mutex> lock(mutex_);  // read lock
 
     return is_end__;
   }
@@ -240,7 +242,7 @@ private:
   {
     if (is_end__) {
       merge_pending_keys();
-      is_iterating_ = false;
+      is_iterating_ = false;  // transition to OTHER state
       return true;
     }
     return false;
@@ -307,7 +309,7 @@ private:
 
   void reset_()
   {
-    is_iterating_ = false;
+    is_iterating_ = false;  // transition to OTHER state
     merge_pending_keys();
     is_end__ = false;
   }
