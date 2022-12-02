@@ -7,3 +7,5 @@ int8 RECORD=3
 # request fields
 string caret_node_name
 int8 status
+string[] node_names # reserved
+int64 pid # reserved
