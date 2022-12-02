@@ -5,5 +5,5 @@ int8 PREPARE=2
 int8 RECORD=3
 
 # request fields
-string node_name
+string caret_node_name
 int8 status

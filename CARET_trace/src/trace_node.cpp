@@ -158,7 +158,7 @@ const TRACE_STATUS & TraceNode::get_status() const { return status_; }
 void TraceNode::publish_status(TRACE_STATUS status) const
 {
   auto msg = std::make_unique<caret_msgs::msg::Status>();
-  msg->node_name = get_name();
+  msg->caret_node_name = get_name();
   msg->status = static_cast<int>(status);
   status_pub_->publish(std::move(msg));
 }
