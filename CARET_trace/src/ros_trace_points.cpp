@@ -206,7 +206,7 @@ void ros_trace_rcl_node_init(
 
   data_container.store_rcl_node_init(node_handle, rmw_handle, node_name, node_namespace, now);
 
-    record(node_handle, rmw_handle, node_name, node_namespace, now);
+  record(node_handle, rmw_handle, node_name, node_namespace, now);
 }
 
 void ros_trace_rcl_subscription_init(
@@ -260,9 +260,7 @@ void ros_trace_rcl_subscription_init(
     subscription_handle, node_handle, rmw_subscription_handle, topic_name,
     reinterpret_cast<size_t>(queue_depth), now);
 
-    record(
-      subscription_handle, node_handle, rmw_subscription_handle, topic_name,
-      queue_depth, now);
+  record(subscription_handle, node_handle, rmw_subscription_handle, topic_name, queue_depth, now);
 }
 
 void ros_trace_rclcpp_subscription_init(
@@ -304,7 +302,7 @@ void ros_trace_rclcpp_subscription_init(
   data_container.store_rclcpp_subscription_init(
     subscription_handle, subscription, now);
 
-    record(subscription_handle, subscription, now);
+  record(subscription_handle, subscription, now);
 }
 
 void ros_trace_rclcpp_subscription_callback_added(
@@ -344,7 +342,7 @@ void ros_trace_rclcpp_subscription_callback_added(
   data_container.store_rclcpp_subscription_callback_added(
     subscription, callback, now);
 
-    record(subscription, callback, now);
+  record(subscription, callback, now);
 }
 
 void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void * callback)
@@ -379,7 +377,7 @@ void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void
   }
 
   data_container.store_rclcpp_timer_callback_added(timer_handle, callback, now);
-    record(timer_handle, callback, now);
+  record(timer_handle, callback, now);
 }
 
 void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * node_handle)
@@ -414,7 +412,7 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
   }
 
   data_container.store_rclcpp_timer_link_node(timer_handle, node_handle, now);
-    record(timer_handle, node_handle, now);
+  record(timer_handle, node_handle, now);
 }
 
 void ros_trace_callback_start(const void * callback, bool is_intra_process)
@@ -572,7 +570,7 @@ void ros_trace_rcl_timer_init(
   }
 
   data_container.store_rcl_timer_init(timer_handle, period, now);
-    record(timer_handle, period, now);
+  record(timer_handle, period, now);
 
 #ifdef DEBUG_OUTPUT
     std::cerr << "rcl_timer_init," <<
@@ -650,13 +648,7 @@ void ros_trace_rcl_publisher_init(
     queue_depth,
     now);
 
-    record(
-      publisher_handle,
-      node_handle,
-      rmw_publisher_handle,
-      topic_name,
-      queue_depth,
-      now);
+  record(publisher_handle, node_handle, rmw_publisher_handle, topic_name, queue_depth, now);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rcl_publisher_init," <<
       publisher_handle << "," <<
@@ -722,9 +714,8 @@ void ros_trace_rcl_service_init(
   check_and_run_trace_node();
 
   data_container.store_rcl_service_init(
-    service_handle, node_handle, rmw_service_handle,
-    service_name, now);
-    record(service_handle, node_handle, rmw_service_handle, service_name, now);
+    service_handle, node_handle, rmw_service_handle, service_name, now);
+  record(service_handle, node_handle, rmw_service_handle, service_name, now);
 }
 
 void ros_trace_rclcpp_service_callback_added(
