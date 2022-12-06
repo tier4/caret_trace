@@ -25,7 +25,9 @@ bool LttngSessionImpl::is_session_running() const
 {
   std::lock_guard<std::mutex> lock(mtx_);
 
-  std::string command = "lttng list | grep -q \'\\[active\\]\'";
+  // $ lttng list | grep --quiet '\[active\]'
+  // Zero exit status if there is an active session, otherwise 1
+  std::string command = "lttng list | grep --quiet \'\\[active\\]\'";
   auto fp = popen(command.c_str(), "r");
   if (fp == nullptr) {
     return false;
