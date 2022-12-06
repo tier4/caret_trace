@@ -131,7 +131,7 @@ public:
 
     it_ = set_.begin();
     is_iterating_ = true;  // transition to PREPARE state
-    is_end__ = is_end_iterator_();
+    is_end_iterator__ = is_end_iterator_();
   }
 
   /// @brief Store new data.
@@ -187,7 +187,7 @@ public:
   {
     std::shared_lock<std::shared_mutex> lock(mutex_);  // read lock
 
-    return is_end__;
+    return is_end_iterator__;
   }
 
   bool is_recording() const override
@@ -240,7 +240,7 @@ private:
   /// @return false : No data were merged.
   bool try_merge_pending_data()
   {
-    if (is_end__) {
+    if (is_end_iterator__) {
       merge_pending_keys();
       is_iterating_ = false;  // transition to OTHER state
       return true;
@@ -304,14 +304,14 @@ private:
     if (!is_end_iterator_()) {
       ++it_;
     }
-    is_end__ = is_end_iterator_();
+    is_end_iterator__ = is_end_iterator_();
   }
 
   void reset_()
   {
     is_iterating_ = false;  // transition to OTHER state
     merge_pending_keys();
-    is_end__ = false;
+    is_end_iterator__ = false;
   }
 
   inline bool is_end_iterator_() const
@@ -325,7 +325,8 @@ private:
   SetT set_;
   StdFuncT func_;
   bool is_iterating_;
-  bool is_end__;
+  // True if the iterator has reached to the end, otherwise False. False except during iterating.
+  bool is_end_iterator__;
   const std::string trace_point_;
 
   mutable std::shared_mutex mutex_;
