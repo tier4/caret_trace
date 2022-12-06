@@ -188,19 +188,16 @@ TEST(ScenarioTest, IsRecordingAllowed)
 
   EXPECT_EQ(node->get_status(), TRACE_STATUS::WAIT);
   EXPECT_FALSE(context.is_recording_allowed());
-  EXPECT_FALSE(context.is_recording_allowed_init());
 
   auto start_msg = std::make_unique<caret_msgs::msg::Start>();
   start_msg->recording_frequency = 1;
   node->start_callback(std::move(start_msg));
   EXPECT_EQ(node->get_status(), TRACE_STATUS::PREPARE);
   EXPECT_FALSE(context.is_recording_allowed());
-  EXPECT_TRUE(context.is_recording_allowed_init());
 
   node->timer_callback();
   EXPECT_EQ(node->get_status(), TRACE_STATUS::RECORD);
   EXPECT_TRUE(context.is_recording_allowed());
-  EXPECT_TRUE(context.is_recording_allowed_init());
 }
 
 TEST(ScenarioTest, Record)

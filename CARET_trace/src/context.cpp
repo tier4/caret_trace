@@ -75,16 +75,6 @@ bool Context::is_recording_allowed() const
   return false;
 }
 
-bool Context::is_recording_allowed_init() const
-{
-  if (is_node_assigned()) {
-    return node_->is_recording_allowed_init();
-  }
-
-  // NOTE: Allow to support the case where a LTTng session has been started in advance.
-  return true;
-}
-
 void Context::assign_node(std::shared_ptr<TraceNodeInterface> node) { node_ = node; }
 
 bool Context::is_node_assigned() const { return static_cast<bool>(node_); }
