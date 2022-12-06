@@ -173,13 +173,16 @@ void TraceNode::start_callback(caret_msgs::msg::Start::UniquePtr msg)
 
   debug("Received start message.");
 
+  // As long as PREPARE state, data of initialization trace point are stored into pending.
+  // Before calling the caret_init trace point,
+  // transition to the prepare state to set is_recording_allowed to False.
+  status_ = TRACE_STATUS::PREPARE;
+
   // Tracepoints for monotonic time and system time conversion
   tracepoint(TRACEPOINT_PROVIDER, caret_init, clock.now());
 
   data_container_->reset();
 
-  // As long as PREPARE state, data of initialization trace point are stored into pending.
-  status_ = TRACE_STATUS::PREPARE;
   data_container_->start_recording();
 
   publish_status(status_);
