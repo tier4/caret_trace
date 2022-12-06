@@ -573,9 +573,9 @@ void ros_trace_rcl_timer_init(
   record(timer_handle, period, now);
 
 #ifdef DEBUG_OUTPUT
-    std::cerr << "rcl_timer_init," <<
-      timer_handle << "," <<
-      period << std::endl;
+  std::cerr << "rcl_timer_init," <<
+    timer_handle << "," <<
+    period << std::endl;
 #endif
 }
 
@@ -596,10 +596,10 @@ void ros_trace_rcl_init(
   }
 
   data_container.store_rcl_init(context_handle, now);
-    record(context_handle, now);
+  record(context_handle, now);
 #ifdef DEBUG_OUTPUT
-    std::cerr << "rcl_init," <<
-      context_handle << std::endl;
+  std::cerr << "rcl_init," <<
+    context_handle << std::endl;
 #endif
 }
 
@@ -650,12 +650,12 @@ void ros_trace_rcl_publisher_init(
 
   record(publisher_handle, node_handle, rmw_publisher_handle, topic_name, queue_depth, now);
 #ifdef DEBUG_OUTPUT
-    std::cerr << "rcl_publisher_init," <<
-      publisher_handle << "," <<
-      node_handle << "," <<
-      rmw_publisher_handle << "," <<
-      topic_name << "," <<
-      queue_depth << std::endl;
+  std::cerr << "rcl_publisher_init," <<
+    publisher_handle << "," <<
+    node_handle << "," <<
+    rmw_publisher_handle << "," <<
+    topic_name << "," <<
+    queue_depth << std::endl;
 #endif
 }
 
@@ -668,9 +668,7 @@ void ros_trace_rcl_publish(
   static auto & controller = context.get_controller();
 
   using functionT = void (*)(const void *, const void *);
-  if (controller.is_allowed_publisher_handle(publisher_handle) &&
-    context.is_recording_allowed())
-  {
+  if (controller.is_allowed_publisher_handle(publisher_handle) && context.is_recording_allowed()) {
     ((functionT) orig_func)(publisher_handle, message);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rcl_publish," <<
@@ -725,10 +723,7 @@ void ros_trace_rclcpp_service_callback_added(
   static auto & context = Singleton<Context>::get_instance();
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
-  static auto record = [](
-    const void * service_handle,
-    const char * callback,
-    int64_t init_time) {
+  static auto record = [](const void * service_handle, const char * callback, int64_t init_time) {
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_service_callback_added,
       service_handle, callback, init_time);
 
