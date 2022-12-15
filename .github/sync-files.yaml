@@ -13,16 +13,16 @@
     - source: .yamllint.yaml
     - source: CPPLINT.cfg
 
-# - repository: autowarefoundation/autoware_common
-#   files:
-#     - source: .github/workflows/build-and-test.yaml
-#     - source: .github/workflows/build-and-test-differential.yaml
-#       pre-commands: |
-#         VERSION=$(grep -P -o "(?<=tj\-actions/changed\-files@).+" {dest})
-#         sd "tj-actions/changed-files@(.+)" "tj-actions/changed-files@"$VERSION {source}
-#     - source: .github/workflows/build-and-test-differential-self-hosted.yaml
-#     - source: .github/workflows/build-and-test-self-hosted.yaml
-#     - source: .github/workflows/check-build-depends.yaml
+- repository: autowarefoundation/autoware_common
+  files:
+    - source: .github/workflows/build-and-test.yaml
+    - source: .github/workflows/build-and-test-differential.yaml
+      pre-commands: |
+        VERSION=$(grep -P -o "(?<=tj\-actions/changed\-files@).+" {dest})
+        sd "tj-actions/changed-files@(.+)" "tj-actions/changed-files@"$VERSION {source}
+    - source: .github/workflows/build-and-test-differential-self-hosted.yaml
+    - source: .github/workflows/build-and-test-self-hosted.yaml
+    - source: .github/workflows/check-build-depends.yaml
 
 - repository: tier4/caret_common
   files:
