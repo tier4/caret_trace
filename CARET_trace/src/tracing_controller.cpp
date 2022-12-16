@@ -104,60 +104,65 @@ bool is_condition_valid(std::string condition)
   }
 }
 
-void check_condition_set(std::unordered_set<std::string> conditions)
+void check_condition_set(std::unordered_set<std::string> conditions, bool use_log)
 {
   for (auto & condition : conditions) {
-    if (!is_condition_valid(condition)) {
-      std::string msg = "Failed to load regular expression \"" + condition + "\". Skip filtering.";
-      RCLCPP_INFO(rclcpp::get_logger("caret"), msg.c_str());
+    if (use_log && !is_condition_valid(condition)) {
+      std::string message =
+        "Failed to load regular expression \"" + condition + "\". Skip filtering.";
+      RCLCPP_INFO(rclcpp::get_logger("caret"), message.c_str());
     }
   }
 }
 
-TracingController::TracingController()
+TracingController::TracingController(bool use_log)
 : selected_node_names_(get_env_vars(SELECT_NODES_ENV_NAME)),
   ignored_node_names_(get_env_vars(IGNORE_NODES_ENV_NAME)),
   selected_topic_names_(get_env_vars(SELECT_TOPICS_ENV_NAME)),
   ignored_topic_names_(get_env_vars(IGNORE_TOPICS_ENV_NAME)),
   select_enabled_(selected_topic_names_.size() > 0 || selected_node_names_.size() > 0),
-  ignore_enabled_(ignored_topic_names_.size() > 0 || ignored_node_names_.size() > 0)
+  ignore_enabled_(ignored_topic_names_.size() > 0 || ignored_node_names_.size() > 0),
+  use_log_(use_log)
 {
   if (select_enabled_ || ignore_enabled_) {
-    std::string msg = "trace filtering is enabled.";
-    RCLCPP_INFO(rclcpp::get_logger("caret"), msg.c_str());
+    info("trace filtering is enabled.");
   }
   if (select_enabled_ && ignore_enabled_) {
-    std::string msg = "both select and ignore are set. select is used.";
-    RCLCPP_INFO(rclcpp::get_logger("caret"), msg.c_str());
+    info("both select and ignore are set. select is used.");
   }
   if (select_enabled_) {
     if (selected_node_names_.size() > 0) {
-      std::string msg =
-        SELECT_NODES_ENV_NAME + std::string(": ") + get_env_var(SELECT_NODES_ENV_NAME);
-      RCLCPP_INFO(rclcpp::get_logger("caret"), msg.c_str());
+      info(SELECT_NODES_ENV_NAME + std::string(": ") + get_env_var(SELECT_NODES_ENV_NAME));
     }
     if (selected_topic_names_.size() > 0) {
-      std::string msg =
-        SELECT_TOPICS_ENV_NAME + std::string(": ") + get_env_var(SELECT_TOPICS_ENV_NAME);
-      RCLCPP_INFO(rclcpp::get_logger("caret"), msg.c_str());
+      info(SELECT_TOPICS_ENV_NAME + std::string(": ") + get_env_var(SELECT_TOPICS_ENV_NAME));
     }
   } else if (ignore_enabled_) {
     if (ignored_node_names_.size() > 0) {
-      std::string msg =
-        IGNORE_NODES_ENV_NAME + std::string(": ") + get_env_var(IGNORE_NODES_ENV_NAME);
-      RCLCPP_INFO(rclcpp::get_logger("caret"), msg.c_str());
+      info(IGNORE_NODES_ENV_NAME + std::string(": ") + get_env_var(IGNORE_NODES_ENV_NAME));
     }
     if (ignored_topic_names_.size() > 0) {
-      std::string msg =
-        IGNORE_TOPICS_ENV_NAME + std::string(": ") + get_env_var(IGNORE_TOPICS_ENV_NAME);
-      RCLCPP_INFO(rclcpp::get_logger("caret"), msg.c_str());
+      info(IGNORE_TOPICS_ENV_NAME + std::string(": ") + get_env_var(IGNORE_TOPICS_ENV_NAME));
     }
   }
 
-  check_condition_set(selected_node_names_);
-  check_condition_set(ignored_node_names_);
-  check_condition_set(selected_topic_names_);
-  check_condition_set(ignored_topic_names_);
+  check_condition_set(selected_node_names_, use_log);
+  check_condition_set(ignored_node_names_, use_log);
+  check_condition_set(selected_topic_names_, use_log);
+  check_condition_set(ignored_topic_names_, use_log);
+}
+
+void TracingController::debug(std::string message) const
+{
+  if (use_log_) {
+    RCLCPP_DEBUG(rclcpp::get_logger("caret"), message.c_str());
+  }
+}
+void TracingController::info(std::string message) const
+{
+  if (use_log_) {
+    RCLCPP_INFO(rclcpp::get_logger("caret"), message.c_str());
+  }
 }
 
 bool TracingController::is_allowed_callback(const void * callback)

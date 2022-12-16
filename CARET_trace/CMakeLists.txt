@@ -33,6 +33,7 @@ find_package(CycloneDDS REQUIRED)
 find_package(fastrtps REQUIRED)
 find_package(rmw_fastrtps_shared_cpp REQUIRED)
 find_package(LTTngUST REQUIRED)
+find_package(caret_msgs REQUIRED)
 
 add_library(caret SHARED
   src/ros_trace_points.cpp
@@ -40,7 +41,12 @@ add_library(caret SHARED
   src/tracing_controller.cpp
   src/singleton.cpp
   src/tp.c
-  src/context.cpp)
+  src/trace_node.cpp
+  src/data_container.cpp
+  src/data_recorder.cpp
+  src/lttng_session.cpp
+  src/context.cpp
+  src/clock.cpp)
 
 ament_target_dependencies(caret
   rclcpp
@@ -49,8 +55,12 @@ ament_target_dependencies(caret
   rmw_implementation
   rcpputils
   std_msgs
+  caret_msgs
   rmw_fastrtps_shared_cpp
   LTTngUST)
+
+ament_export_targets(export_caret_trace HAS_LIBRARY_TARGET)
+ament_export_dependencies(rclcpp LTTngUST)
 
 target_link_libraries(caret CycloneDDS::ddsc fastrtps)
 

@@ -12,23 +12,107 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// disable tracepoint for declaration conflicting
+#define ros_trace_rclcpp_publish ros_trace_rclcpp_publish_disabled
+#define ros_trace_rclcpp_service_callback_added ros_trace_rclcpp_service_callback_added_disabled
+#define ros_trace_rmw_publisher_init ros_trace_rmw_publisher_init_disabled
+#define ros_trace_rmw_subscription_init ros_trace_rmw_subscription_init_disabled
+
+#include "caret_trace/clock.hpp"
 #include "caret_trace/context.hpp"
 #include "caret_trace/singleton.hpp"
 #include "caret_trace/tp.h"
+#include "caret_trace/trace_node.hpp"
 #include "caret_trace/tracing_controller.hpp"
+#include "rcl/context.h"
+#include "rclcpp/rclcpp.hpp"
 
 #include <dlfcn.h>
+#include <sys/types.h>
 #include <time.h>
 
 #include <cassert>
 #include <iomanip>
 #include <iostream>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
+
+#undef ros_trace_rclcpp_publish
+#undef ros_trace_rclcpp_service_callback_added
+#undef ros_trace_rmw_publisher_init
+#undef ros_trace_rmw_subscription_init
 
 // #define DEBUG_OUTPUT
 
 #define DEFINE_ORIG_FUNC(TP_NAME) TP_NAME = dlsym(RTLD_NEXT, #TP_NAME)
+
+std::unique_ptr<std::thread> trace_node_thread;
+
+void run_caret_trace_node()
+{
+  // When the python implementation node is executed,
+  // this thread is executed without obtaining a global interpreter lock.
+  // Therefore, this thread is executed asynchronously with the execution of the python node.
+  auto & context = Singleton<Context>::get_instance();
+  auto clock = context.get_clock();
+
+  auto now = clock.now();
+  tracepoint(TRACEPOINT_PROVIDER, caret_init, now);
+
+  std::string node_name_base = "caret_trace";
+  auto data_container = context.get_data_container_ptr();
+
+  // If you try to create a Node before the context is created, it will fail.
+  auto lttng = context.get_lttng_session_ptr();
+
+  // For nodes in the cpp implementation,
+  // a default context that has already been initialized is used.
+  // For nodes implemented outside of cpp, such as python,
+  // an uninitialized default context is used.
+  rclcpp::NodeOptions option;
+
+  if (!option.context()->is_valid()) {
+    // Initialize the context if it has not been initialized.
+    int argc = 1;
+    const char * argvs[] = {"caret_trace_node"};
+    option.context()->init(argc, argvs);
+  }
+  // Set global arguments to false to prevent the node to be generated from being renamed.
+  option.use_global_arguments(false);
+  auto trace_node = std::make_shared<TraceNode>(node_name_base, option, lttng, data_container);
+  RCLCPP_INFO(trace_node->get_logger(), "%s started", trace_node->get_fully_qualified_name());
+
+  context.assign_node(trace_node);
+  auto exec = rclcpp::executors::SingleThreadedExecutor();
+  exec.add_node(trace_node);
+  exec.spin();
+}
+
+void check_and_run_trace_node()
+{
+  // NOTE:
+  // This function should be executed after the context has been initialized.
+  // Execute at initialization trace points other than rcl_init.
+  // This function is called at the execution of various initialization functions,
+  // so it is executed recursively.
+  auto & context = Singleton<Context>::get_instance();
+  static std::mutex mtx;
+  if (context.is_node_initializing.load()) {
+    return;
+  }
+
+  {  // Initialize TraceNode
+    std::lock_guard<std::mutex> lock(mtx);
+    if (!context.is_node_assigned() && !context.is_node_initializing.load()) {
+      // Only one of the first threads execute this block.
+      context.is_node_initializing.store(true);
+      trace_node_thread = std::make_unique<std::thread>(run_caret_trace_node);
+      trace_node_thread->detach();
+    }
+  }
+}
 
 namespace ORIG_FUNC
 {
@@ -72,7 +156,43 @@ void ros_trace_rcl_node_init(
   const char * node_namespace)
 {
   static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
   static auto & controller = context.get_controller();
+
+  static auto record = [](
+    const void * node_handle,
+    const void * rmw_handle,
+    const char * node_name,
+    const char * node_namespace,
+    int64_t init_time
+  ) {
+    static auto & context = Singleton<Context>::get_instance();
+    static auto & controller = context.get_controller();
+
+    if (!controller.is_allowed_node(node_handle)) {
+      return;
+    }
+    tracepoint(TRACEPOINT_PROVIDER, rcl_node_init, node_handle, rmw_handle,
+      node_name, node_namespace, init_time);
+#ifdef DEBUG_OUTPUT
+    std::cerr << "rcl_node_init," <<
+      node_handle << "," <<
+      rmw_handle << "," <<
+      node_name << "," <<
+      node_namespace << std::endl;
+#endif
+  };
+
+  auto now = clock.now();
+
+  check_and_run_trace_node();
+
+  if (!data_container.is_assigned_rcl_node_init()) {
+    data_container.assign_rcl_node_init(record);
+  }
+
+  trace_node_thread = std::make_unique<std::thread>();
 
   std::string ns = node_namespace;
   char last_char = ns[ns.length() - 1];
@@ -83,20 +203,10 @@ void ros_trace_rcl_node_init(
 
   controller.add_node(node_handle, node_ns_and_name);
 
-  using functionT = void (*)(const void *, const void *, const char *, const char *);
 
-  if (controller.is_allowed_node(node_handle)) {
-    assert(ORIG_FUNC::ros_trace_rcl_node_init != nullptr);
-    ((functionT) ORIG_FUNC::ros_trace_rcl_node_init)(node_handle, rmw_handle, node_name, node_namespace); // NOLINT
+  data_container.store_rcl_node_init(node_handle, rmw_handle, node_name, node_namespace, now);
 
-#ifdef DEBUG_OUTPUT
-    std::cerr << "rcl_node_init," <<
-      node_handle << "," <<
-      rmw_handle << "," <<
-      node_name << "," <<
-      node_namespace << std::endl;
-#endif
-  }
+  record(node_handle, rmw_handle, node_name, node_namespace, now);
 }
 
 void ros_trace_rcl_subscription_init(
@@ -107,18 +217,25 @@ void ros_trace_rcl_subscription_init(
   const size_t queue_depth)
 {
   static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
   static auto & controller = context.get_controller();
+  static auto record = [](
+    const void * subscription_handle,
+    const void * node_handle,
+    const void * rmw_subscription_handle,
+    const char * topic_name,
+    const size_t queue_depth,
+    int64_t init_time
+  ) {
+    static auto & context = Singleton<Context>::get_instance();
+    static auto & controller = context.get_controller();
 
-  controller.add_subscription_handle(node_handle, subscription_handle, topic_name);
-
-  using functionT =
-    void (*)(const void *, const void *, const void *, const char *, const size_t);
-
-  if (controller.is_allowed_subscription_handle(subscription_handle)) {
-    assert(ORIG_FUNC::ros_trace_rcl_subscription_init != nullptr);
-    ((functionT) ORIG_FUNC::ros_trace_rcl_subscription_init)(
-      subscription_handle, node_handle, rmw_subscription_handle, topic_name,
-      queue_depth);
+    if (!controller.is_allowed_subscription_handle(subscription_handle)) {
+      return;
+    }
+    tracepoint(TRACEPOINT_PROVIDER, rcl_subscription_init, subscription_handle,
+      node_handle, rmw_subscription_handle, topic_name, queue_depth, init_time);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rcl_subscription_init," <<
       subscription_handle << "," <<
@@ -127,7 +244,23 @@ void ros_trace_rcl_subscription_init(
       topic_name << "," <<
       queue_depth << std::endl;
 #endif
+  };
+
+  auto now = clock.now();
+
+  controller.add_subscription_handle(node_handle, subscription_handle, topic_name);
+
+  if (!data_container.is_assigned_rcl_subscription_init()) {
+    data_container.assign_rcl_subscription_init(record);
   }
+
+  check_and_run_trace_node();
+
+  data_container.store_rcl_subscription_init(
+    subscription_handle, node_handle, rmw_subscription_handle, topic_name,
+    reinterpret_cast<size_t>(queue_depth), now);
+
+  record(subscription_handle, node_handle, rmw_subscription_handle, topic_name, queue_depth, now);
 }
 
 void ros_trace_rclcpp_subscription_init(
@@ -135,20 +268,41 @@ void ros_trace_rclcpp_subscription_init(
   const void * subscription)
 {
   static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
   static auto & controller = context.get_controller();
-
-  controller.add_subscription(subscription_handle, subscription);
-
-  using functionT = void (*)(const void *, const void *);
-  if (controller.is_allowed_subscription_handle(subscription_handle)) {
-    assert(ORIG_FUNC::ros_trace_rclcpp_subscription_init != nullptr);
-    ((functionT) ORIG_FUNC::ros_trace_rclcpp_subscription_init)(subscription_handle, subscription);
+  static auto record = [](
+    const void * subscription_handle,
+    const void * subscription,
+    int64_t init_time
+  ) {
+    static auto & context = Singleton<Context>::get_instance();
+    static auto & controller = context.get_controller();
+    if (!controller.is_allowed_subscription_handle(subscription_handle)){
+      return;
+    }
+    tracepoint(TRACEPOINT_PROVIDER, rclcpp_subscription_init,
+      subscription_handle, subscription, init_time);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_subscription_init," <<
       subscription_handle << "," <<
       subscription << std::endl;
 #endif
+  };
+
+  auto now = clock.now();
+  check_and_run_trace_node();
+
+  controller.add_subscription(subscription_handle, subscription);
+
+  if (!data_container.is_assigned_rclcpp_subscription_init()) {
+    data_container.assign_rclcpp_subscription_init(record);
   }
+
+  data_container.store_rclcpp_subscription_init(
+    subscription_handle, subscription, now);
+
+  record(subscription_handle, subscription, now);
 }
 
 void ros_trace_rclcpp_subscription_callback_added(
@@ -156,58 +310,109 @@ void ros_trace_rclcpp_subscription_callback_added(
   const void * callback)
 {
   static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
   static auto & controller = context.get_controller();
-
-  controller.add_subscription_callback(subscription, callback);
-
-  using functionT = void (*)(const void *, const void *);
-  if (controller.is_allowed_callback(callback)) {
-    assert(ORIG_FUNC::ros_trace_rclcpp_subscription_callback_added != nullptr);
-    ((functionT) ORIG_FUNC::ros_trace_rclcpp_subscription_callback_added)(subscription, callback);
+  static auto record = [](
+    const void * subscription,
+    const void * callback,
+    int64_t init_time
+  ) {
+    if (!controller.is_allowed_callback(callback)) {
+      return;
+    }
+    tracepoint(TRACEPOINT_PROVIDER, rclcpp_subscription_callback_added,
+      subscription, callback, init_time);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_subscription_callback_added," <<
       subscription << "," <<
       callback << std::endl;
 #endif
+  };
+
+  auto now = clock.now();
+  check_and_run_trace_node();
+
+  controller.add_subscription_callback(subscription, callback);
+
+  if (!data_container.is_assigned_rclcpp_subscription_callback_added()) {
+    data_container.assign_rclcpp_subscription_callback_added(record);
   }
+
+  data_container.store_rclcpp_subscription_callback_added(
+    subscription, callback, now);
+
+  record(subscription, callback, now);
 }
 
 void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void * callback)
 {
   static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
   static auto & controller = context.get_controller();
-
-  controller.add_timer_callback(timer_handle, callback);
-
-  using functionT = void (*)(const void *, const void *);
-  if (controller.is_allowed_callback(callback)) {
-    assert(ORIG_FUNC::ros_trace_rclcpp_timer_callback_added != nullptr);
-    ((functionT) ORIG_FUNC::ros_trace_rclcpp_timer_callback_added)(timer_handle, callback);
+  static auto record = [](
+    const void * timer_handle,
+    const void * callback,
+    int64_t init_time
+  ) {
+  if (!controller.is_allowed_callback(callback)) {
+    return;
+  }
+    tracepoint(TRACEPOINT_PROVIDER, rclcpp_timer_callback_added, timer_handle, callback, init_time);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_timer_callback_added," <<
       timer_handle << "," <<
       callback << std::endl;
 #endif
+  };
+
+  auto now = clock.now();
+  check_and_run_trace_node();
+
+  controller.add_timer_callback(timer_handle, callback);
+
+  if (!data_container.is_assigned_rclcpp_timer_callback_added()) {
+    data_container.assign_rclcpp_timer_callback_added(record);
   }
+
+  data_container.store_rclcpp_timer_callback_added(timer_handle, callback, now);
+  record(timer_handle, callback, now);
 }
 
 void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * node_handle)
 {
   static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
   static auto & controller = context.get_controller();
-
-  controller.add_timer_handle(node_handle, timer_handle);
-
-  using functionT = void (*)(const void *, const void *);
-  if (controller.is_allowed_node(node_handle)) {
-    assert(ORIG_FUNC::ros_trace_rclcpp_timer_link_node != nullptr);
-    ((functionT) ORIG_FUNC::ros_trace_rclcpp_timer_link_node)(timer_handle, node_handle);
+  static auto record = [](
+    const void * timer_handle,
+    const void * node_handle,
+    int64_t init_time
+  ) {
+  if (!controller.is_allowed_node(node_handle)) {
+    return;
+  }
+    tracepoint(TRACEPOINT_PROVIDER, rclcpp_timer_link_node, timer_handle, node_handle, init_time);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_timer_link_node," <<
       timer_handle << "," <<
       node_handle << std::endl;
 #endif
+  };
+
+  auto now = clock.now();
+  check_and_run_trace_node();
+
+  controller.add_timer_handle(node_handle, timer_handle);
+
+  if (!data_container.is_assigned_rclcpp_timer_link_node()) {
+    data_container.assign_rclcpp_timer_link_node(record);
   }
+
+  data_container.store_rclcpp_timer_link_node(timer_handle, node_handle, now);
+  record(timer_handle, node_handle, now);
 }
 
 void ros_trace_callback_start(const void * callback, bool is_intra_process)
@@ -215,11 +420,13 @@ void ros_trace_callback_start(const void * callback, bool is_intra_process)
   static auto & context = Singleton<Context>::get_instance();
   static auto & controller = context.get_controller();
 
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(const void *, bool);
 
-  if (controller.is_allowed_callback(callback)) {
-    assert(ORIG_FUNC::ros_trace_callback_start != nullptr);
-    ((functionT) ORIG_FUNC::ros_trace_callback_start)(callback, is_intra_process);
+  if (controller.is_allowed_callback(callback) &&
+    context.is_recording_allowed())
+  {
+    ((functionT) orig_func)(callback, is_intra_process);
 #ifdef DEBUG_OUTPUT
     std::cerr << "callback_start," <<
       callback << "," <<
@@ -232,11 +439,13 @@ void ros_trace_callback_end(const void * callback)
 {
   static auto & context = Singleton<Context>::get_instance();
   static auto & controller = context.get_controller();
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
   using functionT = void (*)(const void *);
-  if (controller.is_allowed_callback(callback)) {
-    assert(ORIG_FUNC::ros_trace_callback_end != nullptr);
-    ((functionT) ORIG_FUNC::ros_trace_callback_end)(callback);
+  if (controller.is_allowed_callback(callback) &&
+    context.is_recording_allowed())
+  {
+    ((functionT) orig_func)(callback);
 
 #ifdef DEBUG_OUTPUT
     std::cerr << "callback_end," <<
@@ -253,11 +462,13 @@ void ros_trace_dispatch_subscription_callback(
 {
   static auto & context = Singleton<Context>::get_instance();
   static auto & controller = context.get_controller();
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
   using functionT = void (*)(const void *, const void *, const uint64_t, const uint64_t);
-  if (controller.is_allowed_callback(callback)) {
-    assert(ORIG_FUNC::ros_trace_dispatch_subscription_callback != nullptr);
-    ((functionT) ORIG_FUNC::ros_trace_dispatch_subscription_callback)(message, callback, source_timestamp, message_timestamp); // NOLINT
+  if (controller.is_allowed_callback(callback) &&
+    context.is_recording_allowed())
+  {
+    ((functionT) orig_func)(message, callback, source_timestamp, message_timestamp);
 
 #ifdef DEBUG_OUTPUT
     std::cerr << "dispatch_subscription_callback," <<
@@ -276,11 +487,13 @@ void ros_trace_dispatch_intra_process_subscription_callback(
 {
   static auto & context = Singleton<Context>::get_instance();
   static auto & controller = context.get_controller();
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
   using functionT = void (*)(const void *, const void *, const uint64_t);
-  if (controller.is_allowed_callback(callback)) {
-    assert(ORIG_FUNC::ros_trace_dispatch_intra_process_subscription_callback != nullptr);
-    ((functionT) ORIG_FUNC::ros_trace_dispatch_intra_process_subscription_callback)(message, callback, message_timestamp); // NOLINT
+  if (controller.is_allowed_callback(callback) &&
+    context.is_recording_allowed())
+  {
+    ((functionT) orig_func)(message, callback, message_timestamp);
 
 #ifdef DEBUG_OUTPUT
     std::cerr << "dispatch_intra_process_subscription_callback," <<
@@ -298,11 +511,13 @@ void ros_trace_rclcpp_publish(
 {
   static auto & context = Singleton<Context>::get_instance();
   static auto & controller = context.get_controller();
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
   using functionT = void (*)(const void *, const void *, const uint64_t);
-  if (controller.is_allowed_publisher_handle(publisher_handle)) {
-    assert(ORIG_FUNC::ros_trace_rclcpp_publish != nullptr);
-    ((functionT) ORIG_FUNC::ros_trace_rclcpp_publish)(publisher_handle, message, message_timestamp);
+  if (controller.is_allowed_publisher_handle(publisher_handle) &&
+    context.is_recording_allowed())
+  {
+    ((functionT) orig_func)(publisher_handle, message, message_timestamp);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_publish," <<
       publisher_handle << "," <<
@@ -319,12 +534,14 @@ void ros_trace_rclcpp_intra_publish(
 {
   static auto & context = Singleton<Context>::get_instance();
   static auto & controller = context.get_controller();
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
   using functionT = void (*)(const void *, const void *, const uint64_t message_timestamp);
 
-  if (controller.is_allowed_publisher_handle(publisher_handle)) {
-    assert(ORIG_FUNC::ros_trace_rclcpp_intra_publish != nullptr);
-    ((functionT) ORIG_FUNC::ros_trace_rclcpp_intra_publish)(publisher_handle, message, message_timestamp); // NOLINT
+  if (controller.is_allowed_publisher_handle(publisher_handle) &&
+    context.is_recording_allowed())
+  {
+    ((functionT) orig_func)(publisher_handle, message, message_timestamp);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_intra_publish," <<
       publisher_handle << "," <<
@@ -334,36 +551,58 @@ void ros_trace_rclcpp_intra_publish(
   }
 }
 
-#ifdef DEBUG_OUTPUT
 void ros_trace_rcl_timer_init(
   const void * timer_handle,
   int64_t period)
 {
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
   // TODO(hsgwa): Add filtering of timer initialization using node_handle
-  using functionT = void (*)(const void *, int64_t);
-    assert(ORIG_FUNC::ros_trace_rcl_timer_init != nullptr);
-  ((functionT) ORIG_FUNC::ros_trace_rcl_timer_init)(timer_handle, period);
 
+  static auto record = [](const void * timer_handle, int64_t period, int64_t init_time) {
+    tracepoint(TRACEPOINT_PROVIDER, rcl_timer_init, timer_handle, period, init_time);
+  };
+
+  auto now = clock.now();
+  if (!data_container.is_assigned_rcl_timer_init()) {
+    data_container.assign_rcl_timer_init(record);
+  }
+
+  data_container.store_rcl_timer_init(timer_handle, period, now);
+  record(timer_handle, period, now);
+
+#ifdef DEBUG_OUTPUT
   std::cerr << "rcl_timer_init," <<
     timer_handle << "," <<
     period << std::endl;
-}
 #endif
+}
 
-#ifdef DEBUG_OUTPUT
 void ros_trace_rcl_init(
   const void * context_handle)
 {
-  using functionT = void (*)(const void *);
-  assert(ORIG_FUNC::ros_trace_rcl_init != nullptr);
-  ((functionT) ORIG_FUNC::ros_trace_rcl_init)(context_handle);
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
 
+  static auto record = [](  const void * context_handle, int64_t init_time) {
+    tracepoint(TRACEPOINT_PROVIDER, rcl_init, context_handle, init_time);
+  };
+
+  auto now = clock.now();
+  if (!data_container.is_assigned_rcl_init()) {
+    data_container.assign_rcl_init(record);
+  }
+
+  data_container.store_rcl_init(context_handle, now);
+  record(context_handle, now);
+#ifdef DEBUG_OUTPUT
   std::cerr << "rcl_init," <<
     context_handle << std::endl;
-}
 #endif
+}
 
-#ifdef DEBUG_OUTPUT
 
 void ros_trace_rcl_publisher_init(
   const void * publisher_handle,
@@ -374,41 +613,63 @@ void ros_trace_rcl_publisher_init(
 )
 {
   static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
   static auto & controller = context.get_controller();
 
+  static auto record = [](  const void * publisher_handle,
+  const void * node_handle,
+  const void * rmw_publisher_handle,
+  const char * topic_name,
+  const size_t queue_depth,
+  int64_t init_time
+) {
+    tracepoint(TRACEPOINT_PROVIDER, rcl_publisher_init, publisher_handle, node_handle,
+    rmw_publisher_handle, topic_name, queue_depth, init_time);
+  };
+
+  auto now = clock.now();
   controller.add_publisher_handle(node_handle, publisher_handle, topic_name);
 
-  using functionT = void (*)(const void *, const void *, const void *, const char *, const size_t);
   // TODO(hsgwa): support topic_name filtering
   // It seems to be executed before the topic name and node name are known.
-  assert(ORIG_FUNC::ros_trace_rcl_publisher_init != nullptr);
 
-  ((functionT) ORIG_FUNC::ros_trace_rcl_publisher_init)(
+  if (!data_container.is_assigned_rcl_publisher_init()) {
+    data_container.assign_rcl_publisher_init(record);
+  }
+
+  check_and_run_trace_node();
+
+  data_container.store_rcl_publisher_init(
     publisher_handle,
     node_handle,
     rmw_publisher_handle,
     topic_name,
-    queue_depth);
+    queue_depth,
+    now);
+
+  record(publisher_handle, node_handle, rmw_publisher_handle, topic_name, queue_depth, now);
+#ifdef DEBUG_OUTPUT
   std::cerr << "rcl_publisher_init," <<
     publisher_handle << "," <<
     node_handle << "," <<
     rmw_publisher_handle << "," <<
     topic_name << "," <<
     queue_depth << std::endl;
-}
 #endif
+}
 
 void ros_trace_rcl_publish(
   const void * publisher_handle,
   const void * message)
 {
   static auto & context = Singleton<Context>::get_instance();
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
   static auto & controller = context.get_controller();
 
   using functionT = void (*)(const void *, const void *);
-  if (controller.is_allowed_publisher_handle(publisher_handle)) {
-    assert(ORIG_FUNC::ros_trace_rcl_publish != nullptr);
-    ((functionT) ORIG_FUNC::ros_trace_rcl_publish)(publisher_handle, message);
+  if (controller.is_allowed_publisher_handle(publisher_handle) && context.is_recording_allowed()) {
+    ((functionT) orig_func)(publisher_handle, message);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rcl_publish," <<
       publisher_handle << "," <<
@@ -417,128 +678,221 @@ void ros_trace_rcl_publish(
   }
 }
 
-#ifdef DEBUG_OUTPUT
 void ros_trace_rcl_service_init(
   const void * service_handle,
   const void * node_handle,
   const void * rmw_service_handle,
   const char * service_name)
 {
-  using functionT = void (*)(const void *, const void *, const void *, const char *);
-  assert(ORIG_FUNC::ros_trace_rcl_service_init != nullptr);
-  ((functionT) ORIG_FUNC::ros_trace_rcl_service_init)(service_handle, node_handle, rmw_service_handle, service_name); // NOLINT
-
-  std::cerr << "rcl_service_init," <<
-    service_handle << "," <<
-    node_handle << "," <<
-    rmw_service_handle << "," <<
-    service_name << std::endl;
-}
-#endif
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
+  static auto record = [](  const void * service_handle,
+  const void * node_handle,
+  const void * rmw_service_handle,
+  const char * service_name,
+  int64_t init_time) {
+    tracepoint(TRACEPOINT_PROVIDER, rcl_service_init, service_handle,
+    node_handle, rmw_service_handle, service_name, init_time);
 
 #ifdef DEBUG_OUTPUT
+    std::cerr << "rcl_service_init," <<
+      service_handle << "," <<
+      node_handle << "," <<
+      rmw_service_handle << "," <<
+      service_name << std::endl;
+#endif
+  };
+
+  auto now = clock.now();
+  if (!data_container.is_assigned_rcl_service_init()) {
+    data_container.assign_rcl_service_init(record);
+  }
+
+  check_and_run_trace_node();
+
+  data_container.store_rcl_service_init(
+    service_handle, node_handle, rmw_service_handle, service_name, now);
+  record(service_handle, node_handle, rmw_service_handle, service_name, now);
+}
+
 void ros_trace_rclcpp_service_callback_added(
   const void * service_handle,
   const char * callback)
 {
-  using functionT = void (*)(const void *, const void *);
-  assert(ORIG_FUNC::ros_trace_rclcpp_service_callback_added != nullptr);
-  ((functionT) ORIG_FUNC::ros_trace_rclcpp_service_callback_added)(service_handle, callback);
-
-  std::cerr << "rclcpp_service_callback_added," <<
-    service_handle << "," <<
-    callback << std::endl;
-}
-#endif
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
+  static auto record = [](const void * service_handle, const char * callback, int64_t init_time) {
+    tracepoint(TRACEPOINT_PROVIDER, rclcpp_service_callback_added,
+      service_handle, callback, init_time);
 
 #ifdef DEBUG_OUTPUT
+    std::cerr << "rclcpp_service_callback_added," <<
+      service_handle << "," <<
+      callback << std::endl;
+#endif
+  };
+  auto now = clock.now();
+
+  check_and_run_trace_node();
+
+  if (!data_container.is_assigned_rclcpp_service_callback_added()) {
+    data_container.assign_rclcpp_service_callback_added(record);
+  }
+  data_container.store_rclcpp_service_callback_added(service_handle, callback, now);
+
+  record(service_handle, callback, now);
+}
+
 void ros_trace_rcl_client_init(
   const void * client_handle,
   const void * node_handle,
   const void * rmw_client_handle,
   const char * service_name)
 {
-  using functionT = void (*)(const void *, const void *, const void *, const char *);
-  assert(ORIG_FUNC::ros_trace_rcl_client_init != nullptr);
-  ((functionT) ORIG_FUNC::ros_trace_rcl_client_init)(client_handle, node_handle, rmw_client_handle, service_name); // NOLINT
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
+  static auto record = [](  const void * client_handle,
+  const void * node_handle,
+  const void * rmw_client_handle,
+  const char * service_name,
+  int64_t init_time) {
+    tracepoint(TRACEPOINT_PROVIDER, rcl_client_init, client_handle, node_handle,
+      rmw_client_handle, service_name, init_time);
 
-  std::cerr << "rcl_client_init," <<
-    client_handle << "," <<
-    node_handle << "," <<
-    rmw_client_handle << "," <<
-    service_name << std::endl;
-}
+#ifdef DEBUG_OUTPUT
+    std::cerr << "rcl_client_init," <<
+      client_handle << "," <<
+      node_handle << "," <<
+      rmw_client_handle << "," <<
+      service_name << std::endl;
 #endif
+  };
+  auto now = clock.now();
+
+  if (!data_container.is_assigned_rcl_client_init()) {
+    data_container.assign_rcl_client_init(record);
+  }
+
+  check_and_run_trace_node();
+
+  data_container.store_rcl_client_init(
+    client_handle, node_handle, rmw_client_handle,
+    service_name, now);
+  record(client_handle, node_handle, rmw_client_handle, service_name, now);
+}
 
 void ros_trace_rclcpp_callback_register(
   const void * callback,
   const char * symbol)
 {
   static auto & context = Singleton<Context>::get_instance();
-  static auto & controller = context.get_controller();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
 
-  using functionT = void (*)(const void *, const char *);
+  static auto record = [](
+    const void * callback,
+    const char * symbol,
+    int64_t init_time
+  ) {
+    static auto & context = Singleton<Context>::get_instance();
+    static auto & controller = context.get_controller();
+    if (!controller.is_allowed_callback(callback)) {
+      return;
+    }
+    tracepoint(TRACEPOINT_PROVIDER, rclcpp_callback_register, callback, symbol, init_time);
 
-  if (controller.is_allowed_callback(callback)) {
-    assert(ORIG_FUNC::ros_trace_rclcpp_callback_register != nullptr);
-    ((functionT) ORIG_FUNC::ros_trace_rclcpp_callback_register)(callback, symbol);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_callback_register," <<
       callback << "," <<
       symbol << std::endl;
 #endif
+  };
+  auto now = clock.now();
+
+  check_and_run_trace_node();
+
+  if (!data_container.is_assigned_rclcpp_callback_register()) {
+    data_container.assign_rclcpp_callback_register(record);
   }
+
+  data_container.store_rclcpp_callback_register(callback, symbol, now);
+
+  record(callback, symbol, now);
 }
 
-#ifdef DEBUG_OUTPUT
 void ros_trace_rcl_lifecycle_state_machine_init(
   const void * node_handle,
   const void * state_machine)
 {
-  using functionT = void (*)(const void *, const void *);
-  assert(ORIG_FUNC::ros_trace_rcl_lifecycle_state_machine_init != nullptr);
-  ((functionT) ORIG_FUNC::ros_trace_rcl_lifecycle_state_machine_init)(node_handle, state_machine);
-
-  std::cerr << "rcl_lifecycle_state_machine_init," <<
-    node_handle << "," <<
-    state_machine << std::endl;
-}
-#endif
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto record = [](
+    const void * node_handle,
+    const void * state_machine,
+    int64_t init_time) {
+    tracepoint(TRACEPOINT_PROVIDER, rcl_lifecycle_state_machine_init,
+      node_handle, state_machine, init_time);
 
 #ifdef DEBUG_OUTPUT
+    std::cerr << "rcl_lifecycle_state_machine_init," <<
+      node_handle << "," <<
+      state_machine << std::endl;
+#endif
+  };
+  auto now = clock.now();
+
+  check_and_run_trace_node();
+
+  record(node_handle, state_machine, now);
+}
+
 void ros_trace_rcl_lifecycle_transition(
   const void * state_machine,
   const char * start_label,
   const char * goal_label)
 {
+  static auto & context = Singleton<Context>::get_instance();
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(const void *, const char *, const char *);
-  assert(ORIG_FUNC::ros_trace_rcl_lifecycle_transition != nullptr);
-  ((functionT) ORIG_FUNC::ros_trace_rcl_lifecycle_transition)(state_machine, start_label, goal_label); // NOLINT
 
-  std::cerr << "rcl_lifecycle_transition," <<
-    state_machine << "," <<
-    start_label << "," <<
-    goal_label << "," << std::endl;
-}
-#endif
+  if (context.is_recording_allowed()) {
+    ((functionT) orig_func)(state_machine, start_label, goal_label);
 
 #ifdef DEBUG_OUTPUT
+    std::cerr << "rcl_lifecycle_transition," <<
+      state_machine << "," <<
+      start_label << "," <<
+      goal_label << "," << std::endl;
+#endif
+  }
+}
+
 void ros_trace_message_construct(
   const void * original_message,
   const void * constructed_message)
 {
+  static auto & context = Singleton<Context>::get_instance();
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(const void *, const void *);
+  if (context.is_recording_allowed()) {
+    ((functionT) orig_func)(original_message, constructed_message);
 
-  std::cerr << "message_construct," <<
-    original_message << "," <<
-    constructed_message << std::endl;
-}
+#ifdef DEBUG_OUTPUT
+    std::cerr << "message_construct," <<
+      original_message << "," <<
+      constructed_message << std::endl;
 #endif
+  }
+}
 
 void ros_trace_rclcpp_executor_execute(
   const void * handle
 )
 {
+  (void) handle;
 // #ifdef DEBUG_OUTPUT
 //   std::cerr << "rclcpp_executor_execute," << handle << std::endl;
 // #endif
@@ -548,6 +902,7 @@ void ros_trace_rclcpp_executor_wait_for_work(
   const int64_t timeout
 )
 {
+  (void) timeout;
 // #ifdef DEBUG_OUTPUT
 //   std::cerr << "rclcpp_executor_wait_for_work," << timeout << std::endl;
 // #endif
@@ -564,6 +919,7 @@ void ros_trace_rcl_take(
   const void * message
 )
 {
+  (void) message;
 // #ifdef DEBUG_OUTPUT
 //   std::cerr << "rcl_take," << message << std::endl;
 // #endif
@@ -573,6 +929,7 @@ void ros_trace_rclcpp_take(
   const void * message
 )
 {
+  (void) message;
 }
 
 void ros_trace_rmw_take(
@@ -582,6 +939,10 @@ void ros_trace_rmw_take(
   const bool taken
 )
 {
+  (void) rmw_subscription_handle;
+  (void) message;
+  (void) source_timestamp;
+  (void) taken;
 // #ifdef DEBUG_OUTPUT
 //   std::cerr << "rmw_take," <<
 //     rmw_subscription_handle << "," <<
@@ -607,6 +968,8 @@ void ros_trace_rmw_publisher_init(
   const uint8_t gid
 )
 {
+  (void) rmw_publisher_handle;
+  (void) gid;
 // #ifdef DEBUG_OUTPUT
 //   std::cerr << "rmw_publisher_init," <<
 //     rmw_publisher_handle << "," <<
@@ -619,6 +982,8 @@ void ros_trace_rmw_subscription_init(
   const uint8_t gid
 )
 {
+  (void) rmw_subscription_handle;
+  (void) gid;
 // #ifdef DEBUG_OUTPUT
 //   std::cerr << "rmw_subscription_init," <<
 //     rmw_subscription_handle << "," <<

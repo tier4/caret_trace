@@ -14,18 +14,67 @@
 
 #include "caret_trace/context.hpp"
 
+#include "caret_trace/clock.hpp"
+#include "caret_trace/data_container.hpp"
+#include "caret_trace/lttng_session.hpp"
+#include "caret_trace/trace_node.hpp"
+
 #include <rclcpp/rclcpp.hpp>
 
 #include <chrono>
 #include <iostream>
 #include <memory>
 
-Context::Context() : Context(std::make_shared<TracingController>()) {}
+Context::Context()
+: Context(std::make_shared<DataContainer>(), std::make_shared<TracingController>())
+{
+}
 
-Context::Context(std::shared_ptr<TracingController> controller) : controller_(controller) {}
+Context::Context(
+  std::shared_ptr<DataContainer> data_container, std::shared_ptr<TracingController> controller)
+: is_node_initializing(false),
+  data_container_(data_container),
+  controller_(controller),
+  node_(nullptr),
+  lttng_(std::make_shared<LttngSessionImpl>()),
+  clock_(std::make_shared<Clock>())
+{
+}
 
 TracingController & Context::get_controller()
 {
   assert(controller_ != nullptr);
   return *controller_;
 }
+
+std::shared_ptr<DataContainer> Context::get_data_container_ptr() { return data_container_; }
+
+std::shared_ptr<LttngSession> Context::get_lttng_session_ptr() { return lttng_; }
+
+DataContainer & Context::get_data_container() { return *data_container_; }
+
+TraceNodeInterface & Context::get_node()
+{
+  assert(is_node_assigned());
+  return *node_;
+}
+
+Clock & Context::get_clock()
+{
+  assert(clock_ != nullptr);
+  return *clock_;
+}
+
+bool Context::is_recording_allowed() const
+{
+  if (is_node_assigned()) {
+    return node_->is_recording_allowed();
+  }
+
+  // NOTE: Prohibited to suppress DISCARDED.
+  return false;
+}
+
+void Context::assign_node(std::shared_ptr<TraceNodeInterface> node) { node_ = node; }
+
+bool Context::is_node_assigned() const { return static_cast<bool>(node_); }

@@ -8,6 +8,7 @@
   <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>caret_msgs</depend>
   <depend>cyclonedds</depend>
   <depend>fastrtps</depend>
   <depend>liblttng-ust-dev</depend>

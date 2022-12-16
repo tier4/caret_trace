@@ -84,10 +84,12 @@ TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
   rmw_implementation,
   TP_ARGS(
-    const char *, rmw_impl_arg
+    const char *, rmw_impl_arg,
+    int64_t, init_timestamp_arg
   ),
   TP_FIELDS(
     ctf_string(rmw_impl, rmw_impl_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
   )
 )
 
@@ -96,11 +98,13 @@ TRACEPOINT_EVENT(
   construct_executor,
   TP_ARGS(
     const void *, executor_addr_arg,
-    const char *, executor_type_name_arg
+    const char *, executor_type_name_arg,
+    int64_t, init_timestamp_arg
   ),
   TP_FIELDS(
     ctf_integer_hex(const void *, executor_addr, executor_addr_arg)
     ctf_string(executor_type_name, executor_type_name_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
   )
 )
 
@@ -110,12 +114,14 @@ TRACEPOINT_EVENT(
   TP_ARGS(
     const void *, executor_addr_arg,
     const void *, entities_collector_addr_arg,
-    const char *, executor_type_name_arg
+    const char *, executor_type_name_arg,
+    int64_t, init_timestamp_arg
   ),
   TP_FIELDS(
     ctf_integer_hex(const void *, executor_addr, executor_addr_arg)
     ctf_integer_hex(const void *, entities_collector_addr, entities_collector_addr_arg)
     ctf_string(executor_type_name, executor_type_name_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
   )
 )
 
@@ -125,12 +131,14 @@ TRACEPOINT_EVENT(
   TP_ARGS(
     const void *, executor_addr_arg,
     const void *, callback_group_addr_arg,
-    const char *, group_type_name_arg
+    const char *, group_type_name_arg,
+    int64_t, init_timestamp_arg
   ),
   TP_FIELDS(
     ctf_integer_hex(const void *, executor_addr, executor_addr_arg)
     ctf_integer_hex(const void *, callback_group_addr, callback_group_addr_arg)
     ctf_string(group_type_name, group_type_name_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
   )
 )
 
@@ -140,12 +148,14 @@ TRACEPOINT_EVENT(
   TP_ARGS(
     const void *, entities_collector_addr_arg,
     const void *, callback_group_addr_arg,
-    const char *, group_type_name_arg
+    const char *, group_type_name_arg,
+    int64_t, init_timestamp_arg
   ),
   TP_FIELDS(
     ctf_integer_hex(const void *, entities_collector_addr, entities_collector_addr_arg)
     ctf_integer_hex(const void *, callback_group_addr, callback_group_addr_arg)
     ctf_string(group_type_name, group_type_name_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
   )
 )
 
@@ -154,11 +164,13 @@ TRACEPOINT_EVENT(
   callback_group_add_timer,
   TP_ARGS(
     const void *, callback_group_addr_arg,
-    const void *, timer_handle_arg
+    const void *, timer_handle_arg,
+    int64_t, init_timestamp_arg
   ),
   TP_FIELDS(
     ctf_integer_hex(const void *, callback_group_addr, callback_group_addr_arg)
     ctf_integer_hex(const void *, timer_handle, timer_handle_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
   )
 )
 
@@ -167,11 +179,13 @@ TRACEPOINT_EVENT(
   callback_group_add_subscription,
   TP_ARGS(
     const void *, callback_group_addr_arg,
-    const void *, subscription_handle_arg
+    const void *, subscription_handle_arg,
+    int64_t, init_timestamp_arg
   ),
   TP_FIELDS(
     ctf_integer_hex(const void *, callback_group_addr, callback_group_addr_arg)
     ctf_integer_hex(const void *, subscription_handle, subscription_handle_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
   )
 )
 
@@ -180,11 +194,13 @@ TRACEPOINT_EVENT(
   callback_group_add_service,
   TP_ARGS(
     const void *, callback_group_addr_arg,
-    const void *, service_handle_arg
+    const void *, service_handle_arg,
+    int64_t, init_timestamp_arg
   ),
   TP_FIELDS(
     ctf_integer_hex(const void *, callback_group_addr, callback_group_addr_arg)
     ctf_integer_hex(const void *, service_handle, service_handle_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
   )
 )
 
@@ -193,11 +209,13 @@ TRACEPOINT_EVENT(
   callback_group_add_client,
   TP_ARGS(
     const void *, callback_group_addr_arg,
-    const void *, client_handle_arg
+    const void *, client_handle_arg,
+    int64_t, init_timestamp_arg
   ),
   TP_FIELDS(
     ctf_integer_hex(const void *, callback_group_addr, callback_group_addr_arg)
     ctf_integer_hex(const void *, client_handle, client_handle_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
   )
 )
 
@@ -209,6 +227,251 @@ TRACEPOINT_EVENT(
   ),
   TP_FIELDS(
     ctf_integer(const uint64_t, stamp, stamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  caret_init,
+  TP_ARGS(
+    int64_t, clock_offset_arg
+  ),
+  TP_FIELDS(
+    ctf_integer(const int64_t, clock_offset, clock_offset_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rcl_init,
+  TP_ARGS(
+    const void *, context_handle_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, context_handle, context_handle_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rcl_node_init,
+  TP_ARGS(
+    const void *, node_handle_arg,
+    const void *, rmw_handle_arg,
+    const char *, node_name_arg,
+    const char *, namespace_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, node_handle, node_handle_arg)
+    ctf_integer_hex(const void *, rmw_handle, rmw_handle_arg)
+    ctf_string(node_name, node_name_arg)
+    ctf_string(namespace, namespace_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rcl_publisher_init,
+  TP_ARGS(
+    const void *, publisher_handle_arg,
+    const void *, node_handle_arg,
+    const void *, rmw_publisher_handle_arg,
+    const char *, topic_name_arg,
+    const size_t, queue_depth_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, publisher_handle, publisher_handle_arg)
+    ctf_integer_hex(const void *, node_handle, node_handle_arg)
+    ctf_integer_hex(const void *, rmw_publisher_handle, rmw_publisher_handle_arg)
+    ctf_string(topic_name, topic_name_arg)
+    ctf_integer(const size_t, queue_depth, queue_depth_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rcl_subscription_init,
+  TP_ARGS(
+    const void *, subscription_handle_arg,
+    const void *, node_handle_arg,
+    const void *, rmw_subscription_handle_arg,
+    const char *, topic_name_arg,
+    const size_t, queue_depth_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, subscription_handle, subscription_handle_arg)
+    ctf_integer_hex(const void *, node_handle, node_handle_arg)
+    ctf_integer_hex(const void *, rmw_subscription_handle, rmw_subscription_handle_arg)
+    ctf_string(topic_name, topic_name_arg)
+    ctf_integer(const size_t, queue_depth, queue_depth_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rclcpp_subscription_init,
+  TP_ARGS(
+    const void *, subscription_handle_arg,
+    const void *, subscription_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, subscription_handle, subscription_handle_arg)
+    ctf_integer_hex(const void *, subscription, subscription_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rclcpp_subscription_callback_added,
+  TP_ARGS(
+    const void *, subscription_arg,
+    const void *, callback_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, subscription, subscription_arg)
+    ctf_integer_hex(const void *, callback, callback_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rcl_timer_init,
+  TP_ARGS(
+    const void *, timer_handle_arg,
+    int64_t, period_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, timer_handle, timer_handle_arg)
+    ctf_integer(const int64_t, period, period_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rclcpp_timer_callback_added,
+  TP_ARGS(
+    const void *, timer_handle_arg,
+    const void *, callback_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, timer_handle, timer_handle_arg)
+    ctf_integer_hex(const void *, callback, callback_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rclcpp_timer_link_node,
+  TP_ARGS(
+    const void *, timer_handle_arg,
+    const void *, node_handle_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, timer_handle, timer_handle_arg)
+    ctf_integer_hex(const void *, node_handle, node_handle_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rclcpp_callback_register,
+  TP_ARGS(
+    const void *, callback_arg,
+    const char *, symbol_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, callback, callback_arg)
+    ctf_string(symbol, symbol_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rcl_service_init,
+  TP_ARGS(
+    const void *, service_handle_arg,
+    const void *, node_handle_arg,
+    const void *, rmw_service_handle_arg,
+    const char *, service_name_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, service_handle, service_handle_arg)
+    ctf_integer_hex(const void *, node_handle, node_handle_arg)
+    ctf_integer_hex(const void *, rmw_service_handle, rmw_service_handle_arg)
+    ctf_string(service_name, service_name_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rclcpp_service_callback_added,
+  TP_ARGS(
+    const void *, service_handle_arg,
+    const void *, callback_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, service_handle, service_handle_arg)
+    ctf_integer_hex(const void *, callback, callback_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rcl_client_init,
+  TP_ARGS(
+    const void *, client_handle_arg,
+    const void *, node_handle_arg,
+    const void *, rmw_client_handle_arg,
+    const char *, service_name_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, client_handle, client_handle_arg)
+    ctf_integer_hex(const void *, node_handle, node_handle_arg)
+    ctf_integer_hex(const void *, rmw_client_handle, rmw_client_handle_arg)
+    ctf_string(service_name, service_name_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rcl_lifecycle_state_machine_init,
+  TP_ARGS(
+    const void *, node_handle_arg,
+    const void *, state_machine_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, node_handle, node_handle_arg)
+    ctf_integer_hex(const void *, state_machine, state_machine_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
   )
 )
 

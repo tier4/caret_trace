@@ -35,10 +35,10 @@ TEST(HashableKeys, IntCase)
   }
 
   {
-    HashableKeys<int, int, int, int, int> keys(1, 2, 3, 4, 5);
-    HashableKeys<int, int, int, int, int> keys_(1, 2, 3, 4, 5);
-    HashableKeys<int, int, int, int, int> keys__(2, 2, 3, 4, 5);
-    HashableKeys<int, int, int, int, int> keys___(1, 2, 3, 4, 4);
+    HashableKeys<int, int, int, int, int, int> keys(1, 2, 3, 4, 5, 6);
+    HashableKeys<int, int, int, int, int, int> keys_(1, 2, 3, 4, 5, 6);
+    HashableKeys<int, int, int, int, int, int> keys__(2, 2, 3, 4, 5, 6);
+    HashableKeys<int, int, int, int, int, int> keys___(1, 2, 3, 4, 4, 6);
 
     EXPECT_TRUE(keys.equal_to(keys_));
     EXPECT_FALSE(keys.equal_to(keys__));
@@ -74,10 +74,10 @@ TEST(HashableKeys, MultiArgsCase)
 
 TEST(HashableKeys, LessOperator)
 {
-  HashableKeys<int, int, int, int, int> keys(1, 2, 3, 4, 5);
-  HashableKeys<int, int, int, int, int> keys_(1, 2, 3, 4, 5);
-  HashableKeys<int, int, int, int, int> keys__(1, 2, 3, 4, 6);
-  HashableKeys<int, int, int, int, int> keys___(2, 2, 3, 4, 6);
+  HashableKeys<int, int, int, int, int, int> keys(1, 2, 3, 4, 5, 6);
+  HashableKeys<int, int, int, int, int, int> keys_(1, 2, 3, 4, 5, 6);
+  HashableKeys<int, int, int, int, int, int> keys__(1, 2, 3, 4, 6, 6);
+  HashableKeys<int, int, int, int, int, int> keys___(2, 2, 3, 4, 6, 6);
 
   EXPECT_FALSE(keys < keys_);
   EXPECT_TRUE(keys < keys__);
@@ -103,11 +103,13 @@ TEST(HashableKeys, Size)
     HashableKeys<int, int, int> keys_3(1, 2, 3);
     HashableKeys<int, int, int, int> keys_4(1, 2, 3, 4);
     HashableKeys<int, int, int, int, int64_t> keys_5(1, 2, 3, 4, 5);
+    HashableKeys<int, int, int, int, int64_t, int> keys_6(1, 2, 3, 4, 5, 6);
 
     EXPECT_LE(sizeof(keys_1), sizeof(keys_2));
     EXPECT_LE(sizeof(keys_2), sizeof(keys_3));
     EXPECT_LE(sizeof(keys_3), sizeof(keys_4));
     EXPECT_LE(sizeof(keys_4), sizeof(keys_5));
+    EXPECT_LE(sizeof(keys_5), sizeof(keys_6));
   }
 }
 
