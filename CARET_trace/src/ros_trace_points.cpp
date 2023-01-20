@@ -192,8 +192,6 @@ void ros_trace_rcl_node_init(
     data_container.assign_rcl_node_init(record);
   }
 
-  trace_node_thread = std::make_unique<std::thread>();
-
   std::string ns = node_namespace;
   char last_char = ns[ns.length() - 1];
   if (last_char != '/') {
