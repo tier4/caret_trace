@@ -76,8 +76,8 @@ void run_caret_trace_node()
   if (!option.context()->is_valid()) {
     // Initialize the context if it has not been initialized.
     int argc = 1;
-    const char * argvs[] = {"caret_trace_node"};
-    option.context()->init(argc, argvs);
+    const char * argv[] = {"caret_trace_node"};
+    option.context()->init(argc, argv);
   }
   // Set global arguments to false to prevent the node to be generated from being renamed.
   option.use_global_arguments(false);
