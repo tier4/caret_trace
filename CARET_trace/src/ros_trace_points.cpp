@@ -76,8 +76,8 @@ void run_caret_trace_node()
   if (!option.context()->is_valid()) {
     // Initialize the context if it has not been initialized.
     int argc = 1;
-    const char * argvs[] = {"caret_trace_node"};
-    option.context()->init(argc, argvs);
+    const char * argv[] = {"caret_trace_node"};
+    option.context()->init(argc, argv);
   }
   // Set global arguments to false to prevent the node to be generated from being renamed.
   option.use_global_arguments(false);
@@ -191,8 +191,6 @@ void ros_trace_rcl_node_init(
   if (!data_container.is_assigned_rcl_node_init()) {
     data_container.assign_rcl_node_init(record);
   }
-
-  trace_node_thread = std::make_unique<std::thread>();
 
   std::string ns = node_namespace;
   char last_char = ns[ns.length() - 1];
