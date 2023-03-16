@@ -49,7 +49,7 @@
 #define DEFINE_ORIG_FUNC(TP_NAME) TP_NAME = dlsym(RTLD_NEXT, #TP_NAME)
 
 std::unique_ptr<std::thread> trace_node_thread;
-thread_local bool ros2caret_is_rcl_publish_recorded;
+thread_local bool trace_filter_is_rcl_publish_recorded;
 
 void run_caret_trace_node()
 {
@@ -669,14 +669,14 @@ void ros_trace_rcl_publish(
   using functionT = void (*)(const void *, const void *);
   if (controller.is_allowed_publisher_handle(publisher_handle) && context.is_recording_allowed()) {
     ((functionT) orig_func)(publisher_handle, message);
-    ros2caret_is_rcl_publish_recorded = true;
+    trace_filter_is_rcl_publish_recorded = true;
 #ifdef DEBUG_OUTPUT
     std::cerr << "rcl_publish," <<
       publisher_handle << "," <<
       message << std::endl;
 #endif
   } else {
-    ros2caret_is_rcl_publish_recorded = false;
+    trace_filter_is_rcl_publish_recorded = false;
   }
 }
 
@@ -958,7 +958,7 @@ void ros_trace_rmw_publish(
   const void * message
 )
 {
-  if (ros2caret_is_rcl_publish_recorded) {
+  if (trace_filter_is_rcl_publish_recorded) {
     tracepoint(TRACEPOINT_PROVIDER, dds_write, message);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rmw_publish," <<

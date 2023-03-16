@@ -48,7 +48,7 @@
 #define SYMBOL_CONCAT_2(x, y) x##y
 #define SYMBOL_CONCAT_3(x, y, z) x##y##z
 
-extern thread_local bool ros2caret_is_rcl_publish_recorded;
+extern thread_local bool trace_filter_is_rcl_publish_recorded;
 
 // Declare a prototype in order to use the functions implemented in cyclonedds.
 rmw_ret_t rmw_get_gid_for_publisher(const rmw_publisher_t * publisher, rmw_gid_t * gid);
@@ -224,7 +224,7 @@ int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
   }
   int dds_return = ((functionT)CYCLONEDDS::DDS_WRITE_IMPL)(wr, data, tstamp, action);
 
-  if (context.is_recording_allowed() && ros2caret_is_rcl_publish_recorded) {
+  if (context.is_recording_allowed() && trace_filter_is_rcl_publish_recorded) {
     tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, data, tstamp);
 #ifdef DEBUG_OUTPUT
     std::cerr << "dds_bind_addr_to_stamp," << data << "," << tstamp << std::endl;
