@@ -45,10 +45,7 @@ void add_data(DataContainer & container, int loop)
   }
 }
 
-void record_data(DataContainer & container, int loop)
-{
-  container.record(loop);
-}
+void record_data(DataContainer & container, int loop) { container.record(loop); }
 
 TEST(ScenarioTest, TestSingleThread)
 {

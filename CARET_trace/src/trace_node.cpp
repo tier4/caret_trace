@@ -81,9 +81,7 @@ TraceNode::TraceNode(
   debug("Initialized.");
 }
 
-TraceNode::~TraceNode()
-{
-}
+TraceNode::~TraceNode() {}
 
 std::string TraceNode::get_unique_node_name(std::string base_name)
 {
@@ -110,10 +108,7 @@ void TraceNode::info(std::string message) const
   }
 }
 
-DataContainerInterface & TraceNode::get_data_container()
-{
-  return *data_container_;
-}
+DataContainerInterface & TraceNode::get_data_container() { return *data_container_; }
 
 void TraceNode::run_timer()
 {
@@ -158,10 +153,7 @@ bool TraceNode::is_recording_allowed_init() const
   return status_ == TRACE_STATUS::RECORD || status_ == TRACE_STATUS::PREPARE;
 }
 
-const TRACE_STATUS & TraceNode::get_status() const
-{
-  return status_;
-}
+const TRACE_STATUS & TraceNode::get_status() const { return status_; }
 
 void TraceNode::publish_status(TRACE_STATUS status) const
 {
@@ -203,10 +195,7 @@ void TraceNode::start_callback(caret_msgs::msg::Start::UniquePtr msg)
   run_timer();
 }
 
-bool TraceNode::is_timer_running() const
-{
-  return !timer_->is_canceled();
-}
+bool TraceNode::is_timer_running() const { return !timer_->is_canceled(); }
 
 void TraceNode::timer_callback()
 {
