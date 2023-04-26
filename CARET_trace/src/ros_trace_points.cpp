@@ -914,17 +914,21 @@ void ros_trace_rmw_take(
   const bool taken
 )
 {
-  (void) rmw_subscription_handle;
-  (void) message;
-  (void) source_timestamp;
-  (void) taken;
-// #ifdef DEBUG_OUTPUT
-//   std::cerr << "rmw_take," <<
-//     rmw_subscription_handle << "," <<
-//     message << "," <<
-//     source_timestamp << "," <<
-//     taken << "," << std::endl;
-// #endif
+  static auto & context = Singleton<Context>::get_instance();
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(const void *, const void *, int64_t, const bool);
+  if (context.is_recording_allowed()) {
+    ((functionT) orig_func)(rmw_subscription_handle, message,
+      source_timestamp, taken);
+
+#ifdef DEBUG_OUTPUT
+  std::cerr << "rmw_take," <<
+    rmw_subscription_handle << "," <<
+    message << "," <<
+    source_timestamp << "," <<
+    taken << "," << std::endl;
+#endif
+  }
 }
 
 void ros_trace_rmw_publish(
