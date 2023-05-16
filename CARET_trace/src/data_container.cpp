@@ -195,9 +195,15 @@ void DataContainer::start_recording()
   }
 }
 
-void DataContainer::reset() { recorder_->reset(); }
+void DataContainer::reset()
+{
+  recorder_->reset();
+}
 
-std::vector<std::string> DataContainer::trace_points() const { return recorder_->trace_points(); }
+std::vector<std::string> DataContainer::trace_points() const
+{
+  return recorder_->trace_points();
+}
 
 void DataContainer::assign_add_callback_group(AddCallbackGroup::StdFuncT record)
 {

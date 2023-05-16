@@ -25,7 +25,9 @@
 #include <utility>
 #include <vector>
 
-DataRecorder::DataRecorder() {}
+DataRecorder::DataRecorder()
+{
+}
 
 DataRecorder::DataRecorder(std::initializer_list<std::shared_ptr<RecordableDataInterface>> data)
 : DataRecorder(std::vector<std::shared_ptr<RecordableDataInterface>>(data))
