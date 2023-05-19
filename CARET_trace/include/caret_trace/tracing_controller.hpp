@@ -45,6 +45,13 @@ public:
   void add_subscription_handle(
     const void * node_handle, const void * subscription_handle, std::string topic_name);
 
+  /// @brief Register topic name for rcl_subscription_init hook.
+  /// @param node_handle Address of the node handle.
+  /// @param rmw_subscription_handle Address of the rmw_subscription handle.
+  /// @param topic_name topic name.
+  void add_rmw_subscription_handle(
+    const void * node_handle, const void * rmw_subscription_handle, std::string topic_name);
+
   /// @brief Register binding information for rclcpp_subscription_init tracepoint hook.
   /// @param subscription_handle Address of the subscription handle.
   /// @param subscription Address of subscription instance.
@@ -93,6 +100,11 @@ public:
   /// @return True if the subscription is enabled, false otherwise.
   bool is_allowed_subscription_handle(const void * subscription_handle);
 
+  /// @brief Check if trace point is a enabled subscription
+  /// @param rmw_subscription_handle Address of the rmw_subscription handle.
+  /// @return True if the rmw_subscription is enabled, false otherwise.
+  bool is_allowed_rmw_subscription_handle(const void * rmw_subscription_handle);
+
 private:
   void debug(std::string message) const;
   void info(std::string message) const;
@@ -115,6 +127,12 @@ private:
   std::unordered_map<const void *, std::string> subscription_handle_to_topic_names_;
   std::unordered_map<const void *, const void *> subscription_to_subscription_handles_;
   std::unordered_map<const void *, const void *> callback_to_subscriptions_;
+
+  std::unordered_map<const void *, const void *> rmw_subscription_handle_to_node_handles_;
+  std::unordered_map<const void *, std::string> rmw_subscription_handle_to_topic_names_;
+  std::unordered_map<const void *, const void *> rmw_subscription_handle_to_subscription_handle;
+  std::unordered_map<const void *, const void *> callback_to_rmw_subscriptions_;
+  std::unordered_map<const void *, bool> allowed_rmw_subscription_handles_;
 
   std::unordered_map<const void *, std::string> node_handle_to_node_names_;
   std::unordered_map<const void *, const void *> callback_to_timer_handles_;

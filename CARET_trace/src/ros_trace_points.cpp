@@ -247,6 +247,7 @@ void ros_trace_rcl_subscription_init(
   auto now = clock.now();
 
   controller.add_subscription_handle(node_handle, subscription_handle, topic_name);
+  controller.add_rmw_subscription_handle(node_handle, rmw_subscription_handle, topic_name);
 
   if (!data_container.is_assigned_rcl_subscription_init()) {
     data_container.assign_rcl_subscription_init(record);
@@ -915,9 +916,12 @@ void ros_trace_rmw_take(
 )
 {
   static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(const void *, const void *, int64_t, const bool);
-  if (context.is_recording_allowed()) {
+  if (controller.is_allowed_rmw_subscription_handle(rmw_subscription_handle) &&
+    context.is_recording_allowed())
+  {
     ((functionT) orig_func)(rmw_subscription_handle, message,
       source_timestamp, taken);
 
