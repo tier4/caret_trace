@@ -120,7 +120,6 @@ namespace ORIG_FUNC
 static void * DEFINE_ORIG_FUNC(ros_trace_callback_end);
 static void * DEFINE_ORIG_FUNC(ros_trace_callback_start);
 static void * DEFINE_ORIG_FUNC(ros_trace_dispatch_intra_process_subscription_callback);
-static void * DEFINE_ORIG_FUNC(ros_trace_dispatch_subscription_callback);
 static void * DEFINE_ORIG_FUNC(ros_trace_message_construct);
 static void * DEFINE_ORIG_FUNC(ros_trace_rcl_lifecycle_state_machine_init);
 static void * DEFINE_ORIG_FUNC(ros_trace_rcl_lifecycle_transition);
@@ -449,32 +448,6 @@ void ros_trace_callback_end(const void * callback)
 #ifdef DEBUG_OUTPUT
     std::cerr << "callback_end," <<
       callback << std::endl;
-#endif
-  }
-}
-
-void ros_trace_dispatch_subscription_callback(
-  const void * message,
-  const void * callback,
-  const uint64_t source_timestamp,
-  const uint64_t message_timestamp)
-{
-  static auto & context = Singleton<Context>::get_instance();
-  static auto & controller = context.get_controller();
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
-
-  using functionT = void (*)(const void *, const void *, const uint64_t, const uint64_t);
-  if (controller.is_allowed_callback(callback) &&
-    context.is_recording_allowed())
-  {
-    ((functionT) orig_func)(message, callback, source_timestamp, message_timestamp);
-
-#ifdef DEBUG_OUTPUT
-    std::cerr << "dispatch_subscription_callback," <<
-      message << "," <<
-      callback << "," <<
-      source_timestamp << "," <<
-      message_timestamp << std::endl;
 #endif
   }
 }
