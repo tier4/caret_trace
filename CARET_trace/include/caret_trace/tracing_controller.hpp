@@ -130,8 +130,6 @@ private:
 
   std::unordered_map<const void *, const void *> rmw_subscription_handle_to_node_handles_;
   std::unordered_map<const void *, std::string> rmw_subscription_handle_to_topic_names_;
-  std::unordered_map<const void *, const void *> rmw_subscription_handle_to_subscription_handle;
-  std::unordered_map<const void *, const void *> callback_to_rmw_subscriptions_;
   std::unordered_map<const void *, bool> allowed_rmw_subscription_handles_;
 
   std::unordered_map<const void *, std::string> node_handle_to_node_names_;
