@@ -468,8 +468,10 @@ void TracingController::add_rmw_subscription_handle(
   const void * node_handle, const void * rmw_subscription_handle, std::string topic_name)
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
-  rmw_subscription_handle_to_node_handles_.insert(std::make_pair(rmw_subscription_handle, node_handle));
-  rmw_subscription_handle_to_topic_names_.insert(std::make_pair(rmw_subscription_handle, topic_name));
+  rmw_subscription_handle_to_node_handles_.insert(
+    std::make_pair(rmw_subscription_handle, node_handle));
+  rmw_subscription_handle_to_topic_names_.insert(
+    std::make_pair(rmw_subscription_handle, topic_name));
 }
 
 void TracingController::add_subscription(
