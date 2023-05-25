@@ -459,10 +459,10 @@ void ros_trace_dispatch_subscription_callback(
   const uint64_t source_timestamp,
   const uint64_t message_timestamp)
 {
-  (void) message
-  (void) callback
-  (void) source_timestamp
-  (void) message_timestamp
+  (void) message;
+  (void) callback;
+  (void) source_timestamp;
+  (void) message_timestamp;
 
 // #ifdef DEBUG_OUTPUT
 //     std::cerr << "dispatch_subscription_callback," <<
@@ -471,7 +471,6 @@ void ros_trace_dispatch_subscription_callback(
 //       source_timestamp << "," <<
 //       message_timestamp << std::endl;
 // #endif
-  }
 }
 
 void ros_trace_dispatch_intra_process_subscription_callback(
