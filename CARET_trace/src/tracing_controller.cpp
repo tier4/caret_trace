@@ -297,10 +297,6 @@ bool TracingController::is_allowed_rmw_subscription_handle(const void * rmw_subs
         allowed_rmw_subscription_handles_.insert(std::make_pair(rmw_subscription_handle, true));
         return true;
       }
-      if (selected_node_names_.size() == 0 && topic_name == "") {  // allow timer callback
-        allowed_rmw_subscription_handles_.insert(std::make_pair(rmw_subscription_handle, true));
-        return true;
-      }
 
       allowed_rmw_subscription_handles_.insert(std::make_pair(rmw_subscription_handle, false));
       return false;
