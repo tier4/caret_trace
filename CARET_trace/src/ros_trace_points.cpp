@@ -1073,8 +1073,11 @@ void ros_trace_rclcpp_intra_publish(
   const void * message
 )
 {
-  (void) publisher_handle;
-  (void) message;
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(const void *, const void *);
+
+  ((functionT) orig_func)(publisher_handle, message);
+
 #ifdef DEBUG_OUTPUT
   std::cerr << "rclcpp_intra_publish," <<
     publisher_handle << "," <<
@@ -1101,8 +1104,10 @@ void ros_trace_rclcpp_construct_ring_buffer(
     const uint64_t capacity
 )
 {
-  (void) buffer;
-  (void) capacity;
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(const void *, const uint64_t);
+  ((functionT) orig_func)(buffer, capacity);
+
 #ifdef DEBUG_OUTPUT
   std::cerr << "rclcpp_construct_ring_buffer," <<
     buffer << "," <<
@@ -1117,10 +1122,10 @@ void ros_trace_rclcpp_ring_buffer_enqueue(
     const bool overwritten
 )
 {
-  (void) buffer;
-  (void) index;
-  (void) size;
-  (void) overwritten;
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(const void *, const uint64_t, const uint64_t, bool);
+  ((functionT) orig_func)(buffer, index, size, overwritten);
+
 #ifdef DEBUG_OUTPUT
   std::cerr << "rclcpp_ring_buffer_enqueue," <<
     buffer << "," <<
@@ -1136,9 +1141,10 @@ void ros_trace_rclcpp_ring_buffer_dequeue(
     const uint64_t size
 )
 {
-  (void) buffer;
-  (void) index;
-  (void) size;
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(const void *, const uint64_t, const uint64_t);
+  ((functionT) orig_func)(buffer, index, size);
+
 #ifdef DEBUG_OUTPUT
   std::cerr << "rclcpp_ring_buffer_dequeue," <<
     buffer << "," <<
@@ -1151,7 +1157,10 @@ void ros_trace_rclcpp_ring_buffer_clear(
     const void * buffer
 )
 {
-  (void) buffer;
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(const void *);
+  ((functionT) orig_func)(buffer);
+
 #ifdef DEBUG_OUTPUT
   std::cerr << "rclcpp_ring_buffer_clear," <<
     buffer << "," << std::endl;
