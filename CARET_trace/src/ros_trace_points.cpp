@@ -1068,5 +1068,95 @@ void ros_trace_rmw_subscription_init(
 // #endif
 }
 
+void ros_trace_rclcpp_intra_publish(
+  const void * publisher_handle,
+  const void * message
+)
+{
+  (void) publisher_handle;
+  (void) message;
+#ifdef DEBUG_OUTPUT
+  std::cerr << "rclcpp_intra_publish," <<
+    publisher_handle << "," <<
+    message << std::endl;
+#endif
+}
+
+void ros_trace_rclcpp_ipb_to_subscription(
+    const void * ipb,
+    const void * subscription
+)
+{
+  (void) ipb;
+  (void) subscription;
+#ifdef DEBUG_OUTPUT
+  std::cerr << "rclcpp_ipb_to_subscription," <<
+    ipb << "," <<
+    subscription << std::endl;
+#endif
+}
+
+void ros_trace_rclcpp_construct_ring_buffer(
+    const void * buffer,
+    const uint64_t capacity
+)
+{
+  (void) buffer;
+  (void) capacity;
+#ifdef DEBUG_OUTPUT
+  std::cerr << "rclcpp_construct_ring_buffer," <<
+    buffer << "," <<
+    capacity << std::endl;
+#endif
+}
+
+void ros_trace_rclcpp_ring_buffer_enqueue(
+    const void * buffer,
+    const uint64_t index,
+    const uint64_t size,
+    const bool overwritten
+)
+{
+  (void) buffer;
+  (void) index;
+  (void) size;
+  (void) overwritten;
+#ifdef DEBUG_OUTPUT
+  std::cerr << "rclcpp_ring_buffer_enqueue," <<
+    buffer << "," <<
+    index << "," <<
+    size << "," <<
+    overwritten << std::endl;
+#endif
+}
+
+void ros_trace_rclcpp_ring_buffer_dequeue(
+    const void * buffer,
+    const uint64_t index,
+    const uint64_t size
+)
+{
+  (void) buffer;
+  (void) index;
+  (void) size;
+#ifdef DEBUG_OUTPUT
+  std::cerr << "rclcpp_ring_buffer_dequeue," <<
+    buffer << "," <<
+    index << "," <<
+    size << "," << std::endl;
+#endif
+}
+
+void ros_trace_rclcpp_ring_buffer_clear(
+    const void * buffer
+)
+{
+  (void) buffer;
+#ifdef DEBUG_OUTPUT
+  std::cerr << "rclcpp_ring_buffer_clear," <<
+    buffer << "," << std::endl;
+#endif
+}
+
 // clang-format on
 }
