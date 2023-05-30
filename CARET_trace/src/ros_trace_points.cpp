@@ -1068,23 +1068,6 @@ void ros_trace_rmw_subscription_init(
 // #endif
 }
 
-void ros_trace_rclcpp_intra_publish(
-  const void * publisher_handle,
-  const void * message
-)
-{
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
-  using functionT = void (*)(const void *, const void *);
-
-  ((functionT) orig_func)(publisher_handle, message);
-
-#ifdef DEBUG_OUTPUT
-  std::cerr << "rclcpp_intra_publish," <<
-    publisher_handle << "," <<
-    message << std::endl;
-#endif
-}
-
 void ros_trace_rclcpp_ipb_to_subscription(
     const void * ipb,
     const void * subscription
