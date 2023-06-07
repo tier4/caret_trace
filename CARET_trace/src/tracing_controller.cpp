@@ -268,6 +268,59 @@ bool TracingController::is_allowed_subscription_handle(const void * subscription
   return true;
 }
 
+bool TracingController::is_allowed_rmw_subscription_handle(const void * rmw_subscription_handle)
+{
+  std::unordered_map<const void *, bool>::iterator is_allowed_it;
+  {
+    std::shared_lock<std::shared_timed_mutex> lock(mutex_);
+    is_allowed_it = allowed_rmw_subscription_handles_.find(rmw_subscription_handle);
+    if (is_allowed_it != allowed_rmw_subscription_handles_.end()) {
+      return is_allowed_it->second;
+    }
+  }
+
+  {
+    std::lock_guard<std::shared_timed_mutex> lock(mutex_);
+    auto node_handle = rmw_subscription_handle_to_node_handles_[rmw_subscription_handle];
+    auto node_name = node_handle_to_node_names_[node_handle];
+    auto topic_name = rmw_subscription_handle_to_topic_names_[rmw_subscription_handle];
+
+    if (select_enabled_) {
+      auto is_selected_topic = partial_match(selected_topic_names_, topic_name);
+      auto is_selected_node = partial_match(selected_node_names_, node_name);
+
+      if (selected_topic_names_.size() > 0 && is_selected_topic) {
+        allowed_rmw_subscription_handles_.insert(std::make_pair(rmw_subscription_handle, true));
+        return true;
+      }
+      if (selected_node_names_.size() > 0 && is_selected_node) {
+        allowed_rmw_subscription_handles_.insert(std::make_pair(rmw_subscription_handle, true));
+        return true;
+      }
+
+      allowed_rmw_subscription_handles_.insert(std::make_pair(rmw_subscription_handle, false));
+      return false;
+    }
+    if (ignore_enabled_) {
+      auto is_ignored_node = partial_match(ignored_node_names_, node_name);
+      auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name);
+
+      if (ignored_node_names_.size() > 0 && is_ignored_node) {
+        allowed_rmw_subscription_handles_.insert(std::make_pair(rmw_subscription_handle, false));
+        return false;
+      }
+      if (ignored_topic_names_.size() > 0 && is_ignored_topic) {
+        allowed_rmw_subscription_handles_.insert(std::make_pair(rmw_subscription_handle, false));
+        return false;
+      }
+      allowed_rmw_subscription_handles_.insert(std::make_pair(rmw_subscription_handle, true));
+      return true;
+    }
+    allowed_rmw_subscription_handles_.insert(std::make_pair(rmw_subscription_handle, true));
+    return true;
+  }
+}
+
 bool TracingController::is_allowed_publisher_handle(const void * publisher_handle)
 {
   std::unordered_map<const void *, bool>::iterator is_allowed_it;
@@ -405,6 +458,16 @@ void TracingController::add_subscription_handle(
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   subscription_handle_to_node_handles_.insert(std::make_pair(subscription_handle, node_handle));
   subscription_handle_to_topic_names_.insert(std::make_pair(subscription_handle, topic_name));
+}
+
+void TracingController::add_rmw_subscription_handle(
+  const void * node_handle, const void * rmw_subscription_handle, std::string topic_name)
+{
+  std::lock_guard<std::shared_timed_mutex> lock(mutex_);
+  rmw_subscription_handle_to_node_handles_.insert(
+    std::make_pair(rmw_subscription_handle, node_handle));
+  rmw_subscription_handle_to_topic_names_.insert(
+    std::make_pair(rmw_subscription_handle, topic_name));
 }
 
 void TracingController::add_subscription(

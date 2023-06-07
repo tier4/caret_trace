@@ -120,7 +120,6 @@ namespace ORIG_FUNC
 static void * DEFINE_ORIG_FUNC(ros_trace_callback_end);
 static void * DEFINE_ORIG_FUNC(ros_trace_callback_start);
 static void * DEFINE_ORIG_FUNC(ros_trace_dispatch_intra_process_subscription_callback);
-static void * DEFINE_ORIG_FUNC(ros_trace_dispatch_subscription_callback);
 static void * DEFINE_ORIG_FUNC(ros_trace_message_construct);
 static void * DEFINE_ORIG_FUNC(ros_trace_rcl_lifecycle_state_machine_init);
 static void * DEFINE_ORIG_FUNC(ros_trace_rcl_lifecycle_transition);
@@ -248,6 +247,7 @@ void ros_trace_rcl_subscription_init(
   auto now = clock.now();
 
   controller.add_subscription_handle(node_handle, subscription_handle, topic_name);
+  controller.add_rmw_subscription_handle(node_handle, rmw_subscription_handle, topic_name);
 
   if (!data_container.is_assigned_rcl_subscription_init()) {
     data_container.assign_rcl_subscription_init(record);
@@ -459,24 +459,18 @@ void ros_trace_dispatch_subscription_callback(
   const uint64_t source_timestamp,
   const uint64_t message_timestamp)
 {
-  static auto & context = Singleton<Context>::get_instance();
-  static auto & controller = context.get_controller();
-  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  (void) message;
+  (void) callback;
+  (void) source_timestamp;
+  (void) message_timestamp;
 
-  using functionT = void (*)(const void *, const void *, const uint64_t, const uint64_t);
-  if (controller.is_allowed_callback(callback) &&
-    context.is_recording_allowed())
-  {
-    ((functionT) orig_func)(message, callback, source_timestamp, message_timestamp);
-
-#ifdef DEBUG_OUTPUT
-    std::cerr << "dispatch_subscription_callback," <<
-      message << "," <<
-      callback << "," <<
-      source_timestamp << "," <<
-      message_timestamp << std::endl;
-#endif
-  }
+// #ifdef DEBUG_OUTPUT
+//     std::cerr << "dispatch_subscription_callback," <<
+//       message << "," <<
+//       callback << "," <<
+//       source_timestamp << "," <<
+//       message_timestamp << std::endl;
+// #endif
 }
 
 void ros_trace_dispatch_intra_process_subscription_callback(
@@ -941,17 +935,24 @@ void ros_trace_rmw_take(
   const bool taken
 )
 {
-  (void) rmw_subscription_handle;
-  (void) message;
-  (void) source_timestamp;
-  (void) taken;
-// #ifdef DEBUG_OUTPUT
-//   std::cerr << "rmw_take," <<
-//     rmw_subscription_handle << "," <<
-//     message << "," <<
-//     source_timestamp << "," <<
-//     taken << "," << std::endl;
-// #endif
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(const void *, const void *, int64_t, const bool);
+  if (controller.is_allowed_rmw_subscription_handle(rmw_subscription_handle) &&
+    context.is_recording_allowed())
+  {
+    ((functionT) orig_func)(rmw_subscription_handle, message,
+      source_timestamp, taken);
+
+#ifdef DEBUG_OUTPUT
+  std::cerr << "rmw_take," <<
+    rmw_subscription_handle << "," <<
+    message << "," <<
+    source_timestamp << "," <<
+    taken << "," << std::endl;
+#endif
+  }
 }
 
 void ros_trace_rmw_publish(
