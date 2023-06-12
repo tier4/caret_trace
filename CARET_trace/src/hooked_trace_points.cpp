@@ -45,8 +45,8 @@
 
 #include "caret_trace/keys_set.hpp"
 
-#define SYMBOL_CONCAT_2(x, y) x##y
-#define SYMBOL_CONCAT_3(x, y, z) x##y##z
+#define SYMBOL_CONCAT_2(x, y) x ## y
+#define SYMBOL_CONCAT_3(x, y, z) x ## y ## z
 
 extern thread_local bool trace_filter_is_rcl_publish_recorded;
 
@@ -116,7 +116,7 @@ public:
 
   RCLCPP_PUBLIC
   std::vector<rclcpp::CallbackGroup::WeakPtr> get_automatically_added_callback_groups_from_nodes()
-    override;
+  override;
 
   // protected:
   RCLCPP_PUBLIC
@@ -186,8 +186,8 @@ void update_dds_function_addr()
   }
 
   static auto record = [](const char * rmw_implementation, int64_t init_time) {
-    tracepoint(TRACEPOINT_PROVIDER, rmw_implementation, rmw_implementation, init_time);
-  };
+      tracepoint(TRACEPOINT_PROVIDER, rmw_implementation, rmw_implementation, init_time);
+    };
 
   if (!data_container.is_assigned_rmw_implementation()) {
     data_container.assign_rmw_implementation(record);
@@ -263,12 +263,12 @@ void _ZN6rclcpp9executors22SingleThreadedExecutorC1ERKNS_15ExecutorOptionsE(
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto record = [](const void * obj, const char * executor_type_name, int64_t init_time) {
-    tracepoint(TRACEPOINT_PROVIDER, construct_executor, obj, executor_type_name, init_time);
+      tracepoint(TRACEPOINT_PROVIDER, construct_executor, obj, executor_type_name, init_time);
 
 #ifdef DEBUG_OUTPUT
-    std::cerr << "construct_executor," << executor_type_name << "," << obj << std::endl;
+      std::cerr << "construct_executor," << executor_type_name << "," << obj << std::endl;
 #endif
-  };
+    };
   auto now = clock.now();
   using functionT = void (*)(void *, const void *);
   ((functionT)orig_func)(obj, option);
@@ -294,11 +294,11 @@ void SYMBOL_CONCAT_2(
 {
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   static auto record = [](const void * obj, const char * executor_type_name, int64_t init_time) {
-    tracepoint(TRACEPOINT_PROVIDER, construct_executor, obj, executor_type_name, init_time);
+      tracepoint(TRACEPOINT_PROVIDER, construct_executor, obj, executor_type_name, init_time);
 #ifdef DEBUG_OUTPUT
-    std::cerr << "construct_executor," << executor_type_name << "," << obj << std::endl;
+      std::cerr << "construct_executor," << executor_type_name << "," << obj << std::endl;
 #endif
-  };
+    };
   static auto & context = Singleton<Context>::get_instance();
   static auto & clock = context.get_clock();
   auto now = clock.now();
@@ -327,18 +327,18 @@ void _ZN6rclcpp9executors28StaticSingleThreadedExecutorC1ERKNS_15ExecutorOptions
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto record = [](
-                         const void * obj, const void * entities_collector_ptr,
-                         const char * executor_type, int64_t init_time) {
-    tracepoint(
-      TRACEPOINT_PROVIDER, construct_static_executor, obj, entities_collector_ptr, executor_type,
-      init_time);
+    const void * obj, const void * entities_collector_ptr,
+    const char * executor_type, int64_t init_time) {
+      tracepoint(
+        TRACEPOINT_PROVIDER, construct_static_executor, obj, entities_collector_ptr, executor_type,
+        init_time);
 
 #ifdef DEBUG_OUTPUT
-    std::cerr << "construct_static_executor,"
-              << "static_single_threaded_executor"
-              << "," << obj << "," << entities_collector_ptr << std::endl;
+      std::cerr << "construct_static_executor,"
+                << "static_single_threaded_executor"
+                << "," << obj << "," << entities_collector_ptr << std::endl;
 #endif
-  };
+    };
   auto now = clock.now();
 
   using functionT = void (*)(void *, const void *);
@@ -481,12 +481,12 @@ void _ZN6rclcpp13CallbackGroup9add_timerESt10shared_ptrINS_9TimerBaseEE(
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto record = [](const void * obj, const void * timer_handle, int64_t init_time) {
-    tracepoint(TRACEPOINT_PROVIDER, callback_group_add_timer, obj, timer_handle, init_time);
+      tracepoint(TRACEPOINT_PROVIDER, callback_group_add_timer, obj, timer_handle, init_time);
 
 #ifdef DEBUG_OUTPUT
-    std::cerr << "callback_group_add_timer," << obj << "," << timer_handle << std::endl;
+      std::cerr << "callback_group_add_timer," << obj << "," << timer_handle << std::endl;
 #endif
-  };
+    };
 
   auto now = clock.now();
   auto timer_handle = static_cast<const void *>(timer_ptr->get_timer_handle().get());
@@ -510,14 +510,14 @@ void _ZN6rclcpp13CallbackGroup16add_subscriptionESt10shared_ptrINS_16Subscriptio
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto record = [](const void * obj, const void * subscription_handle, int64_t init_time) {
-    tracepoint(
-      TRACEPOINT_PROVIDER, callback_group_add_subscription, obj, subscription_handle, init_time);
+      tracepoint(
+        TRACEPOINT_PROVIDER, callback_group_add_subscription, obj, subscription_handle, init_time);
 
 #ifdef DEBUG_OUTPUT
-    std::cerr << "callback_group_add_subscription," << obj << "," << subscription_handle
-              << std::endl;
+      std::cerr << "callback_group_add_subscription," << obj << "," << subscription_handle
+                << std::endl;
 #endif
-  };
+    };
 
   auto now = clock.now();
   auto subscription_handle =
@@ -542,12 +542,12 @@ void _ZN6rclcpp13CallbackGroup11add_serviceESt10shared_ptrINS_11ServiceBaseEE(
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto record = [](const void * obj, const void * service_handle, int64_t init_time) {
-    tracepoint(TRACEPOINT_PROVIDER, callback_group_add_service, obj, service_handle, init_time);
+      tracepoint(TRACEPOINT_PROVIDER, callback_group_add_service, obj, service_handle, init_time);
 
 #ifdef DEBUG_OUTPUT
-    std::cerr << "callback_group_add_service," << obj << "," << service_handle << std::endl;
+      std::cerr << "callback_group_add_service," << obj << "," << service_handle << std::endl;
 #endif
-  };
+    };
 
   auto now = clock.now();
   auto service_handle = static_cast<const void *>(service_ptr->get_service_handle().get());
@@ -571,12 +571,12 @@ void _ZN6rclcpp13CallbackGroup10add_clientESt10shared_ptrINS_10ClientBaseEE(
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto record = [](const void * obj, const void * client_handle, int64_t init_time) {
-    tracepoint(TRACEPOINT_PROVIDER, callback_group_add_client, obj, client_handle, init_time);
+      tracepoint(TRACEPOINT_PROVIDER, callback_group_add_client, obj, client_handle, init_time);
 
 #ifdef DEBUG_OUTPUT
-    std::cerr << "callback_group_add_client," << obj << "," << client_handle << std::endl;
+      std::cerr << "callback_group_add_client," << obj << "," << client_handle << std::endl;
 #endif
-  };
+    };
 
   auto now = clock.now();
   auto client_handle = static_cast<const void *>(client_ptr->get_client_handle().get());

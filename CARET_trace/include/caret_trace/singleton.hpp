@@ -27,7 +27,7 @@ public:
 
 /// @brief Class for use as a singleton.
 /// @tparam T Target class type.
-template <typename T>
+template<typename T>
 class Singleton final
 {
 public:
@@ -57,10 +57,10 @@ private:
   static T * instance;
 };
 
-template <typename T>
+template<typename T>
 std::once_flag Singleton<T>::initFlag;
 
-template <typename T>
+template<typename T>
 T * Singleton<T>::instance = nullptr;
 
 #endif  // CARET_TRACE__SINGLETON_HPP_

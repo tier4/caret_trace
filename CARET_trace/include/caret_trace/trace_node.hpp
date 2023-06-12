@@ -26,7 +26,8 @@
 #include <string>
 #include <utility>
 
-enum class TRACE_STATUS {
+enum class TRACE_STATUS
+{
   UNINITIALIZED,
   WAIT,
   PREPARE,

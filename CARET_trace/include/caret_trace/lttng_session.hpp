@@ -44,7 +44,8 @@ public:
 class LttngSessionImpl : public LttngSession
 {
 public:
-  LttngSessionImpl() : started_session_running_(is_session_running()) {}
+  LttngSessionImpl()
+  : started_session_running_(is_session_running()) {}
 
   ~LttngSessionImpl() {}
 

@@ -184,10 +184,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_add_callback_group(Args... args)
   {
-    return add_callback_group_->store(args...);
+    return add_callback_group_->store(args ...);
   }
 
   /// @brief Store data for add_callback_group_static_executor trace points.
@@ -195,10 +195,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_add_callback_group_static_executor(Args... args)
   {
-    return add_callback_group_static_executor_->store(args...);
+    return add_callback_group_static_executor_->store(args ...);
   }
 
   /// @brief Store data for callback_group_add_client trace points.
@@ -206,10 +206,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_callback_group_add_client(Args... args)
   {
-    return callback_group_add_client_->store(args...);
+    return callback_group_add_client_->store(args ...);
   }
 
   /// @brief Store data for callback_group_add_service trace points.
@@ -217,10 +217,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_callback_group_add_service(Args... args)
   {
-    return callback_group_add_service_->store(args...);
+    return callback_group_add_service_->store(args ...);
   }
 
   /// @brief Store data for callback_group_add_subscription trace points.
@@ -228,10 +228,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_callback_group_add_subscription(Args... args)
   {
-    return callback_group_add_subscription_->store(args...);
+    return callback_group_add_subscription_->store(args ...);
   }
 
   /// @brief Store data for callback_group_add_timer trace points.
@@ -239,10 +239,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_callback_group_add_timer(Args... args)
   {
-    return callback_group_add_timer_->store(args...);
+    return callback_group_add_timer_->store(args ...);
   }
 
   /// @brief Store data for construct_executor trace points.
@@ -250,10 +250,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_construct_executor(Args... args)
   {
-    return construct_executor_->store(args...);
+    return construct_executor_->store(args ...);
   }
 
   /// @brief Store data for construct_static_executor trace points.
@@ -261,10 +261,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_construct_static_executor(Args... args)
   {
-    return construct_static_executor_->store(args...);
+    return construct_static_executor_->store(args ...);
   }
 
   /// @brief Store data for rcl_node_init trace points.
@@ -272,10 +272,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_rcl_node_init(Args... args)
   {
-    return rcl_node_init_->store(args...);
+    return rcl_node_init_->store(args ...);
   }
 
   /// @brief Store data for rcl_init trace points.
@@ -283,10 +283,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_rcl_init(Args... args)
   {
-    return rcl_init_->store(args...);
+    return rcl_init_->store(args ...);
   }
 
   /// @brief Store data for rcl_subscription_init trace points.
@@ -294,10 +294,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_rcl_subscription_init(Args... args)
   {
-    return rcl_subscription_init_->store(args...);
+    return rcl_subscription_init_->store(args ...);
   }
 
   /// @brief Store data for rclcpp_callback_register trace points.
@@ -305,10 +305,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_rclcpp_callback_register(Args... args)
   {
-    return rclcpp_callback_register_->store(args...);
+    return rclcpp_callback_register_->store(args ...);
   }
 
   /// @brief Store data for rclcpp_subscription_init trace points.
@@ -316,10 +316,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_rclcpp_subscription_init(Args... args)
   {
-    return rclcpp_subscription_init_->store(args...);
+    return rclcpp_subscription_init_->store(args ...);
   }
 
   /// @brief Store data for rclcpp_subscription_callback_added trace points.
@@ -327,10 +327,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_rclcpp_subscription_callback_added(Args... args)
   {
-    return rclcpp_subscription_callback_added_->store(args...);
+    return rclcpp_subscription_callback_added_->store(args ...);
   }
 
   /// @brief Store data for rclcpp_timer_callback_added trace points.
@@ -338,10 +338,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_rclcpp_timer_callback_added(Args... args)
   {
-    return rclcpp_timer_callback_added_->store(args...);
+    return rclcpp_timer_callback_added_->store(args ...);
   }
 
   /// @brief Store data for rclcpp_timer_link_node trace points.
@@ -349,10 +349,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_rclcpp_timer_link_node(Args... args)
   {
-    return rclcpp_timer_link_node_->store(args...);
+    return rclcpp_timer_link_node_->store(args ...);
   }
 
   /// @brief Store data for rcl_timer_init trace points.
@@ -360,10 +360,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_rcl_timer_init(Args... args)
   {
-    return rcl_timer_init_->store(args...);
+    return rcl_timer_init_->store(args ...);
   }
 
   /// @brief Store data for rcl_publisher_init trace points.
@@ -371,10 +371,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_rcl_publisher_init(Args... args)
   {
-    return rcl_publisher_init_->store(args...);
+    return rcl_publisher_init_->store(args ...);
   }
 
   /// @brief Store data for rcl_client_init trace points.
@@ -382,10 +382,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_rcl_client_init(Args... args)
   {
-    return rcl_client_init_->store(args...);
+    return rcl_client_init_->store(args ...);
   }
 
   /// @brief Store data for rclcpp_service_callback_added trace points.
@@ -393,10 +393,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_rclcpp_service_callback_added(Args... args)
   {
-    return rclcpp_service_callback_added_->store(args...);
+    return rclcpp_service_callback_added_->store(args ...);
   }
 
   /// @brief Store data for rcl_service_init trace points.
@@ -404,10 +404,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_rcl_service_init(Args... args)
   {
-    return rcl_service_init_->store(args...);
+    return rcl_service_init_->store(args ...);
   }
 
   /// @brief Store data for rmw_implementation trace points.
@@ -415,10 +415,10 @@ public:
   /// @param ...args Data to be stored.
   /// @return True, data was stored to pending set.
   /// @return False, data was stored to set.
-  template <typename... Args>
+  template<typename ... Args>
   bool store_rmw_implementation(Args... args)
   {
-    return rmw_implementation_->store(args...);
+    return rmw_implementation_->store(args ...);
   }
 
   /// @brief Assign recording function for add_callback_group trace points.
