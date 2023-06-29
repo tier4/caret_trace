@@ -60,9 +60,9 @@ bool filter_launch_node()
   char cmd_str[1024];
   char result_str[1024];
 
-  snprintf( cmd_str, sizeof(cmd_str), "ps -ax |grep \"ros2 launch\" | grep %d", pid);
-  fp = popen( cmd_str, "r" );
-  if ( fgets( result_str, sizeof(result_str), fp ) == NULL ) {
+  snprintf(cmd_str, sizeof(cmd_str), "ps -ax |grep \"ros2 launch\" | grep %d", pid);
+  fp = popen(cmd_str, "r");
+  if (fgets(result_str, sizeof(result_str), fp) == NULL) {
     pclose(fp);
     return false;
   }
