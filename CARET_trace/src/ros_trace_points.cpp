@@ -53,9 +53,10 @@ thread_local bool trace_filter_is_rcl_publish_recorded;
 
 bool exclusion_event = false;
 
-bool filter_launch_node() {
+bool filter_launch_node()
+{
   pid_t pid = getpid();
-  FILE *fp;
+  FILE * fp;
   char cmd_str[1024];
   char result_str[1024];
 
@@ -66,7 +67,7 @@ bool filter_launch_node() {
     return false;
   }
   pclose(fp);
-  if ( strstr(result_str, "grep") == NULL ) {
+  if (strstr(result_str, "grep") == NULL) {
     return true;
   }
   return false;
