@@ -51,6 +51,27 @@
 std::unique_ptr<std::thread> trace_node_thread;
 thread_local bool trace_filter_is_rcl_publish_recorded;
 
+bool exclusion_event = false;
+
+bool filter_launch_node() {
+  pid_t pid = getpid();
+  FILE *fp;
+  char cmd_str[1024];
+  char result_str[1024];
+
+  sprintf( cmd_str, "ps -ax |grep \"ros2 launch\" | grep %d", pid);
+  fp = popen( cmd_str, "r" );
+  if ( fgets( result_str, sizeof(result_str), fp ) == NULL ) {
+    pclose(fp);
+    return false;
+  }
+  pclose(fp);
+  if ( strstr(result_str, "grep") == NULL ) {
+    return true;
+  }
+  return false;
+}
+
 void run_caret_trace_node()
 {
   // When the python implementation node is executed,
@@ -84,6 +105,8 @@ void run_caret_trace_node()
   option.use_global_arguments(false);
   auto trace_node = std::make_shared<TraceNode>(node_name_base, option, lttng, data_container);
   RCLCPP_INFO(trace_node->get_logger(), "%s started", trace_node->get_fully_qualified_name());
+
+  exclusion_event = filter_launch_node();
 
   context.assign_node(trace_node);
   auto exec = rclcpp::executors::SingleThreadedExecutor();
@@ -552,6 +575,10 @@ void ros_trace_rcl_timer_init(
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   // TODO(hsgwa): Add filtering of timer initialization using node_handle
+
+  if ( exclusion_event == true) {
+    return;
+  }
 
   static auto record = [](const void * timer_handle, int64_t period, int64_t init_time) {
     tracepoint(TRACEPOINT_PROVIDER, rcl_timer_init, timer_handle, period, init_time);
