@@ -372,6 +372,62 @@ bool TracingController::is_allowed_publisher_handle(const void * publisher_handl
   }
 }
 
+bool TracingController::is_allowed_buffer(const void * buffer)
+{
+  std::unordered_map<const void *, bool>::iterator is_allowed_it;
+  {
+    std::shared_lock<std::shared_timed_mutex> lock(mutex_);
+    is_allowed_it = allowed_buffers_.find(buffer);
+    if (is_allowed_it != allowed_buffers_.end()) {
+      return is_allowed_it->second;
+    }
+  }
+
+  {
+    std::lock_guard<std::shared_timed_mutex> lock(mutex_);
+    auto ipb = buffer_to_ipbs_[buffer];
+    auto subscription = ipb_to_subscriptions_[ipb];
+    auto subscription_handle = subscription_to_subscription_handles_[subscription];
+    auto node_handle = subscription_handle_to_node_handles_[subscription_handle];
+    auto node_name = node_handle_to_node_names_[node_handle];
+    auto topic_name = subscription_handle_to_topic_names_[node_handle];
+
+    if (select_enabled_) {
+      auto is_selected_topic = partial_match(selected_topic_names_, topic_name);
+      auto is_selected_node = partial_match(selected_node_names_, node_name);
+
+      if (selected_topic_names_.size() > 0 && is_selected_topic) {
+        allowed_buffers_.insert(std::make_pair(buffer, true));
+        return true;
+      }
+      if (selected_node_names_.size() > 0 && is_selected_node) {
+        allowed_buffers_.insert(std::make_pair(buffer, true));
+        return true;
+      }
+
+      allowed_buffers_.insert(std::make_pair(buffer, false));
+      return false;
+    }
+    if (ignore_enabled_) {
+      auto is_ignored_node = partial_match(ignored_node_names_, node_name);
+      auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name);
+
+      if (ignored_node_names_.size() > 0 && is_ignored_node) {
+        allowed_buffers_.insert(std::make_pair(buffer, false));
+        return false;
+      }
+      if (ignored_topic_names_.size() > 0 && is_ignored_topic) {
+        allowed_buffers_.insert(std::make_pair(buffer, false));
+        return false;
+      }
+      allowed_buffers_.insert(std::make_pair(buffer, true));
+      return true;
+    }
+    allowed_buffers_.insert(std::make_pair(buffer, true));
+    return true;
+  }
+}
+
 std::string TracingController::to_node_name(const void * callback)
 {
   do {
