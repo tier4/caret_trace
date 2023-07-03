@@ -38,6 +38,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <fstream>
 
 #undef ros_trace_rclcpp_publish
 #undef ros_trace_rclcpp_service_callback_added
@@ -51,24 +52,77 @@
 std::unique_ptr<std::thread> trace_node_thread;
 thread_local bool trace_filter_is_rcl_publish_recorded;
 
-bool exclusion_event = false;
+using namespace std;
+bool ignore_rcl_timer_init = false;
 
-bool filter_launch_node()
+vector<string> string_split(string &str, char delim) {
+    vector<string> elems;
+    stringstream ss(str);
+    string item;
+    while (getline(ss, item, delim)) {
+    if (!item.empty()) {
+            elems.push_back(item);
+        }
+    }
+    return elems;
+}
+
+bool is_ros2_launch_command()
 {
   pid_t pid = getpid();
-  FILE * fp;
-  char cmd_str[1024];
-  char result_str[1024];
+  string fileName = "/proc/" + to_string(pid) + "/cmdline";
 
-  snprintf( cmd_str, sizeof(cmd_str), "ps -ax |grep \"ros2 launch\" | grep %d", pid);
-  fp = popen( cmd_str, "r" );
-  if ( fgets( result_str, sizeof(result_str), fp ) == NULL ) {
-    pclose(fp);
+  ifstream ifs(fileName, ios::in | ios::binary);
+  if (!ifs){
     return false;
   }
-  pclose(fp);
-  if (strstr(result_str, "grep") == NULL) {
-    return true;
+  istreambuf_iterator<char> it_ifs_begin(ifs);
+  istreambuf_iterator<char> it_ifs_end {};
+  vector<char> input_data(it_ifs_begin, it_ifs_end);
+  if (ifs.fail()) {
+    ifs.close();
+    return false;
+  }
+  ifs.close();
+
+  vector<string> cmd_line;
+  auto itr_begin = input_data.begin();
+  auto itr_find = input_data.begin();
+  for (;;) {
+    itr_find = find(itr_begin, input_data.end(), 0x00);
+    if( itr_find == input_data.end() ) {
+      break;
+    }
+    string output_string(itr_begin,itr_find);
+    cmd_line.push_back(output_string);
+    itr_begin = itr_find + 1;
+  }
+
+  // Checkpoint 1 : cmdline[0] contains "python"
+  if (cmd_line[0].find("python") == string::npos) {
+    return false;
+  }
+
+ // Checkpoint 2 : Matches "ros2" to the right of the last "/" in cmdline[1]
+  if (cmd_line[1].find("ros2") == string::npos) {
+    return false;
+  }
+  auto subStr = string_split(cmd_line[1], '/');
+  if ( subStr[subStr.size()-1].compare("ros2") != 0 ) {
+    return false;
+  }
+
+  // Checkpoint 3 : The first argument after cmdline[2] that does not start with "-" matches "launch"
+  for ( size_t i=2; i<cmd_line.size(); ++i) {
+    if ( cmd_line[i].c_str()[0] == '-' ) {
+      continue;
+    } else {
+      if ( cmd_line[i].compare("launch") == 0 ) {
+        // This process is run by the ros2 launch command.
+        return true;
+      }
+      break;
+    }
   }
   return false;
 }
@@ -107,7 +161,7 @@ void run_caret_trace_node()
   auto trace_node = std::make_shared<TraceNode>(node_name_base, option, lttng, data_container);
   RCLCPP_INFO(trace_node->get_logger(), "%s started", trace_node->get_fully_qualified_name());
 
-  exclusion_event = filter_launch_node();
+  ignore_rcl_timer_init = is_ros2_launch_command();
 
   context.assign_node(trace_node);
   auto exec = rclcpp::executors::SingleThreadedExecutor();
@@ -577,7 +631,7 @@ void ros_trace_rcl_timer_init(
   static auto & data_container = context.get_data_container();
   // TODO(hsgwa): Add filtering of timer initialization using node_handle
 
-  if ( exclusion_event == true) {
+  if ( ignore_rcl_timer_init == true) {
     return;
   }
 
