@@ -54,9 +54,9 @@ thread_local bool trace_filter_is_rcl_publish_recorded;
 
 using std::string;
 using std::vector;
-bool ignore_rcl_timer_init = false;
+static bool ignore_rcl_timer_init = false;
 
-vector<string> string_split(string &str, char delim) {
+static vector<string> string_split(string &str, char delim) {
   using std::stringstream;
   vector<string> elems;
   stringstream ss(str);
@@ -69,7 +69,7 @@ vector<string> string_split(string &str, char delim) {
   return elems;
 }
 
-bool is_ros2_launch_command()
+static bool is_ros2_launch_command()
 {
   using std::ios;
   using std::ifstream;
@@ -85,7 +85,7 @@ bool is_ros2_launch_command()
   istreambuf_iterator<char> it_ifs_begin(ifs);
   istreambuf_iterator<char> it_ifs_end{};
   vector<char> input_data(it_ifs_begin, it_ifs_end);
-  if (ifs.fail()) {
+  if (!ifs) {
     ifs.close();
     return false;
   }
@@ -105,6 +105,9 @@ bool is_ros2_launch_command()
   }
 
   // Checkpoint 1 : cmdline[0] contains "python"
+  if (cmd_line.size() <= 2) {
+    return false;
+  }
   if (cmd_line[0].find("python") == string::npos) {
     return false;
   }
@@ -638,7 +641,7 @@ void ros_trace_rcl_timer_init(
   static auto & data_container = context.get_data_container();
   // TODO(hsgwa): Add filtering of timer initialization using node_handle
 
-  if ( ignore_rcl_timer_init == true) {
+  if (ignore_rcl_timer_init == true) {
     return;
   }
 
