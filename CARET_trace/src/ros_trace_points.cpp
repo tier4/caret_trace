@@ -431,8 +431,8 @@ void ros_trace_callback_start(const void * callback, bool is_intra_process)
   if (controller.is_allowed_callback(callback) &&
     context.is_recording_allowed())
   {
-    auto casted_func = reinterpret_cast<functionT>(orig_func);
-    casted_func(callback, is_intra_process);
+    // auto casted_func = reinterpret_cast<functionT>(orig_func);
+    reinterpret_cast<functionT>(orig_func)(callback, is_intra_process);
 #ifdef DEBUG_OUTPUT
     std::cerr << "callback_start," <<
       callback << "," <<
