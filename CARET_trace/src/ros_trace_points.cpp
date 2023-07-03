@@ -71,8 +71,8 @@ static vector<string> string_split(string &str, char delim) {
 
 static bool is_ros2_launch_command()
 {
-  using std::ios;
   using std::ifstream;
+  using std::ios;
   using std::istreambuf_iterator;
   using std::to_string;
   pid_t pid = getpid();
