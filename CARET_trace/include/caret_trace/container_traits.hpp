@@ -18,7 +18,7 @@
 
 /// @brief Type traits for container.
 /// @tparam ...Args Container types.
-template<typename ... Args>
+template <typename... Args>
 class ContainerTraits
 {
 public:

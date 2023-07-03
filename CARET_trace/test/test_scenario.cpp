@@ -101,8 +101,8 @@ TEST(ScenarioTest, TestMultiThread)
   // NOTE: Ensure recording data. Avoid container.record() before add_data() is called.
   add_data(container, 1);
 
-  std::thread t1([&container, loop]() {add_data(container, loop);});
-  std::thread t2([&container, loop]() {container.record(loop);});
+  std::thread t1([&container, loop]() { add_data(container, loop); });
+  std::thread t2([&container, loop]() { container.record(loop); });
 
   t1.join();
   t2.join();

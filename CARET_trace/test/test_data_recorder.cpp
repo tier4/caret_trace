@@ -40,11 +40,10 @@ TEST(DataRecorderTest, AssignCaseOneKeys)
   DataRecorder recorder({key});
   bool called = false;
 
-  key->assign(
-    [&](const int arg) {
-      (void)arg;
-      called = true;
-    });
+  key->assign([&](const int arg) {
+    (void)arg;
+    called = true;
+  });
 
   key->store(0);
 

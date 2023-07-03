@@ -63,8 +63,8 @@ TEST(RecordableData, TwoTypesCase)
   EXPECT_EQ(set->get().first(), 1);
 
   auto is_equal = [](const char * lhs, const char * rhs) -> bool {
-      return std::string(lhs).compare(rhs) == 0;
-    };
+    return std::string(lhs).compare(rhs) == 0;
+  };
 
   EXPECT_TRUE(is_equal(set->get().second(), "test"));
 

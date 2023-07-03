@@ -67,24 +67,23 @@ public:
 class DummyRecordableKeysSet : public RecordableDataInterface
 {
 public:
-  DummyRecordableKeysSet()
-  : trace_point_("dummy_recordable_keys_set") {}
+  DummyRecordableKeysSet() : trace_point_("dummy_recordable_keys_set") {}
 
-  bool finished() const override {return true;}
+  bool finished() const override { return true; }
 
   void start() override {}
 
-  bool is_recording() const override {return true;}
+  bool is_recording() const override { return true; }
 
   void record_next_one() override {}
 
   void reset() override {}
 
-  const std::string & trace_point() const override {return trace_point_;}
+  const std::string & trace_point() const override { return trace_point_; }
 
-  size_t size() const override {return 0;}
+  size_t size() const override { return 0; }
 
-  size_t pending_size() const override {return 0;}
+  size_t pending_size() const override { return 0; }
 
 private:
   const std::string trace_point_;
@@ -92,15 +91,15 @@ private:
 
 /// @brief Data container class with sequential recording API.
 /// @tparam ...Args Trace point data types.
-template<typename ... Args>
+template <typename... Args>
 class RecordableData : public RecordableDataInterface
 {
 private:
   using KeyT = HashableKeys<Args...>;
 
 public:
-  using FuncT = void (Args ...);
-  using StdFuncT = std::function<void (Args...)>;
+  using FuncT = void(Args...);
+  using StdFuncT = std::function<void(Args...)>;
 
   /// @brief Construct an instance.
   /// @param trace_point Trace point name for this instance.
@@ -111,8 +110,7 @@ public:
 
   /// @brief Construct an instance.
   /// @param trace_point Trace point name for this instance.
-  explicit RecordableData(char * trace_point)
-  : RecordableData(std::string(trace_point)) {}
+  explicit RecordableData(char * trace_point) : RecordableData(std::string(trace_point)) {}
 
   ~RecordableData() override {}
 
@@ -146,11 +144,11 @@ public:
 
     if (is_iterating_) {
       // PREPARE state
-      pending_set_.insert(args ...);
+      pending_set_.insert(args...);
       return true;
     } else {
       // OTHER state
-      set_.insert(args ...);
+      set_.insert(args...);
       return false;
     }
   }
