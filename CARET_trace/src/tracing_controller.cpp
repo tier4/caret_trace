@@ -390,7 +390,7 @@ bool TracingController::is_allowed_buffer(const void * buffer)
     auto subscription_handle = subscription_to_subscription_handles_[subscription];
     auto node_handle = subscription_handle_to_node_handles_[subscription_handle];
     auto node_name = node_handle_to_node_names_[node_handle];
-    auto topic_name = subscription_handle_to_topic_names_[node_handle];
+    auto topic_name = subscription_handle_to_topic_names_[subscription_handle];
 
     if (select_enabled_) {
       auto is_selected_topic = partial_match(selected_topic_names_, topic_name);
@@ -560,4 +560,16 @@ void TracingController::add_publisher_handle(
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   publisher_handle_to_node_handles_.insert(std::make_pair(publisher_handle, node_handle));
   publisher_handle_to_topic_names_.insert(std::make_pair(publisher_handle, topic_name));
+}
+
+void TracingController::add_buffer(const void * buffer, const void * ipb)
+{
+  std::lock_guard<std::shared_timed_mutex> lock(mutex_);
+  buffer_to_ipbs_.insert(std::make_pair(buffer, ipb));
+}
+
+void TracingController::add_ipb(const void * ipb, const void * subscription)
+{
+  std::lock_guard<std::shared_timed_mutex> lock(mutex_);
+  ipb_to_subscriptions_.insert(std::make_pair(ipb, subscription));
 }

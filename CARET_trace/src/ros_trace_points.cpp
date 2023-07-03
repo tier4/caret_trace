@@ -1068,13 +1068,37 @@ void ros_trace_rmw_subscription_init(
 // #endif
 }
 
+void ros_trace_rclcpp_buffer_to_ipb(
+    const void * buffer,
+    const void * ipb
+)
+{
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
+  controller.add_buffer(buffer, ipb);
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(const void *, const void *);
+  ((functionT) orig_func)(buffer, ipb);
+
+#ifdef DEBUG_OUTPUT
+  std::cerr << "rclcpp_buffer_to_ipb," <<
+    buffer << "," <<
+    ipb << std::endl;
+#endif
+}
+
 void ros_trace_rclcpp_ipb_to_subscription(
     const void * ipb,
     const void * subscription
 )
 {
-  (void) ipb;
-  (void) subscription;
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
+  controller.add_ipb(ipb, subscription);
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  using functionT = void (*)(const void *, const void *);
+  ((functionT) orig_func)(ipb, subscription);
+
 #ifdef DEBUG_OUTPUT
   std::cerr << "rclcpp_ipb_to_subscription," <<
     ipb << "," <<
@@ -1105,9 +1129,14 @@ void ros_trace_rclcpp_ring_buffer_enqueue(
     const bool overwritten
 )
 {
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(const void *, const uint64_t, const uint64_t, bool);
-  ((functionT) orig_func)(buffer, index, size, overwritten);
+  if (controller.is_allowed_buffer(buffer) &&
+    context.is_recording_allowed())
+  {
+    ((functionT) orig_func)(buffer, index, size, overwritten);
 
 #ifdef DEBUG_OUTPUT
   std::cerr << "rclcpp_ring_buffer_enqueue," <<
@@ -1116,6 +1145,7 @@ void ros_trace_rclcpp_ring_buffer_enqueue(
     size << "," <<
     overwritten << std::endl;
 #endif
+  }
 }
 
 void ros_trace_rclcpp_ring_buffer_dequeue(
@@ -1124,8 +1154,13 @@ void ros_trace_rclcpp_ring_buffer_dequeue(
     const uint64_t size
 )
 {
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(const void *, const uint64_t, const uint64_t);
+  if (controller.is_allowed_buffer(buffer) &&
+    context.is_recording_allowed())
+  {
   ((functionT) orig_func)(buffer, index, size);
 
 #ifdef DEBUG_OUTPUT
@@ -1134,6 +1169,7 @@ void ros_trace_rclcpp_ring_buffer_dequeue(
     index << "," <<
     size << "," << std::endl;
 #endif
+  }
 }
 
 void ros_trace_rclcpp_ring_buffer_clear(
