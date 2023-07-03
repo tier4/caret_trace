@@ -32,8 +32,8 @@ public:
   MOCK_CONST_METHOD0(is_recording_allowed, bool());
   MOCK_CONST_METHOD0(is_recording_allowed_init, bool());
   MOCK_CONST_METHOD0(is_timer_running, bool());
-  MOCK_METHOD0(get_data_container, DataContainerInterface & ());
-  MOCK_CONST_METHOD0(get_status, const TRACE_STATUS & ());
+  MOCK_METHOD0(get_data_container, DataContainerInterface &());
+  MOCK_CONST_METHOD0(get_status, const TRACE_STATUS &());
 };
 
 /// @private

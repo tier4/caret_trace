@@ -22,14 +22,14 @@
 #include <type_traits>
 
 /// @private
-template<bool Cond, typename Then, typename Else>
+template <bool Cond, typename Then, typename Else>
 struct if_
 {
   using type = Then;
 };
 
 /// @private
-template<typename Then, typename Else>
+template <typename Then, typename Else>
 struct if_<false, Then, Else>
 {
   using type = Else;
@@ -74,21 +74,18 @@ private:
 public:
   /// @brief Construct an instance.
   /// @param key1 first argument.
-  explicit HashableKeys(T1 key1)
-  : key1_(key1) {}
+  explicit HashableKeys(T1 key1) : key1_(key1) {}
 
   /// @brief Construct an instance.
   /// @param key1 first argument.
   /// @param key2 second argument.
-  HashableKeys(T1 key1, T2 key2)
-  : key1_(key1), key2_(key2) {}
+  HashableKeys(T1 key1, T2 key2) : key1_(key1), key2_(key2) {}
 
   /// @brief Construct an instance.
   /// @param key1 first argument.
   /// @param key2 second argument.
   /// @param key3 third argument.
-  HashableKeys(T1 key1, T2 key2, T3 key3)
-  : key1_(key1), key2_(key2), key3_(key3) {}
+  HashableKeys(T1 key1, T2 key2, T3 key3) : key1_(key1), key2_(key2), key3_(key3) {}
 
   /// @brief Construct an instance.
   /// @param key1 first argument.
@@ -304,13 +301,13 @@ private:
 
 namespace std
 {
-template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
+template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
 struct hash<HashableKeys<T1, T2, T3, T4, T5, T6>>
 {
-  size_t operator()(const HashableKeys<T1, T2, T3, T4, T5, T6> & t) const {return t.hash();}
+  size_t operator()(const HashableKeys<T1, T2, T3, T4, T5, T6> & t) const { return t.hash(); }
 };
 
-template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
+template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
 struct equal_to<HashableKeys<T1, T2, T3, T4, T5, T6>>
 {
   size_t operator()(
@@ -417,10 +414,10 @@ public:
   /// @param key4 Fourth argument.
   /// @param key5 Fifth argument.
   /// @return True if it contains, false otherwise.
-  void insert(HashableKeys<T1, T2, T3, T4, T5, T6> keys) {keys_.insert(keys);}
+  void insert(HashableKeys<T1, T2, T3, T4, T5, T6> keys) { keys_.insert(keys); }
 
   /// @brief Clear set.
-  void clear() {keys_.clear();}
+  void clear() { keys_.clear(); }
 
   /// @brief Confirm content.
   /// @param key1 First argument.
@@ -494,15 +491,15 @@ public:
 
   /// @brief Get const iterator
   /// @return Iterator referring to the first element.
-  ConstIteratorT begin() const {return keys_.cbegin();}
+  ConstIteratorT begin() const { return keys_.cbegin(); }
 
   /// @brief Get const iterator
   /// @return Iterator referring to the last element.
-  ConstIteratorT end() const {return keys_.cend();}
+  ConstIteratorT end() const { return keys_.cend(); }
 
   /// @brief Get size.
   /// @return Element number.
-  size_t size() const {return keys_.size();}
+  size_t size() const { return keys_.size(); }
 
 private:
   SetT keys_;

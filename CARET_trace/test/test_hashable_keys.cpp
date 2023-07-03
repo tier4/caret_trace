@@ -127,8 +127,8 @@ TEST(HashableKeys, StringLiteralCase)
   HashableKeys<const char *> keys__(s__);
 
   auto is_equal = [](const char * lhs, const char * rhs) -> bool {
-      return std::string(lhs).compare(rhs) == 0;
-    };
+    return std::string(lhs).compare(rhs) == 0;
+  };
 
   EXPECT_TRUE(is_equal(keys.first(), keys_.first()));
   EXPECT_FALSE(is_equal(keys.first(), keys__.first()));
