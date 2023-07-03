@@ -32,13 +32,13 @@
 #include <time.h>
 
 #include <cassert>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
-#include <fstream>
 
 #undef ros_trace_rclcpp_publish
 #undef ros_trace_rclcpp_service_callback_added
@@ -55,16 +55,17 @@ thread_local bool trace_filter_is_rcl_publish_recorded;
 using namespace std;
 bool ignore_rcl_timer_init = false;
 
-vector<string> string_split(string &str, char delim) {
-    vector<string> elems;
-    stringstream ss(str);
-    string item;
-    while (getline(ss, item, delim)) {
+vector<string> string_split(string & str, char delim)
+{
+  vector<string> elems;
+  stringstream ss(str);
+  string item;
+  while (getline(ss, item, delim)) {
     if (!item.empty()) {
-            elems.push_back(item);
-        }
+      elems.push_back(item);
     }
-    return elems;
+  }
+  return elems;
 }
 
 bool is_ros2_launch_command()
@@ -73,11 +74,11 @@ bool is_ros2_launch_command()
   string fileName = "/proc/" + to_string(pid) + "/cmdline";
 
   ifstream ifs(fileName, ios::in | ios::binary);
-  if (!ifs){
+  if (!ifs) {
     return false;
   }
   istreambuf_iterator<char> it_ifs_begin(ifs);
-  istreambuf_iterator<char> it_ifs_end {};
+  istreambuf_iterator<char> it_ifs_end{};
   vector<char> input_data(it_ifs_begin, it_ifs_end);
   if (ifs.fail()) {
     ifs.close();
@@ -90,10 +91,10 @@ bool is_ros2_launch_command()
   auto itr_find = input_data.begin();
   for (;;) {
     itr_find = find(itr_begin, input_data.end(), 0x00);
-    if( itr_find == input_data.end() ) {
+    if (itr_find == input_data.end()) {
       break;
     }
-    string output_string(itr_begin,itr_find);
+    string output_string(itr_begin, itr_find);
     cmd_line.push_back(output_string);
     itr_begin = itr_find + 1;
   }
@@ -103,21 +104,22 @@ bool is_ros2_launch_command()
     return false;
   }
 
- // Checkpoint 2 : Matches "ros2" to the right of the last "/" in cmdline[1]
+  // Checkpoint 2 : Matches "ros2" to the right of the last "/" in cmdline[1]
   if (cmd_line[1].find("ros2") == string::npos) {
     return false;
   }
   auto subStr = string_split(cmd_line[1], '/');
-  if ( subStr[subStr.size()-1].compare("ros2") != 0 ) {
+  if (subStr[subStr.size() - 1].compare("ros2") != 0) {
     return false;
   }
 
-  // Checkpoint 3 : The first argument after cmdline[2] that does not start with "-" matches "launch"
-  for ( size_t i=2; i<cmd_line.size(); ++i) {
-    if ( cmd_line[i].c_str()[0] == '-' ) {
+  // Checkpoint 3 : The first argument after cmdline[2] that does not start with "-" matches
+  // "launch"
+  for (size_t i = 2; i < cmd_line.size(); ++i) {
+    if (cmd_line[i].c_str()[0] == '-') {
       continue;
     } else {
-      if ( cmd_line[i].compare("launch") == 0 ) {
+      if (cmd_line[i].compare("launch") == 0) {
         // This process is run by the ros2 launch command
         return true;
       }
