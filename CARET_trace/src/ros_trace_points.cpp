@@ -56,7 +56,8 @@ using std::string;
 using std::vector;
 static bool ignore_rcl_timer_init = false;
 
-static vector<string> string_split(string &str, char delim) {
+static vector<string> string_split(string & str, char delim)
+{
   using std::stringstream;
   vector<string> elems;
   stringstream ss(str);
