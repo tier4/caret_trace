@@ -52,23 +52,29 @@
 std::unique_ptr<std::thread> trace_node_thread;
 thread_local bool trace_filter_is_rcl_publish_recorded;
 
-using namespace std;
+using std::string;
+using std::vector;
 bool ignore_rcl_timer_init = false;
 
 vector<string> string_split(string &str, char delim) {
-    vector<string> elems;
-    stringstream ss(str);
-    string item;
-    while (getline(ss, item, delim)) {
+  using std::stringstream;
+  vector<string> elems;
+  stringstream ss(str);
+  string item;
+  while (getline(ss, item, delim)) {
     if (!item.empty()) {
-            elems.push_back(item);
-        }
+      elems.push_back(item);
     }
-    return elems;
+  }
+  return elems;
 }
 
 bool is_ros2_launch_command()
 {
+  using std::ios;
+  using std::ifstream;
+  using std::istreambuf_iterator;
+  using std::to_string;
   pid_t pid = getpid();
   string fileName = "/proc/" + to_string(pid) + "/cmdline";
 
