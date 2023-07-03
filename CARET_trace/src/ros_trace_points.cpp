@@ -118,7 +118,7 @@ bool is_ros2_launch_command()
       continue;
     } else {
       if ( cmd_line[i].compare("launch") == 0 ) {
-        // This process is run by the ros2 launch command.
+        // This process is run by the ros2 launch command
         return true;
       }
       break;
