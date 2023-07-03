@@ -56,7 +56,8 @@ using std::string;
 using std::vector;
 bool ignore_rcl_timer_init = false;
 
-vector<string> string_split(string &str, char delim) {
+vector<string> string_split(string & str, char delim)
+{
   using std::stringstream;
   vector<string> elems;
   stringstream ss(str);
@@ -71,8 +72,8 @@ vector<string> string_split(string &str, char delim) {
 
 bool is_ros2_launch_command()
 {
-  using std::ios;
   using std::ifstream;
+  using std::ios;
   using std::istreambuf_iterator;
   using std::to_string;
   pid_t pid = getpid();
