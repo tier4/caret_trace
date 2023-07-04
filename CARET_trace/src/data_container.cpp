@@ -334,6 +334,24 @@ void DataContainer::assign_rclcpp_timer_link_node(RclcppTimerLinkNode::StdFuncT 
   rclcpp_timer_link_node_->assign(record);
 }
 
+void DataContainer::assign_rclcpp_construct_ring_buffer(RclcppConstructRingBuffer::StdFuncT record)
+{
+  assert(rclcpp_construct_ring_buffer_.get() != nullptr);
+  rclcpp_construct_ring_buffer_->assign(record);
+}
+
+void DataContainer::assign_rclcpp_buffer_to_ipb(RclcppBufferToIpb::StdFuncT record)
+{
+  assert(rclcpp_buffer_to_ipb_.get() != nullptr);
+  rclcpp_buffer_to_ipb_->assign(record);
+}
+
+void DataContainer::assign_rclcpp_ipb_to_subscription(RclcppIpbToSubscription::StdFuncT record)
+{
+  assert(rclcpp_ipb_to_subscription_.get() != nullptr);
+  rclcpp_ipb_to_subscription_->assign(record);
+}
+
 void DataContainer::assign_rmw_implementation(RmwImplementation::StdFuncT record)
 {
   assert(rmw_implementation_.get() != nullptr);

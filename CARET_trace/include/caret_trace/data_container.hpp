@@ -117,6 +117,15 @@ public:
   using RclServiceInit =
     ContainerTraits<const void *, const void *, const void *, const char *, int64_t>;
 
+  /// @brief ContainerTraits for rclcpp_construct_ring_buffer trace points.
+  using RclcppConstructRingBuffer = ContainerTraits<const void *, int64_t>;
+
+  /// @brief ContainerTraits for rclcpp_buffer_to_ipb trace points.
+  using RclcppBufferToIpb = ContainerTraits<const void *, const void *>;
+
+  /// @brief ContainerTraits for rclcpp_ipb_to_subscription trace points.
+  using RclcppIpbToSubscription = ContainerTraits<const void *, const void *>;
+
   /// @brief ContainerTraits for rmw_implementation trace points.
   using RmwImplementation = ContainerTraits<const char *, int64_t>;
 
@@ -506,6 +515,18 @@ public:
   /// @param record recording function.
   void assign_rclcpp_timer_link_node(RclcppTimerLinkNode::StdFuncT record);
 
+  /// @brief Assign recording function for rclcpp_construct_ring_buffer trace points.
+  /// @param record recording function.
+  void assign_rclcpp_construct_ring_buffer(RclcppConstructRingBuffer::StdFuncT record);
+
+  /// @brief Assign recording function for rclcpp_buffer_to_ipb trace points.
+  /// @param record recording function.
+  void assign_rclcpp_buffer_to_ipb(RclcppBufferToIpb::StdFuncT record);
+
+  /// @brief Assign recording function for rclcpp_ipb_to_subscription trace points.
+  /// @param record recording function.
+  void assign_rclcpp_ipb_to_subscription(RclcppIpbToSubscription::StdFuncT record);
+
   /// @brief Assign recording function for rmw_implementation trace points.
   /// @param record recording function.
   void assign_rmw_implementation(RmwImplementation::StdFuncT record);
@@ -637,6 +658,9 @@ private:
   std::shared_ptr<RclcppSubscriptionInit::KeysT> rclcpp_subscription_init_;
   std::shared_ptr<RclcppTimerCallbackAdded::KeysT> rclcpp_timer_callback_added_;
   std::shared_ptr<RclcppTimerLinkNode::KeysT> rclcpp_timer_link_node_;
+  std::shared_ptr<RclcppConstructRingBuffer::KeysT> rclcpp_construct_ring_buffer_;
+  std::shared_ptr<RclcppBufferToIpb::KeysT> rclcpp_buffer_to_ipb_;
+  std::shared_ptr<RclcppIpbToSubscription::KeysT> rclcpp_ipb_to_subscription_;
   std::shared_ptr<RmwImplementation::KeysT> rmw_implementation_;
 
   std::shared_ptr<DataRecorder> recorder_;
