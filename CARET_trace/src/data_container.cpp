@@ -49,6 +49,9 @@ DataContainer::DataContainer()
     std::make_shared<RclcppSubscriptionInit::KeysT>("rclcpp_subscription_init"),
     std::make_shared<RclcppTimerCallbackAdded::KeysT>("rclcpp_timer_callback_added"),
     std::make_shared<RclcppTimerLinkNode::KeysT>("rclcpp_timer_link_node"),
+    std::make_shared<RclcppConstructRingBuffer::KeysT>("rclcpp_construct_ring_buffer"),
+    std::make_shared<RclcppBufferToIpb::KeysT>("rclcpp_buffer_to_ipb"),
+    std::make_shared<RclcppIpbToSubscription::KeysT>("rclcpp_ipb_to_subscription"),
     std::make_shared<RmwImplementation::KeysT>("rmw_implementation"))
 {
 }
@@ -74,6 +77,9 @@ DataContainer::DataContainer(
   std::shared_ptr<RclcppSubscriptionInit::KeysT> rclcpp_subscription_init,
   std::shared_ptr<RclcppTimerCallbackAdded::KeysT> rclcpp_timer_callback_added,
   std::shared_ptr<RclcppTimerLinkNode::KeysT> rclcpp_timer_link_node,
+  std::shared_ptr<RclcppConstructRingBuffer::KeysT> rclcpp_construct_ring_buffer,
+  std::shared_ptr<RclcppBufferToIpb::KeysT> rclcpp_buffer_to_ipb,
+  std::shared_ptr<RclcppIpbToSubscription::KeysT> rclcpp_ipb_to_subscription,
   std::shared_ptr<RmwImplementation::KeysT> rmw_implementation)
 : add_callback_group_(add_callback_group),
   add_callback_group_static_executor_(add_callback_group_static_executor),
@@ -96,6 +102,9 @@ DataContainer::DataContainer(
   rclcpp_subscription_init_(rclcpp_subscription_init),
   rclcpp_timer_callback_added_(rclcpp_timer_callback_added),
   rclcpp_timer_link_node_(rclcpp_timer_link_node),
+  rclcpp_construct_ring_buffer_(rclcpp_construct_ring_buffer),
+  rclcpp_buffer_to_ipb_(rclcpp_buffer_to_ipb),
+  rclcpp_ipb_to_subscription_(rclcpp_ipb_to_subscription),
   rmw_implementation_(rmw_implementation)
 {
   std::vector<std::shared_ptr<RecordableDataInterface>> recordable_data;
@@ -162,6 +171,15 @@ DataContainer::DataContainer(
   }
   if (rclcpp_timer_link_node_) {
     recordable_data.emplace_back(rclcpp_timer_link_node_);
+  }
+  if (rclcpp_construct_ring_buffer_) {
+    recordable_data.emplace_back(rclcpp_construct_ring_buffer_);
+  }
+  if (rclcpp_buffer_to_ipb_) {
+    recordable_data.emplace_back(rclcpp_buffer_to_ipb_);
+  }
+  if (rclcpp_ipb_to_subscription_) {
+    recordable_data.emplace_back(rclcpp_ipb_to_subscription_);
   }
   if (rmw_implementation_) {
     recordable_data.emplace_back(rmw_implementation_);
@@ -488,6 +506,24 @@ bool DataContainer::is_assigned_rclcpp_timer_link_node() const
 {
   assert(rclcpp_timer_link_node_.get() != nullptr);
   return rclcpp_timer_link_node_->is_assigned();
+}
+
+bool DataContainer::is_assigned_rclcpp_construct_ring_buffer() const
+{
+  assert(rclcpp_construct_ring_buffer_.get() != nullptr);
+  return rclcpp_construct_ring_buffer_->is_assigned();
+}
+
+bool DataContainer::is_assigned_rclcpp_buffer_to_ipb() const
+{
+  assert(rclcpp_buffer_to_ipb_.get() != nullptr);
+  return rclcpp_buffer_to_ipb_->is_assigned();
+}
+
+bool DataContainer::is_assigned_rclcpp_ipb_to_subscription() const
+{
+  assert(rclcpp_ipb_to_subscription_.get() != nullptr);
+  return rclcpp_ipb_to_subscription_->is_assigned();
 }
 
 bool DataContainer::is_assigned_rmw_implementation() const

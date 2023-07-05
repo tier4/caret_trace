@@ -118,13 +118,13 @@ public:
     ContainerTraits<const void *, const void *, const void *, const char *, int64_t>;
 
   /// @brief ContainerTraits for rclcpp_construct_ring_buffer trace points.
-  using RclcppConstructRingBuffer = ContainerTraits<const void *, int64_t>;
+  using RclcppConstructRingBuffer = ContainerTraits<const void *, int64_t, int64_t>;
 
   /// @brief ContainerTraits for rclcpp_buffer_to_ipb trace points.
-  using RclcppBufferToIpb = ContainerTraits<const void *, const void *>;
+  using RclcppBufferToIpb = ContainerTraits<const void *, const void *, int64_t>;
 
   /// @brief ContainerTraits for rclcpp_ipb_to_subscription trace points.
-  using RclcppIpbToSubscription = ContainerTraits<const void *, const void *>;
+  using RclcppIpbToSubscription = ContainerTraits<const void *, const void *, int64_t>;
 
   /// @brief ContainerTraits for rmw_implementation trace points.
   using RmwImplementation = ContainerTraits<const char *, int64_t>;
@@ -180,6 +180,9 @@ public:
     std::shared_ptr<RclcppSubscriptionInit::KeysT> rclcpp_subscription_init,
     std::shared_ptr<RclcppTimerCallbackAdded::KeysT> rclcpp_timer_callback_added,
     std::shared_ptr<RclcppTimerLinkNode::KeysT> rclcpp_timer_link_node,
+    std::shared_ptr<RclcppConstructRingBuffer::KeysT> rclcpp_construct_ring_buffer,
+    std::shared_ptr<RclcppBufferToIpb::KeysT> rclcpp_buffer_to_ipb,
+    std::shared_ptr<RclcppIpbToSubscription::KeysT> rclcpp_ipb_to_subscription,
     std::shared_ptr<RmwImplementation::KeysT> rmw_implementation);
 
   bool record(uint64_t loop_count = 1);
@@ -419,6 +422,39 @@ public:
     return rcl_service_init_->store(args...);
   }
 
+  /// @brief Store data for rclcpp_construct_ring_buffer trace points.
+  /// @tparam ...Args Data types to be stored.
+  /// @param ...args Data to be stored.
+  /// @return True, data was stored to pending set.
+  /// @return False, data was stored to set.
+  template <typename... Args>
+  bool store_rclcpp_construct_ring_buffer(Args... args)
+  {
+    return rclcpp_construct_ring_buffer_->store(args...);
+  }
+
+  /// @brief Store data for rclcpp_buffer_to_ipb trace points.
+  /// @tparam ...Args Data types to be stored.
+  /// @param ...args Data to be stored.
+  /// @return True, data was stored to pending set.
+  /// @return False, data was stored to set.
+  template <typename... Args>
+  bool store_rclcpp_buffer_to_ipb(Args... args)
+  {
+    return rclcpp_buffer_to_ipb_->store(args...);
+  }
+
+  /// @brief Store data for rclcpp_ipb_to_subscription trace points.
+  /// @tparam ...Args Data types to be stored.
+  /// @param ...args Data to be stored.
+  /// @return True, data was stored to pending set.
+  /// @return False, data was stored to set.
+  template <typename... Args>
+  bool store_rclcpp_ipb_to_subscription(Args... args)
+  {
+    return rclcpp_ipb_to_subscription_->store(args...);
+  }
+
   /// @brief Store data for rmw_implementation trace points.
   /// @tparam ...Args Data types to be stored.
   /// @param ...args Data to be stored.
@@ -625,6 +661,18 @@ public:
   /// @brief Check whether recording function for rclcpp_timer_link_node trace point is assigned.
   /// @return True if function is assigned, false otherwise.
   bool is_assigned_rclcpp_timer_link_node() const;
+
+  /// @brief Check whether recording function for rclcpp_construct_ring_buffer trace point is assigned.
+  /// @return True if function is assigned, false otherwise.
+  bool is_assigned_rclcpp_construct_ring_buffer() const;
+
+  /// @brief Check whether recording function for rclcpp_buffer_to_ipb trace point is assigned.
+  /// @return True if function is assigned, false otherwise.
+  bool is_assigned_rclcpp_buffer_to_ipb() const;
+
+  /// @brief Check whether recording function for rclcpp_ipb_to_subscription trace point is assigned.
+  /// @return True if function is assigned, false otherwise.
+  bool is_assigned_rclcpp_ipb_to_subscription() const;
 
   /// @brief Check whether recording function for rmw_implementation trace point is assigned.
   /// @return True if function is assigned, false otherwise.

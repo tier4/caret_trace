@@ -26,7 +26,7 @@ TEST(DataContainerTest, EmptyCase)
   DataContainer container(
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr, nullptr);
+    nullptr, nullptr, nullptr, nullptr, nullptr);
   bool finished;
   finished = container.record();
   EXPECT_TRUE(finished);

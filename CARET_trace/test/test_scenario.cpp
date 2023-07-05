@@ -57,7 +57,7 @@ TEST(ScenarioTest, TestSingleThread)
   DataContainer container(
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, keys, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr);
+    nullptr, nullptr, nullptr, nullptr);
 
   MockFunction<DataContainer::RclInit::FuncT> rcl_init_mock;
   container.assign_rcl_init(rcl_init_mock.AsStdFunction());
@@ -83,7 +83,7 @@ TEST(ScenarioTest, TestMultiThread)
   DataContainer container(
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, keys, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr);
+    nullptr, nullptr, nullptr, nullptr);
 
   MockFunction<DataContainer::RclInit::FuncT> rcl_init_mock;
   container.assign_rcl_init(rcl_init_mock.AsStdFunction());
@@ -212,7 +212,7 @@ TEST(ScenarioTest, Record)
   auto container = std::make_shared<DataContainer>(
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, keys, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr);
+    nullptr, nullptr, nullptr, nullptr);
   Context context;
   bool pending;
 
