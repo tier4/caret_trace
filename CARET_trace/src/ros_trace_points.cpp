@@ -891,6 +891,52 @@ void ros_trace_rclcpp_callback_register(
   record(callback, symbol, now);
 }
 
+// For ros2 distributions after iron.
+bool ros_trace_enabled_rclcpp_callback_register()
+{
+  return true;
+}
+
+// For ros2 distributions after iron.
+void ros_trace_do_rclcpp_callback_register(
+  const void * callback,
+  const char * symbol)
+{
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
+
+  static auto record = [](
+    const void * callback,
+    const char * symbol,
+    int64_t init_time
+  ) {
+    static auto & context = Singleton<Context>::get_instance();
+    static auto & controller = context.get_controller();
+    if (!controller.is_allowed_callback(callback)) {
+      return;
+    }
+    tracepoint(TRACEPOINT_PROVIDER, rclcpp_callback_register, callback, symbol, init_time);
+
+#ifdef DEBUG_OUTPUT
+    std::cerr << "rclcpp_callback_register," <<
+      callback << "," <<
+      symbol << std::endl;
+#endif
+  };
+  auto now = clock.now();
+
+  check_and_run_trace_node();
+
+  if (!data_container.is_assigned_rclcpp_callback_register()) {
+    data_container.assign_rclcpp_callback_register(record);
+  }
+
+  data_container.store_rclcpp_callback_register(callback, symbol, now);
+
+  record(callback, symbol, now);
+}
+
 void ros_trace_rcl_lifecycle_state_machine_init(
   const void * node_handle,
   const void * state_machine)
