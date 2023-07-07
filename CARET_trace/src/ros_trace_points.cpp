@@ -1138,13 +1138,16 @@ void ros_trace_rclcpp_buffer_to_ipb(
     ipb << std::endl;
 #endif
   };
-  // if (!data_container.is_assigned_rclcpp_buffer_to_ipb()){
-    // data_container.assign_rclcpp_buffer_to_ipb(record);
-  // }
-  check_and_run_trace_node();
 
   auto now = clock.now();
-  // data_container.store_rclcpp_buffer_to_ipb(buffer, ipb, now);
+
+  if (!data_container.is_assigned_rclcpp_buffer_to_ipb()){
+    data_container.assign_rclcpp_buffer_to_ipb(record);
+  }
+
+  check_and_run_trace_node();
+
+  data_container.store_rclcpp_buffer_to_ipb(buffer, ipb, now);
   record(buffer, ipb, now);
 }
 
@@ -1173,13 +1176,14 @@ void ros_trace_rclcpp_ipb_to_subscription(
 #endif
   };
 
-  // if (!data_container.is_assigned_rclcpp_ipb_to_subscription()){
-    // data_container.assign_rclcpp_ipb_to_subscription(record);
-  // }
+  auto now = clock.now();
+
+  if (!data_container.is_assigned_rclcpp_ipb_to_subscription()){
+    data_container.assign_rclcpp_ipb_to_subscription(record);
+  }
   check_and_run_trace_node();
 
-  auto now = clock.now();
-  // data_container.store_rclcpp_ipb_to_subscription(ipb, subscription, now);
+  data_container.store_rclcpp_ipb_to_subscription(ipb, subscription, now);
   record(ipb, subscription, now);
 }
 
@@ -1207,15 +1211,17 @@ void ros_trace_rclcpp_construct_ring_buffer(
     capacity << std::endl;
 #endif
   };
-  // if (!data_container.is_assigned_rclcpp_construct_ring_buffer()) {
-    // data_container.assign_rclcpp_construct_ring_buffer(record);
-  // }
+
+  auto now = clock.now();
+
+  if (!data_container.is_assigned_rclcpp_construct_ring_buffer()) {
+    data_container.assign_rclcpp_construct_ring_buffer(record);
+  }
 
   check_and_run_trace_node();
 
-  auto now = clock.now();
-  // data_container.store_rclcpp_construct_ring_buffer(
-    // buffer, capacity, now);
+  data_container.store_rclcpp_construct_ring_buffer(
+    buffer, capacity, now);
   record(buffer, capacity, now);
 }
 
