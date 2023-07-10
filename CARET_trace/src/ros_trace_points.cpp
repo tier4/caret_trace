@@ -71,6 +71,12 @@ static vector<string> string_split(string &str, char delim) {
 
 static bool is_ros2_launch_command()
 {
+  // Caret_trace's <TraceNode> should not record rcl_timer_init() for command line
+  // "python3" launch.
+  // This is because there are multiple processes that repeat spin_once() in a short time
+  // in the process started by "python3".
+  // If this is not excluded, the end time will increase as time passes
+  // after Caret_trace starts.
   using std::ifstream;
   using std::ios;
   using std::istreambuf_iterator;
@@ -104,35 +110,18 @@ static bool is_ros2_launch_command()
     itr_begin = itr_find + 1;
   }
 
-  // Checkpoint 1 : cmdline[0] contains "python"
-  if (cmd_line.size() <= 2) {
+  // Check if the right side of the last '/' in cmdline[0] matches 'python3'.
+  if (cmd_line.size() < 2) {
     return false;
   }
-  if (cmd_line[0].find("python") == string::npos) {
+  // case 1 : /usr/bin/python3 /opt/ros/humble/bin/ros2 launch ...
+  // case 2 :  python3 /opt/ros/humble/lib/rosbridge_server/rosbridge_websocket ...
+  if (cmd_line[0].find("python3") == string::npos) {
     return false;
   }
-
-  // Checkpoint 2 : Matches "ros2" to the right of the last "/" in cmdline[1]
-  if (cmd_line[1].find("ros2") == string::npos) {
-    return false;
-  }
-  auto subStr = string_split(cmd_line[1], '/');
-  if (subStr[subStr.size() - 1].compare("ros2") != 0) {
-    return false;
-  }
-
-  // Checkpoint 3 : The first argument after cmdline[2] that does not start with "-" matches
-  // "launch"
-  for (size_t i = 2; i < cmd_line.size(); ++i) {
-    if (cmd_line[i].c_str()[0] == '-') {
-      continue;
-    } else {
-      if (cmd_line[i].compare("launch") == 0) {
-        // This process is run by the ros2 launch command
-        return true;
-      }
-      break;
-    }
+  auto subStr = string_split(cmd_line[0], '/');
+  if (subStr[subStr.size() - 1].compare("python3") == 0) {
+    return true;
   }
   return false;
 }
