@@ -1123,6 +1123,7 @@ void ros_trace_rclcpp_buffer_to_ipb(
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto & controller = context.get_controller();
+
   controller.add_buffer(buffer, ipb);
   static auto record = [](
     const void * buffer,
@@ -1160,6 +1161,7 @@ void ros_trace_rclcpp_ipb_to_subscription(
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto & controller = context.get_controller();
+
   controller.add_ipb(ipb, subscription);
   static auto record = [](
     const void * ipb,
@@ -1195,7 +1197,6 @@ void ros_trace_rclcpp_construct_ring_buffer(
   static auto & context = Singleton<Context>::get_instance();
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
-  static auto & controller = context.get_controller();
 
   static auto record = [](
     const void * buffer,
