@@ -513,7 +513,7 @@ void ros_trace_rclcpp_publish(
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_publish," <<
       publisher_handle << "," <<
-      message << "," << std::endl;
+      message << std::endl;
 #endif
   }
 }
@@ -535,7 +535,7 @@ void ros_trace_rclcpp_intra_publish(
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_intra_publish," <<
       publisher_handle << "," <<
-      message << "," << std::endl;
+      message << std::endl;
 #endif
   }
 }
