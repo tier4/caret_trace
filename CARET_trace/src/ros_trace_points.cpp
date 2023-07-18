@@ -70,14 +70,8 @@ static vector<string> string_split(string & str, char delim)
   return elems;
 }
 
-static bool is_ros2_launch_command()
+static bool is_python3_command()
 {
-  // Caret_trace's <TraceNode> should not record rcl_timer_init() for command line
-  // "python3" launch.
-  // This is because there are multiple processes that repeat spin_once() in a short time
-  // in the process started by "python3".
-  // If this is not excluded, the end time will increase as time passes
-  // after Caret_trace starts.
   using std::ifstream;
   using std::ios;
   using std::istreambuf_iterator;
@@ -112,7 +106,7 @@ static bool is_ros2_launch_command()
   }
 
   // Check if the right side of the last '/' in cmdline[0] matches 'python3'.
-  if (cmd_line.size() < 2) {
+  if (cmd_line.size() < 1) {
     return false;
   }
   // case 1 : /usr/bin/python3 /opt/ros/humble/bin/ros2 launch ...
@@ -161,7 +155,7 @@ void run_caret_trace_node()
   auto trace_node = std::make_shared<TraceNode>(node_name_base, option, lttng, data_container);
   RCLCPP_INFO(trace_node->get_logger(), "%s started", trace_node->get_fully_qualified_name());
 
-  ignore_rcl_timer_init = is_ros2_launch_command();
+  ignore_rcl_timer_init = is_python3_command();
 
   context.assign_node(trace_node);
   auto exec = rclcpp::executors::SingleThreadedExecutor();
