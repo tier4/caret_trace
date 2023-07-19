@@ -106,11 +106,11 @@ static bool is_python3_command()
   }
 
   // Check if the right side of the last '/' in cmdline[0] matches 'python3'.
+  //   pattern 1: /usr/bin/python3 /opt/ros/humble/bin/ros2 launch ...
+  //   pattern 2: python3 /opt/ros/humble/lib/rosbridge_server/rosbridge_websocket ...
   if (cmd_line.size() < 1) {
     return false;
   }
-  // case 1 : /usr/bin/python3 /opt/ros/humble/bin/ros2 launch ...
-  // case 2 :  python3 /opt/ros/humble/lib/rosbridge_server/rosbridge_websocket ...
   if (cmd_line[0].find("python3") == string::npos) {
     return false;
   }
