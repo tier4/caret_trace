@@ -32,6 +32,7 @@
 #include <time.h>
 
 #include <cassert>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <memory>
@@ -50,6 +51,75 @@
 
 std::unique_ptr<std::thread> trace_node_thread;
 thread_local bool trace_filter_is_rcl_publish_recorded;
+
+using std::string;
+using std::vector;
+static bool ignore_rcl_timer_init = false;
+
+static vector<string> string_split(string & str, char delim)
+{
+  using std::stringstream;
+  vector<string> elems;
+  stringstream ss(str);
+  string item;
+  while (getline(ss, item, delim)) {
+    if (!item.empty()) {
+      elems.push_back(item);
+    }
+  }
+  return elems;
+}
+
+static bool is_python3_command()
+{
+  using std::ifstream;
+  using std::ios;
+  using std::istreambuf_iterator;
+  using std::to_string;
+  pid_t pid = getpid();
+  string fileName = "/proc/" + to_string(pid) + "/cmdline";
+
+  ifstream ifs(fileName, ios::in | ios::binary);
+  if (!ifs) {
+    return false;
+  }
+  istreambuf_iterator<char> it_ifs_begin(ifs);
+  istreambuf_iterator<char> it_ifs_end{};
+  vector<char> input_data(it_ifs_begin, it_ifs_end);
+  if (!ifs) {
+    ifs.close();
+    return false;
+  }
+  ifs.close();
+
+  vector<string> cmd_line;
+  auto itr_begin = input_data.begin();
+  auto itr_find = input_data.begin();
+  for (;;) {
+    itr_find = find(itr_begin, input_data.end(), 0x00);
+    if (itr_find == input_data.end()) {
+      break;
+    }
+    string output_string(itr_begin, itr_find);
+    cmd_line.push_back(output_string);
+    itr_begin = itr_find + 1;
+  }
+
+  // Check if the right side of the last '/' in cmdline[0] matches 'python3'.
+  //   pattern 1: /usr/bin/python3 /opt/ros/humble/bin/ros2 launch ...
+  //   pattern 2: python3 /opt/ros/humble/lib/rosbridge_server/rosbridge_websocket ...
+  if (cmd_line.size() < 1) {
+    return false;
+  }
+  if (cmd_line[0].find("python3") == string::npos) {
+    return false;
+  }
+  auto subStr = string_split(cmd_line[0], '/');
+  if (subStr[subStr.size() - 1].compare("python3") == 0) {
+    return true;
+  }
+  return false;
+}
 
 void run_caret_trace_node()
 {
@@ -84,6 +154,8 @@ void run_caret_trace_node()
   option.use_global_arguments(false);
   auto trace_node = std::make_shared<TraceNode>(node_name_base, option, lttng, data_container);
   RCLCPP_INFO(trace_node->get_logger(), "%s started", trace_node->get_fully_qualified_name());
+
+  ignore_rcl_timer_init = is_python3_command();
 
   context.assign_node(trace_node);
   auto exec = rclcpp::executors::SingleThreadedExecutor();
@@ -552,6 +624,10 @@ void ros_trace_rcl_timer_init(
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   // TODO(hsgwa): Add filtering of timer initialization using node_handle
+
+  if (ignore_rcl_timer_init == true) {
+    return;
+  }
 
   static auto record = [](const void * timer_handle, int64_t period, int64_t init_time) {
     tracepoint(TRACEPOINT_PROVIDER, rcl_timer_init, timer_handle, period, init_time);
