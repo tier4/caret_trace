@@ -571,47 +571,43 @@ void ros_trace_dispatch_intra_process_subscription_callback(
 
 void ros_trace_rclcpp_publish(
   const void * publisher_handle,
-  const void * message,
-  const uint64_t message_timestamp)
+  const void * message)
 {
   static auto & context = Singleton<Context>::get_instance();
   static auto & controller = context.get_controller();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
-  using functionT = void (*)(const void *, const void *, const uint64_t);
+  using functionT = void (*)(const void *, const void *);
   if (controller.is_allowed_publisher_handle(publisher_handle) &&
     context.is_recording_allowed())
   {
-    ((functionT) orig_func)(publisher_handle, message, message_timestamp);
+    ((functionT) orig_func)(publisher_handle, message);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_publish," <<
       publisher_handle << "," <<
-      message << "," <<
-      message_timestamp << std::endl;
+      message << std::endl;
 #endif
   }
 }
 
 void ros_trace_rclcpp_intra_publish(
   const void * publisher_handle,
-  const void * message,
-  const uint64_t message_timestamp)
+  const void * message)
 {
   static auto & context = Singleton<Context>::get_instance();
   static auto & controller = context.get_controller();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
-  using functionT = void (*)(const void *, const void *, const uint64_t message_timestamp);
+  using functionT = void (*)(const void *, const void *);
 
   if (controller.is_allowed_publisher_handle(publisher_handle) &&
     context.is_recording_allowed())
   {
-    ((functionT) orig_func)(publisher_handle, message, message_timestamp);
+    ((functionT) orig_func)(publisher_handle, message);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_intra_publish," <<
       publisher_handle << "," <<
-      message << "," <<
-      message_timestamp << std::endl;
+      message << std::endl;
 #endif
   }
 }
