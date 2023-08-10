@@ -32,6 +32,7 @@
 #include <time.h>
 
 #include <cassert>
+#include <cstdlib>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -130,7 +131,8 @@ void run_caret_trace_node()
   auto clock = context.get_clock();
 
   auto now = clock.now();
-  tracepoint(TRACEPOINT_PROVIDER, caret_init, now);
+  auto distribution = getenv("ROS_DISTRO");
+  tracepoint(TRACEPOINT_PROVIDER, caret_init, now, distribution);
 
   std::string node_name_base = "caret_trace";
   auto data_container = context.get_data_container_ptr();

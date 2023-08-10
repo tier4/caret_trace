@@ -234,10 +234,12 @@ TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
   caret_init,
   TP_ARGS(
-    int64_t, clock_offset_arg
+    int64_t, clock_offset_arg,
+    const char *, distribution_arg
   ),
   TP_FIELDS(
     ctf_integer(const int64_t, clock_offset, clock_offset_arg)
+    ctf_string(distribution, distribution_arg)
   )
 )
 
