@@ -662,7 +662,8 @@ public:
   /// @return True if function is assigned, false otherwise.
   bool is_assigned_rclcpp_timer_link_node() const;
 
-  /// @brief Check whether recording function for rclcpp_construct_ring_buffer trace point is assigned.
+  /// @brief Check whether recording function for rclcpp_construct_ring_buffer trace point is
+  /// assigned.
   /// @return True if function is assigned, false otherwise.
   bool is_assigned_rclcpp_construct_ring_buffer() const;
 
@@ -670,7 +671,8 @@ public:
   /// @return True if function is assigned, false otherwise.
   bool is_assigned_rclcpp_buffer_to_ipb() const;
 
-  /// @brief Check whether recording function for rclcpp_ipb_to_subscription trace point is assigned.
+  /// @brief Check whether recording function for rclcpp_ipb_to_subscription trace point is
+  /// assigned.
   /// @return True if function is assigned, false otherwise.
   bool is_assigned_rclcpp_ipb_to_subscription() const;
 
