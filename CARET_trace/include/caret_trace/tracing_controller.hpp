@@ -82,7 +82,6 @@ public:
   /// @brief Register topic name for ros_trace_rcl_publisher_init
   /// @param buffer  Address of the buffer.
   /// @param ipb  Address of the IntraProcessBuffer.
-  /// @param topic_name Topic name.
   void add_buffer(const void * buffer, const void * ipb);
 
   /// @brief Register topic name for ros_trace_rcl_publisher_init
