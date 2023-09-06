@@ -87,7 +87,6 @@ public:
   /// @brief Register topic name for ros_trace_rcl_publisher_init
   /// @param ipb  Address of the IntraProcessBuffer.
   /// @param subscription  Address of the subscription instance.
-  /// @param topic_name Topic name.
   void add_ipb(const void * ipb, const void * subscription);
 
   /// @brief Check if trace point is a enabled callback
