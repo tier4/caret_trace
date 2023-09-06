@@ -522,49 +522,6 @@ TRACEPOINT_EVENT(
   )
 )
 
-TRACEPOINT_EVENT(
-  TRACEPOINT_PROVIDER,
-  rclcpp_ring_buffer_enqueue,
-  TP_ARGS(
-    const void *, buffer_arg,
-    const uint64_t, index_arg,
-    const uint64_t, size_arg,
-    const bool, overwritten_arg
-  ),
-  TP_FIELDS(
-    ctf_integer_hex(const void *, buffer, buffer_arg)
-    ctf_integer(const uint64_t *, index, index_arg)
-    ctf_integer(const uint64_t, size, size_arg)
-    ctf_integer(const int, overwritten, (overwritten_arg ? 1 : 0))
-  )
-)
-
-TRACEPOINT_EVENT(
-  TRACEPOINT_PROVIDER,
-  rclcpp_ring_buffer_dequeue,
-  TP_ARGS(
-    const void *, buffer_arg,
-    const uint64_t, index_arg,
-    const uint64_t, size_arg
-  ),
-  TP_FIELDS(
-    ctf_integer_hex(const void *, buffer, buffer_arg)
-    ctf_integer(const uint64_t, index, index_arg)
-    ctf_integer(const uint64_t, size, size_arg)
-  )
-)
-
-TRACEPOINT_EVENT(
-  TRACEPOINT_PROVIDER,
-  rclcpp_ring_buffer_clear,
-  TP_ARGS(
-    const void *, buffer_arg
-  ),
-  TP_FIELDS(
-    ctf_integer_hex(const void *, buffer, buffer_arg)
-  )
-)
-
 // clang-format on
 
 #endif /* _TP_H */
