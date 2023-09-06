@@ -1282,14 +1282,20 @@ void ros_trace_rclcpp_ring_buffer_clear(
     const void * buffer
 )
 {
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
-  using functionT = void (*)(const void *);
-  ((functionT) orig_func)(buffer);
+  if (controller.is_allowed_buffer(buffer) &&
+    context.is_recording_allowed())
+  {
+    using functionT = void (*)(const void *);
+    ((functionT) orig_func)(buffer);
 
 #ifdef DEBUG_OUTPUT
   std::cerr << "rclcpp_ring_buffer_clear," <<
     buffer << "," << std::endl;
 #endif
+  }
 }
 
 // clang-format on
