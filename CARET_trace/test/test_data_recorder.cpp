@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "caret_trace/data_container.hpp"
-#include "caret_trace/keys_set.hpp"
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <memory>
 #include <utility>
+
+#include "caret_trace/data_container.hpp"
+#include "caret_trace/keys_set.hpp"
 
 using ::testing::_;
 using ::testing::InSequence;

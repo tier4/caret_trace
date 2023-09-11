@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "caret_trace/context.hpp"
-#include "caret_trace/trace_node.hpp"
-#include "caret_trace/tracing_controller.hpp"
-#include "test/mock.hpp"
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <memory>
 #include <utility>
+
+#include "caret_trace/context.hpp"
+#include "caret_trace/trace_node.hpp"
+#include "caret_trace/tracing_controller.hpp"
+#include "test/mock.hpp"
 
 using ::testing::_;
 using ::testing::Return;

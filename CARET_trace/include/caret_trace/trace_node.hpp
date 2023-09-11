@@ -14,17 +14,16 @@
 
 #ifndef CARET_TRACE__TRACE_NODE_HPP_
 
-#include "caret_trace/data_container.hpp"
-#include "caret_trace/lttng_session.hpp"
-#include "rclcpp/rclcpp.hpp"
+#include <memory>
+#include <string>
+#include <utility>
 
 #include "caret_msgs/msg/end.hpp"
 #include "caret_msgs/msg/start.hpp"
 #include "caret_msgs/msg/status.hpp"
-
-#include <memory>
-#include <string>
-#include <utility>
+#include "caret_trace/data_container.hpp"
+#include "caret_trace/lttng_session.hpp"
+#include "rclcpp/rclcpp.hpp"
 
 enum class TRACE_STATUS {
   UNINITIALIZED,

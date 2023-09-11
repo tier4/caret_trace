@@ -14,12 +14,6 @@
 
 #include <caret_trace/clock.hpp>
 
-Clock::Clock()
-{
-  lttng_ust_trace_clock_get_read64_cb(&lttng_clock_);
-}
+Clock::Clock() { lttng_ust_trace_clock_get_read64_cb(&lttng_clock_); }
 
-int64_t Clock::now()
-{
-  return lttng_clock_();
-}
+int64_t Clock::now() { return lttng_clock_(); }

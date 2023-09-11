@@ -14,10 +14,6 @@
 
 #include "caret_trace/data_container.hpp"
 
-#include "caret_trace/data_recorder.hpp"
-#include "caret_trace/recordable_data.hpp"
-#include "caret_trace/singleton.hpp"
-
 #include <cassert>
 #include <initializer_list>
 #include <memory>
@@ -25,6 +21,10 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "caret_trace/data_recorder.hpp"
+#include "caret_trace/recordable_data.hpp"
+#include "caret_trace/singleton.hpp"
 
 DataContainer::DataContainer()
 : DataContainer(
@@ -195,15 +195,9 @@ void DataContainer::start_recording()
   }
 }
 
-void DataContainer::reset()
-{
-  recorder_->reset();
-}
+void DataContainer::reset() { recorder_->reset(); }
 
-std::vector<std::string> DataContainer::trace_points() const
-{
-  return recorder_->trace_points();
-}
+std::vector<std::string> DataContainer::trace_points() const { return recorder_->trace_points(); }
 
 void DataContainer::assign_add_callback_group(AddCallbackGroup::StdFuncT record)
 {

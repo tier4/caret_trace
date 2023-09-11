@@ -14,9 +14,6 @@
 
 #include "caret_trace/tracing_controller.hpp"
 
-#include "rclcpp/rclcpp.hpp"
-#include "rcpputils/get_env.hpp"
-
 #include <dlfcn.h>
 
 #include <iomanip>
@@ -28,6 +25,9 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+
+#include "rclcpp/rclcpp.hpp"
+#include "rcpputils/get_env.hpp"
 
 #define SELECT_NODES_ENV_NAME "CARET_SELECT_NODES"
 #define IGNORE_NODES_ENV_NAME "CARET_IGNORE_NODES"

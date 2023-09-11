@@ -12,11 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rcl/rcl.h"
-#include "rcutils/shared_library.h"
-#include "rmw/event.h"
-#include "rmw/rmw.h"
-
 #include <dlfcn.h>
 
 #include <functional>
@@ -27,6 +22,11 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+
+#include "rcl/rcl.h"
+#include "rcutils/shared_library.h"
+#include "rmw/event.h"
+#include "rmw/rmw.h"
 
 #define TRACEPOINT_DEFINE
 #include "caret_trace/context.hpp"
