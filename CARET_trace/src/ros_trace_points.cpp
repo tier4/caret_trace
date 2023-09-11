@@ -18,6 +18,15 @@
 #define ros_trace_rmw_publisher_init ros_trace_rmw_publisher_init_disabled
 #define ros_trace_rmw_subscription_init ros_trace_rmw_subscription_init_disabled
 
+#include "caret_trace/clock.hpp"
+#include "caret_trace/context.hpp"
+#include "caret_trace/singleton.hpp"
+#include "caret_trace/tp.h"
+#include "caret_trace/trace_node.hpp"
+#include "caret_trace/tracing_controller.hpp"
+#include "rcl/context.h"
+#include "rclcpp/rclcpp.hpp"
+
 #include <dlfcn.h>
 #include <sys/types.h>
 #include <time.h>
@@ -29,15 +38,6 @@
 #include <mutex>
 #include <string>
 #include <thread>
-
-#include "caret_trace/clock.hpp"
-#include "caret_trace/context.hpp"
-#include "caret_trace/singleton.hpp"
-#include "caret_trace/tp.h"
-#include "caret_trace/trace_node.hpp"
-#include "caret_trace/tracing_controller.hpp"
-#include "rcl/context.h"
-#include "rclcpp/rclcpp.hpp"
 
 #undef ros_trace_rclcpp_publish
 #undef ros_trace_rclcpp_service_callback_added

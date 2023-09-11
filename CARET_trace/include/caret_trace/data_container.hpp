@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "caret_trace/container_traits.hpp"
+#include "caret_trace/data_recorder.hpp"
+#include "caret_trace/recordable_data.hpp"
+
 #include <functional>
 #include <initializer_list>
 #include <memory>
 #include <shared_mutex>
 #include <string>
 #include <vector>
-
-#include "caret_trace/container_traits.hpp"
-#include "caret_trace/data_recorder.hpp"
-#include "caret_trace/recordable_data.hpp"
 
 #ifndef CARET_TRACE__DATA_CONTAINER_HPP_
 

@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "caret_trace/keys_set.hpp"
+
 #include <gtest/gtest.h>
 
 #include <memory>
 #include <string>
 #include <utility>
-
-#include "caret_trace/keys_set.hpp"
 
 TEST(HashableKeys, IntCase)
 {

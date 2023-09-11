@@ -14,6 +14,9 @@
 
 #include "caret_trace/data_recorder.hpp"
 
+#include "caret_trace/recordable_data.hpp"
+#include "caret_trace/singleton.hpp"
+
 #include <cassert>
 #include <initializer_list>
 #include <memory>
@@ -22,10 +25,9 @@
 #include <utility>
 #include <vector>
 
-#include "caret_trace/recordable_data.hpp"
-#include "caret_trace/singleton.hpp"
-
-DataRecorder::DataRecorder() {}
+DataRecorder::DataRecorder()
+{
+}
 
 DataRecorder::DataRecorder(std::initializer_list<std::shared_ptr<RecordableDataInterface>> data)
 : DataRecorder(std::vector<std::shared_ptr<RecordableDataInterface>>(data))

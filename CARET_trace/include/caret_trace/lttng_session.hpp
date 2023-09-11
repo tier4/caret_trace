@@ -14,6 +14,8 @@
 
 #ifndef CARET_TRACE__LTTNG_SESSION_HPP_
 
+#include "rclcpp/rclcpp.hpp"
+
 #include <cstdio>
 #include <functional>
 #include <iostream>
@@ -22,8 +24,6 @@
 #include <string>
 #include <type_traits>
 #include <unordered_set>
-
-#include "rclcpp/rclcpp.hpp"
 
 /// @brief Interface class for manipulating Lttng sessions.
 class LttngSession

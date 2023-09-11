@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "caret_trace/recordable_data.hpp"
+#include "caret_trace/tracing_controller.hpp"
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <memory>
 #include <string>
 #include <utility>
-
-#include "caret_trace/recordable_data.hpp"
-#include "caret_trace/tracing_controller.hpp"
 
 using ::testing::_;
 using ::testing::MockFunction;

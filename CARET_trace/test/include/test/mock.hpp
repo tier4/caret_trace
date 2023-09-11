@@ -14,15 +14,15 @@
 
 #ifndef MOCK_HPP_
 
+#include "caret_trace/context.hpp"
+#include "caret_trace/data_container.hpp"
+#include "caret_trace/trace_node.hpp"
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <memory>
 #include <utility>
-
-#include "caret_trace/context.hpp"
-#include "caret_trace/data_container.hpp"
-#include "caret_trace/trace_node.hpp"
 
 /// @private
 /// @brief Mock class of TraceNodeInterface used for gest.

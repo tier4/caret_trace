@@ -14,11 +14,12 @@
 
 #include "caret_trace/lttng_session.hpp"
 
+#include <rclcpp/rclcpp.hpp>
+
 #include <chrono>
 #include <iostream>
 #include <memory>
 #include <mutex>
-#include <rclcpp/rclcpp.hpp>
 
 bool LttngSessionImpl::is_session_running() const
 {
@@ -36,4 +37,7 @@ bool LttngSessionImpl::is_session_running() const
   return is_session_running;
 }
 
-bool LttngSessionImpl::started_session_running() const { return started_session_running_; }
+bool LttngSessionImpl::started_session_running() const
+{
+  return started_session_running_;
+}

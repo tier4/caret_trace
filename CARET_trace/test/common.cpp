@@ -14,11 +14,11 @@
 
 #include "test/common.hpp"
 
+#include "rclcpp/rclcpp.hpp"
+
 #include <memory>
 #include <mutex>
 #include <utility>
-
-#include "rclcpp/rclcpp.hpp"
 
 std::mutex context_mutex;
 

@@ -14,6 +14,15 @@
 
 #include "caret_trace/trace_node.hpp"
 
+#include "caret_trace/clock.hpp"
+#include "caret_trace/context.hpp"
+#include "caret_trace/lttng_session.hpp"
+#include "caret_trace/tp.h"
+
+#include "caret_msgs/msg/end.hpp"
+#include "caret_msgs/msg/start.hpp"
+#include "caret_msgs/msg/status.hpp"
+
 #include <unistd.h>
 
 #include <chrono>
@@ -21,14 +30,6 @@
 #include <shared_mutex>
 #include <string>
 #include <utility>
-
-#include "caret_msgs/msg/end.hpp"
-#include "caret_msgs/msg/start.hpp"
-#include "caret_msgs/msg/status.hpp"
-#include "caret_trace/clock.hpp"
-#include "caret_trace/context.hpp"
-#include "caret_trace/lttng_session.hpp"
-#include "caret_trace/tp.h"
 
 using std::placeholders::_1;
 
@@ -80,7 +81,9 @@ TraceNode::TraceNode(
   debug("Initialized.");
 }
 
-TraceNode::~TraceNode() {}
+TraceNode::~TraceNode()
+{
+}
 
 std::string TraceNode::get_unique_node_name(std::string base_name)
 {
@@ -107,7 +110,10 @@ void TraceNode::info(std::string message) const
   }
 }
 
-DataContainerInterface & TraceNode::get_data_container() { return *data_container_; }
+DataContainerInterface & TraceNode::get_data_container()
+{
+  return *data_container_;
+}
 
 void TraceNode::run_timer()
 {
@@ -152,7 +158,10 @@ bool TraceNode::is_recording_allowed_init() const
   return status_ == TRACE_STATUS::RECORD || status_ == TRACE_STATUS::PREPARE;
 }
 
-const TRACE_STATUS & TraceNode::get_status() const { return status_; }
+const TRACE_STATUS & TraceNode::get_status() const
+{
+  return status_;
+}
 
 void TraceNode::publish_status(TRACE_STATUS status) const
 {
@@ -194,7 +203,10 @@ void TraceNode::start_callback(caret_msgs::msg::Start::UniquePtr msg)
   run_timer();
 }
 
-bool TraceNode::is_timer_running() const { return !timer_->is_canceled(); }
+bool TraceNode::is_timer_running() const
+{
+  return !timer_->is_canceled();
+}
 
 void TraceNode::timer_callback()
 {

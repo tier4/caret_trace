@@ -12,15 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-
-#include <memory>
-#include <thread>
-#include <utility>
-
-#include "caret_msgs/msg/end.hpp"
-#include "caret_msgs/msg/start.hpp"
 #include "caret_trace/context.hpp"
 #include "caret_trace/data_container.hpp"
 #include "caret_trace/lttng_session.hpp"
@@ -28,6 +19,16 @@
 #include "rclcpp/rclcpp.hpp"
 #include "test/common.hpp"
 #include "test/mock.hpp"
+
+#include "caret_msgs/msg/end.hpp"
+#include "caret_msgs/msg/start.hpp"
+
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
+#include <memory>
+#include <thread>
+#include <utility>
 
 using ::testing::_;
 using ::testing::MockFunction;
@@ -44,7 +45,10 @@ void add_data(DataContainer & container, int loop)
   }
 }
 
-void record_data(DataContainer & container, int loop) { container.record(loop); }
+void record_data(DataContainer & container, int loop)
+{
+  container.record(loop);
+}
 
 TEST(ScenarioTest, TestSingleThread)
 {

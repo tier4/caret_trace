@@ -14,6 +14,9 @@
 
 #ifndef CARET_TRACE__RECORDABLE_DATA_HPP_
 
+#include "caret_trace/keys_set.hpp"
+#include "caret_trace/singleton.hpp"
+
 #include <cassert>
 #include <functional>
 #include <iostream>
@@ -22,9 +25,6 @@
 #include <string>
 #include <type_traits>
 #include <unordered_set>
-
-#include "caret_trace/keys_set.hpp"
-#include "caret_trace/singleton.hpp"
 
 /// @brief Interface class for RecordableData.
 /// @details New data is stored pending during recording.

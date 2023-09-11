@@ -14,13 +14,13 @@
 
 #ifndef CARET_TRACE__CONTEXT_HPP_
 
-#include <atomic>
-#include <memory>
-
 #include "caret_trace/clock.hpp"
 #include "caret_trace/data_container.hpp"
 #include "caret_trace/trace_node.hpp"
 #include "caret_trace/tracing_controller.hpp"
+
+#include <atomic>
+#include <memory>
 
 /// @brief A class for singletons that manage shared instances.
 class Context final
