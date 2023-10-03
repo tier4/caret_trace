@@ -533,18 +533,24 @@ void ros_trace_dispatch_subscription_callback(
   const uint64_t source_timestamp,
   const uint64_t message_timestamp)
 {
-  (void) message;
-  (void) callback;
-  (void) source_timestamp;
-  (void) message_timestamp;
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
-// #ifdef DEBUG_OUTPUT
-//     std::cerr << "dispatch_subscription_callback," <<
-//       message << "," <<
-//       callback << "," <<
-//       source_timestamp << "," <<
-//       message_timestamp << std::endl;
-// #endif
+  using functionT = void (*)(const void *, const void *, const uint64_t, const uint64_t);
+  if (controller.is_allowed_callback(callback) &&
+    context.is_recording_allowed())
+  {
+    ((functionT) orig_func)(message, callback, source_timestamp, message_timestamp);
+
+#ifdef DEBUG_OUTPUT
+    std::cerr << "dispatch_subscription_callback," <<
+      message << "," <<
+      callback << "," <<
+      source_timestamp << "," <<
+      message_timestamp << std::endl;
+#endif
+  }
 }
 
 void ros_trace_dispatch_intra_process_subscription_callback(
