@@ -26,7 +26,7 @@ TEST(DataContainerTest, EmptyCase)
   DataContainer container(
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr, nullptr);
+    nullptr, nullptr, nullptr, nullptr, nullptr);
   bool finished;
   finished = container.record();
   EXPECT_TRUE(finished);
@@ -87,6 +87,9 @@ TEST(DataContainerTest, TracePoints)
      "rclcpp_subscription_init",
      "rclcpp_timer_callback_added",
      "rclcpp_timer_link_node",
+     "rclcpp_construct_ring_buffer",
+     "rclcpp_buffer_to_ipb",
+     "rclcpp_ipb_to_subscription",
      "rmw_implementation"});
 
   EXPECT_EQ(trace_points, expect);

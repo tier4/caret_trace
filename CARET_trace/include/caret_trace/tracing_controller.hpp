@@ -79,6 +79,16 @@ public:
   /// @param callback Address of callback instance.
   void add_timer_callback(const void * timer_handle, const void * callback);
 
+  /// @brief Register binding information for rclcpp_buffer_to_ipb tracepoint.
+  /// @param buffer  Address of the buffer.
+  /// @param ipb  Address of the IntraProcessBuffer.
+  void add_buffer(const void * buffer, const void * ipb);
+
+  /// @brief Register binding information for rclcpp_ipb_to_subscription tracepoint.
+  /// @param ipb  Address of the IntraProcessBuffer.
+  /// @param subscription  Address of the subscription instance.
+  void add_ipb(const void * ipb, const void * subscription);
+
   /// @brief Check if trace point is a enabled callback
   /// @param callback
   /// @param callback Address of callback instance.
@@ -104,6 +114,11 @@ public:
   /// @param rmw_subscription_handle Address of the rmw_subscription handle.
   /// @return True if the rmw_subscription is enabled, false otherwise.
   bool is_allowed_rmw_subscription_handle(const void * rmw_subscription_handle);
+
+  /// @brief Check if trace point is a enabled subscription
+  /// @param buffer Address of the intra-process buffer.
+  /// @return True if the buffer is enabled, false otherwise.
+  bool is_allowed_buffer(const void * buffer);
 
 private:
   void debug(std::string message) const;
@@ -140,6 +155,10 @@ private:
   std::unordered_map<const void *, const void *> publisher_handle_to_node_handles_;
   std::unordered_map<const void *, std::string> publisher_handle_to_topic_names_;
   std::unordered_map<const void *, bool> allowed_publishers_;
+
+  std::unordered_map<const void *, const void *> buffer_to_ipbs_;
+  std::unordered_map<const void *, const void *> ipb_to_subscriptions_;
+  std::unordered_map<const void *, bool> allowed_buffers_;
 };
 
 #endif  // CARET_TRACE__TRACING_CONTROLLER_HPP_

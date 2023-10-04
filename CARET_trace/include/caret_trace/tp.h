@@ -234,10 +234,12 @@ TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
   caret_init,
   TP_ARGS(
-    int64_t, clock_offset_arg
+    int64_t, clock_offset_arg,
+    const char *, distribution_arg
   ),
   TP_FIELDS(
     ctf_integer(const int64_t, clock_offset, clock_offset_arg)
+    ctf_string(distribution, distribution_arg)
   )
 )
 
@@ -471,6 +473,51 @@ TRACEPOINT_EVENT(
   TP_FIELDS(
     ctf_integer_hex(const void *, node_handle, node_handle_arg)
     ctf_integer_hex(const void *, state_machine, state_machine_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rclcpp_ipb_to_subscription,
+  TP_ARGS(
+    const void *, ipb_arg,
+    const void *, subscription_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, ipb, ipb_arg)
+    ctf_integer_hex(const void *, subscription, subscription_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rclcpp_buffer_to_ipb,
+  TP_ARGS(
+    const void *, buffer_arg,
+    const void *, ipb_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, buffer, buffer_arg)
+    ctf_integer_hex(const void *, ipb, ipb_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  rclcpp_construct_ring_buffer,
+  TP_ARGS(
+    const void *, buffer_arg,
+    const uint64_t, capacity_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, buffer, buffer_arg)
+    ctf_integer(const uint64_t, capacity, capacity_arg)
     ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
   )
 )

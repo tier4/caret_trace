@@ -187,7 +187,8 @@ void TraceNode::start_callback(caret_msgs::msg::Start::UniquePtr msg)
   status_ = TRACE_STATUS::PREPARE;
 
   // Tracepoints for monotonic time and system time conversion
-  tracepoint(TRACEPOINT_PROVIDER, caret_init, clock.now());
+  auto distribution = getenv("ROS_DISTRO");
+  tracepoint(TRACEPOINT_PROVIDER, caret_init, clock.now(), distribution);
 
   data_container_->reset();
 
