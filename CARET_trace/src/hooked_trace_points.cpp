@@ -58,7 +58,7 @@ namespace CYCLONEDDS
 {
 void * DDS_WRITE_IMPL;
 void * DDS_WRITECDR_IMPL;
-}
+}  // namespace CYCLONEDDS
 
 // For FastDDS
 namespace FASTDDS
@@ -238,7 +238,7 @@ int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
 
 // for cyclonedds
 // bind : &ros_message -> source_timestamp
-int dds_writecdr_impl(void *wr, void *xp, struct ddsi_serdata *dinp, bool flush)  // NOLINT
+int dds_writecdr_impl(void * wr, void * xp, struct ddsi_serdata * dinp, bool flush)  // NOLINT
 {
   static auto & context = Singleton<Context>::get_instance();
   using functionT = int (*)(void *, void *, struct ddsi_serdata *, bool);  // NOLINT
