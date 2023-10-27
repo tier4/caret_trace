@@ -38,6 +38,7 @@
 
 // #define DEBUG_OUTPUT
 
+#include "dds/ddsi/ddsi_serdata.h"
 #include "fastdds/rtps/common/CacheChange.h"
 
 #define STRINGIFY_(s) #s
@@ -56,6 +57,7 @@ rmw_ret_t rmw_get_gid_for_publisher(const rmw_publisher_t * publisher, rmw_gid_t
 namespace CYCLONEDDS
 {
 void * DDS_WRITE_IMPL;
+void * DDS_WRITECDR_IMPL;
 }
 
 // For FastDDS
@@ -206,6 +208,7 @@ void update_dds_function_addr()
     // clang-format on
   } else if (env_var == "rmw_cyclonedds_cpp") {
     CYCLONEDDS::DDS_WRITE_IMPL = lib->get_symbol("dds_write_impl");
+    CYCLONEDDS::DDS_WRITECDR_IMPL = lib->get_symbol("dds_writecdr_impl");
   }
 }
 
@@ -226,6 +229,28 @@ int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
 
   if (context.is_recording_allowed() && trace_filter_is_rcl_publish_recorded) {
     tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, data, tstamp);
+#ifdef DEBUG_OUTPUT
+    std::cerr << "dds_bind_addr_to_stamp," << data << "," << tstamp << std::endl;
+#endif
+  }
+  return dds_return;
+}
+
+// for cyclonedds
+// bind : &ros_message -> source_timestamp
+int dds_writecdr_impl(void *wr, void *xp, struct ddsi_serdata *dinp, bool flush)  // NOLINT
+{
+  static auto & context = Singleton<Context>::get_instance();
+  using functionT = int (*)(void *, void *, struct ddsi_serdata *, bool);  // NOLINT
+
+  // clang-format on
+  if (CYCLONEDDS::DDS_WRITECDR_IMPL == nullptr) {
+    update_dds_function_addr();
+  }
+  int dds_return = ((functionT)CYCLONEDDS::DDS_WRITECDR_IMPL)(wr, xp, dinp, flush);
+
+  if (context.is_recording_allowed()) {
+    tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, dinp, dinp->timestamp.v);
 #ifdef DEBUG_OUTPUT
     std::cerr << "dds_bind_addr_to_stamp," << data << "," << tstamp << std::endl;
 #endif
