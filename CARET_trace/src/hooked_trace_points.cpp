@@ -54,6 +54,7 @@ extern thread_local bool trace_filter_is_rcl_publish_recorded;
 // Declare a prototype in order to use the functions implemented in cyclonedds.
 rmw_ret_t rmw_get_gid_for_publisher(const rmw_publisher_t * publisher, rmw_gid_t * gid);
 
+// cspell: ignore WRITECDR
 namespace CYCLONEDDS
 {
 void * DDS_WRITE_IMPL;
@@ -238,6 +239,7 @@ int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
 
 // for cyclonedds
 // bind : &ros_message -> source_timestamp
+// cspell: ignore ddsi, serdata, dinp
 int dds_writecdr_impl(void * wr, void * xp, struct ddsi_serdata * dinp, bool flush)  // NOLINT
 {
   static auto & context = Singleton<Context>::get_instance();
