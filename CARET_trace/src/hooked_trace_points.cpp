@@ -49,7 +49,7 @@
 #define SYMBOL_CONCAT_2(x, y) x##y
 #define SYMBOL_CONCAT_3(x, y, z) x##y##z
 
-thread_local const void* serialized_message_addr;
+thread_local const void * serialized_message_addr;
 extern thread_local bool trace_filter_is_rcl_publish_recorded;
 
 // Declare a prototype in order to use the functions implemented in cyclonedds.
@@ -253,7 +253,8 @@ int dds_writecdr_impl(void * wr, void * xp, struct ddsi_serdata * dinp, bool flu
   int dds_return = ((functionT)CYCLONEDDS::DDS_WRITECDR_IMPL)(wr, xp, dinp, flush);
 
   if (context.is_recording_allowed()) {
-    tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, serialized_message_addr, dinp->timestamp.v);
+    tracepoint(
+      TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, serialized_message_addr, dinp->timestamp.v);
 #ifdef DEBUG_OUTPUT
     std::cerr << "dds_bind_addr_to_stamp," << data << "," << tstamp << std::endl;
 #endif
@@ -284,12 +285,14 @@ void _ZN8eprosima8fastrtps4rtps13WriterHistory13set_fragmentsEPNS1_13CacheChange
 
 // for rmw_cyclonedds_cpp
 // store message address in tread local memory
-rmw_ret_t rmw_publish_serialized_message(const rmw_publisher_t * publisher, const rmw_serialized_message_t * serialized_message, rmw_publisher_allocation_t * allocation)
+rmw_ret_t rmw_publish_serialized_message(
+  const rmw_publisher_t * publisher, const rmw_serialized_message_t * serialized_message,
+  rmw_publisher_allocation_t * allocation)
 {
-  serialized_message_addr = static_cast<const void *> (serialized_message);
+  serialized_message_addr = static_cast<const void *>(serialized_message);
   using functionT = int (*)(const void *, const void *, const void *);
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
-  int dds_return = ((functionT) orig_func)(publisher, serialized_message, allocation);
+  int dds_return = ((functionT)orig_func)(publisher, serialized_message, allocation);
   return dds_return;
 }
 
