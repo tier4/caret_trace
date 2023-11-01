@@ -49,7 +49,7 @@
 #define SYMBOL_CONCAT_2(x, y) x##y
 #define SYMBOL_CONCAT_3(x, y, z) x##y##z
 
-thread_local const void * serialized_message_addr;
+static thread_local const void * serialized_message_addr;
 extern thread_local bool trace_filter_is_rcl_publish_recorded;
 
 // Declare a prototype in order to use the functions implemented in cyclonedds.
