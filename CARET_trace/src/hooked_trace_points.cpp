@@ -290,10 +290,10 @@ rmw_ret_t rmw_publish_serialized_message(
   rmw_publisher_allocation_t * allocation)
 {
   serialized_message_addr = static_cast<const void *>(serialized_message);
-  using functionT = int (*)(const void *, const void *, const void *);
+  using functionT = rmw_ret_t (*)(const void *, const void *, const void *);
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
-  int dds_return = ((functionT)orig_func)(publisher, serialized_message, allocation);
-  return dds_return;
+  rmw_ret_t ret = ((functionT)orig_func)(publisher, serialized_message, allocation);
+  return ret;
 }
 
 // rclcpp::executors::SingleThreadedExecutor::SingleThreadedExecutor(rclcpp::ExecutorOptions const&)
