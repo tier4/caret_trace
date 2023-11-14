@@ -38,6 +38,7 @@
 
 // #define DEBUG_OUTPUT
 
+#include "dds/ddsi/ddsi_serdata.h"
 #include "fastdds/rtps/common/CacheChange.h"
 
 #define STRINGIFY_(s) #s
@@ -48,15 +49,18 @@
 #define SYMBOL_CONCAT_2(x, y) x##y
 #define SYMBOL_CONCAT_3(x, y, z) x##y##z
 
+static thread_local const void * serialized_message_addr;
 extern thread_local bool trace_filter_is_rcl_publish_recorded;
 
 // Declare a prototype in order to use the functions implemented in cyclonedds.
 rmw_ret_t rmw_get_gid_for_publisher(const rmw_publisher_t * publisher, rmw_gid_t * gid);
 
+// cspell: ignore WRITECDR
 namespace CYCLONEDDS
 {
 void * DDS_WRITE_IMPL;
-}
+void * DDS_WRITECDR_IMPL;
+}  // namespace CYCLONEDDS
 
 // For FastDDS
 namespace FASTDDS
@@ -206,6 +210,7 @@ void update_dds_function_addr()
     // clang-format on
   } else if (env_var == "rmw_cyclonedds_cpp") {
     CYCLONEDDS::DDS_WRITE_IMPL = lib->get_symbol("dds_write_impl");
+    CYCLONEDDS::DDS_WRITECDR_IMPL = lib->get_symbol("dds_writecdr_impl");
   }
 }
 
@@ -233,6 +238,30 @@ int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
   return dds_return;
 }
 
+// for cyclonedds
+// bind : &ros_message -> source_timestamp
+// cspell: ignore ddsi, serdata, dinp
+int dds_writecdr_impl(void * wr, void * xp, struct ddsi_serdata * dinp, bool flush)  // NOLINT
+{
+  static auto & context = Singleton<Context>::get_instance();
+  using functionT = int (*)(void *, void *, struct ddsi_serdata *, bool);  // NOLINT
+
+  // clang-format on
+  if (CYCLONEDDS::DDS_WRITECDR_IMPL == nullptr) {
+    update_dds_function_addr();
+  }
+  int dds_return = ((functionT)CYCLONEDDS::DDS_WRITECDR_IMPL)(wr, xp, dinp, flush);
+
+  if (context.is_recording_allowed()) {
+    tracepoint(
+      TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, serialized_message_addr, dinp->timestamp.v);
+#ifdef DEBUG_OUTPUT
+    std::cerr << "dds_bind_addr_to_stamp," << data << "," << tstamp << std::endl;
+#endif
+  }
+  return dds_return;
+}
+
 // for fastdds
 // bind : &ros_message -> source_timestamp
 void _ZN8eprosima8fastrtps4rtps13WriterHistory13set_fragmentsEPNS1_13CacheChange_tE(
@@ -252,6 +281,19 @@ void _ZN8eprosima8fastrtps4rtps13WriterHistory13set_fragmentsEPNS1_13CacheChange
     std::cerr << "dds_bind_addr_to_stamp," << change->sourceTimestamp.to_ns() << std::endl;
 #endif
   }
+}
+
+// for rmw_cyclonedds_cpp
+// store message address in tread local memory
+rmw_ret_t rmw_publish_serialized_message(
+  const rmw_publisher_t * publisher, const rmw_serialized_message_t * serialized_message,
+  rmw_publisher_allocation_t * allocation)
+{
+  serialized_message_addr = static_cast<const void *>(serialized_message);
+  using functionT = rmw_ret_t (*)(const void *, const void *, const void *);
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  rmw_ret_t ret = ((functionT)orig_func)(publisher, serialized_message, allocation);
+  return ret;
 }
 
 // rclcpp::executors::SingleThreadedExecutor::SingleThreadedExecutor(rclcpp::ExecutorOptions const&)
