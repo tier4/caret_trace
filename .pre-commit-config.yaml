@@ -49,7 +49,7 @@ repos:
       - id: shellcheck
 
   - repo: https://github.com/scop/pre-commit-shfmt
-    rev: v3.7.0-2
+    rev: v3.7.0-3
     hooks:
       - id: shfmt
         args: [-w, -s, -i=4]
@@ -66,7 +66,7 @@ repos:
         args: [--line-length=100]
 
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v17.0.4
+    rev: v17.0.5
     hooks:
       - id: clang-format
         types_or: [c++, c, cuda]
