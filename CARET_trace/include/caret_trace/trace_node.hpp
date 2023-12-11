@@ -130,6 +130,7 @@ private:
   rclcpp::Publisher<caret_msgs::msg::Status>::SharedPtr status_pub_;
   rclcpp::TimerBase::SharedPtr timer_;
   std::shared_ptr<DataContainerInterface> data_container_;
+  std::shared_ptr<LttngSession> lttng_session_;
   bool execute_timer_on_run_;
 
   mutable std::shared_mutex mutex_;
