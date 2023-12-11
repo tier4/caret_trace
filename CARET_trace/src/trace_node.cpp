@@ -43,7 +43,8 @@ TraceNode::TraceNode(
   record_block_size_(100),
   use_log_(use_log),
   data_container_(data_container),
-  execute_timer_on_run_(execute_timer_on_run)
+  execute_timer_on_run_(execute_timer_on_run),
+  lttng_session_(lttng_session)
 {
   set_log_level(level);
 
@@ -181,6 +182,21 @@ void TraceNode::start_callback(caret_msgs::msg::Start::UniquePtr msg)
 
   debug("Received start message.");
 
+  // if (!lttng_session_->started_session_running()) {
+  //   status_ = TRACE_STATUS::WAIT;
+  //   return;
+  // }
+
+  // auto lttng_session_ = std::make_shared<LttngSessionImpl>();
+
+  if (status_ != TRACE_STATUS::WAIT) {
+    return;
+  }
+
+  if (!lttng_session_->is_session_running()) {
+    return;
+  }
+
   // As long as PREPARE state, data of initialization trace point are stored into pending.
   // Before calling the caret_init trace point,
   // transition to the prepare state to set is_recording_allowed to False.
@@ -228,6 +244,10 @@ void TraceNode::timer_callback()
 void TraceNode::end_callback(caret_msgs::msg::End::UniquePtr msg)
 {
   (void)msg;
+
+  if (lttng_session_->is_session_running()) {
+    return;
+  }
 
   status_ = TRACE_STATUS::WAIT;
 
