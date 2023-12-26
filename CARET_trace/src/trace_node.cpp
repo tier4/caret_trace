@@ -24,13 +24,13 @@
 #include "caret_msgs/msg/status.hpp"
 
 #include <unistd.h>
+#include <uuid/uuid.h>
 
 #include <chrono>
 #include <memory>
 #include <shared_mutex>
 #include <string>
 #include <utility>
-#include <uuid/uuid.h>
 
 using std::placeholders::_1;
 
@@ -107,7 +107,7 @@ std::string TraceNode::get_formated_uuid()
 
   // Avoid violating node naming conventions
   auto pos = base_name.find('-');
-  while (pos != std::string::npos){
+  while (pos != std::string::npos) {
     base_name.replace(pos, 1, "_");
     pos = base_name.find('-');
   }
