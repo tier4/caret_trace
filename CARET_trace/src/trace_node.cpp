@@ -30,6 +30,7 @@
 #include <shared_mutex>
 #include <string>
 #include <utility>
+#include <uuid/uuid.h>
 
 using std::placeholders::_1;
 
@@ -88,11 +89,27 @@ TraceNode::~TraceNode()
 
 std::string TraceNode::get_unique_node_name(std::string base_name)
 {
-  auto pid = getpid();
-  char * pid_str = nullptr;
-  if (asprintf(&pid_str, "%jd", (intmax_t)pid) != -1) {
-    base_name += "_" + std::string(pid_str);
-    free(pid_str);
+  std::string uuid_str = get_formated_uuid();
+  base_name += "_" + uuid_str;
+  std::cout << "trace_node_name" << std::endl;
+  std::cout << base_name << std::endl;
+
+  return base_name;
+}
+
+std::string TraceNode::get_formated_uuid()
+{
+  uuid_t uuid_value;
+  std::unique_ptr<char[]> uuid_string_ptr = std::make_unique<char[]>(UUID_STR_LEN);
+  uuid_generate(uuid_value);
+  uuid_unparse_lower(uuid_value, uuid_string_ptr.get());
+  auto base_name = std::string(uuid_string_ptr.get());
+
+  // Avoid violating node naming conventions
+  auto pos = base_name.find('-');
+  while (pos != std::string::npos){
+    base_name.replace(pos, 1, "_");
+    pos = base_name.find('-');
   }
   return base_name;
 }

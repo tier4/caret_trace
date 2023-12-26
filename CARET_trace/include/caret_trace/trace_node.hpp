@@ -117,6 +117,7 @@ private:
   const bool use_log_;  // for test
 
   static std::string get_unique_node_name(std::string base_name);
+  static std::string get_formated_uuid();
   void run_timer();
   void stop_timer();
   void set_log_level(rclcpp::Logger::Level level);
