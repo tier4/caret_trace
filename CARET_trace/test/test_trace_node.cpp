@@ -263,7 +263,7 @@ TEST_F(CaretTraceNodeTest, TestMeasureTransition)
     EXPECT_TRUE(node_->get_status() == TRACE_STATUS::RECORD);
   }
 
-    {  // subscribe start message without lttng session: MEASURE -> PREPARE
+  {  // subscribe start message without lttng session: MEASURE -> PREPARE
     set_status(TRACE_STATUS::RECORD);
     EXPECT_TRUE(node_->get_status() == TRACE_STATUS::RECORD);
 
