@@ -206,6 +206,11 @@ void TraceNode::start_callback(caret_msgs::msg::Start::UniquePtr msg)
 
   // auto lttng_session_ = std::make_shared<LttngSessionImpl>();
 
+
+  if (status_ == TRACE_STATUS::RECORD){
+    publish_status(status_);
+  }
+
   if (status_ != TRACE_STATUS::WAIT) {
     return;
   }
