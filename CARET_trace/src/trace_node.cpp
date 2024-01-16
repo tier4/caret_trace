@@ -253,6 +253,7 @@ void TraceNode::end_callback(caret_msgs::msg::End::UniquePtr msg)
   (void)msg;
 
   if (lttng_session_->is_session_running()) {
+    publish_status(status_);
     return;
   }
 
