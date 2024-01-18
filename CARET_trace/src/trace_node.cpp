@@ -44,8 +44,8 @@ TraceNode::TraceNode(
   record_block_size_(100),
   use_log_(use_log),
   data_container_(data_container),
-  execute_timer_on_run_(execute_timer_on_run),
-  lttng_session_(lttng_session)
+  lttng_session_(lttng_session),
+  execute_timer_on_run_(execute_timer_on_run)
 {
   set_log_level(level);
 
