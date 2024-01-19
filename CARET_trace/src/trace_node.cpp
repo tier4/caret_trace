@@ -91,8 +91,6 @@ std::string TraceNode::get_unique_node_name(std::string base_name)
 {
   std::string uuid_str = get_formatted_uuid();
   base_name += "_" + uuid_str;
-  std::cout << "trace_node_name" << std::endl;
-  std::cout << base_name << std::endl;
 
   return base_name;
 }
