@@ -191,18 +191,6 @@ TEST_F(CaretTraceNodeTest, TestPrepareTransition)
 {
   init_context();
 
-  {  // subscribe start message with lttng session: PREPARE -> PREPARE
-    set_status(TRACE_STATUS::PREPARE);
-    set_lttng_session_running_return_value(true);
-
-    EXPECT_TRUE(node_->get_status() == TRACE_STATUS::PREPARE);
-
-    auto start_msg = get_start_msg();
-    node_->start_callback(std::move(start_msg));
-
-    EXPECT_TRUE(node_->get_status() == TRACE_STATUS::PREPARE);
-  }
-
   {  // subscribe start message without lttng session: PREPARE -> PREPARE
     set_status(TRACE_STATUS::PREPARE);
     set_lttng_session_running_return_value(false);
@@ -215,14 +203,14 @@ TEST_F(CaretTraceNodeTest, TestPrepareTransition)
     EXPECT_TRUE(node_->get_status() == TRACE_STATUS::PREPARE);
   }
 
-  {  // subscribe end message with lttng session: PREPARE -> PREPARE
+  {  // subscribe start message with lttng session: PREPARE -> PREPARE
     set_status(TRACE_STATUS::PREPARE);
     set_lttng_session_running_return_value(true);
 
     EXPECT_TRUE(node_->get_status() == TRACE_STATUS::PREPARE);
 
-    auto end_msg = get_end_msg();
-    node_->end_callback(std::move(end_msg));
+    auto start_msg = get_start_msg();
+    node_->start_callback(std::move(start_msg));
 
     EXPECT_TRUE(node_->get_status() == TRACE_STATUS::PREPARE);
   }
@@ -237,6 +225,18 @@ TEST_F(CaretTraceNodeTest, TestPrepareTransition)
     node_->end_callback(std::move(end_msg));
 
     EXPECT_TRUE(node_->get_status() == TRACE_STATUS::WAIT);
+  }
+
+  {  // subscribe end message with lttng session: PREPARE -> PREPARE
+    set_status(TRACE_STATUS::PREPARE);
+    set_lttng_session_running_return_value(true);
+
+    EXPECT_TRUE(node_->get_status() == TRACE_STATUS::PREPARE);
+
+    auto end_msg = get_end_msg();
+    node_->end_callback(std::move(end_msg));
+
+    EXPECT_TRUE(node_->get_status() == TRACE_STATUS::PREPARE);
   }
 
   {  // transition by timer_callback: PREPARE -> RECORD
@@ -260,22 +260,22 @@ TEST_F(CaretTraceNodeTest, TestRecordTransition)
 {
   init_context();
 
-  {  // subscribe start message with lttng session: RECORD -> RECORD
+  {  // subscribe start message without lttng session: RECORD -> RECORD
     set_status(TRACE_STATUS::RECORD);
     EXPECT_TRUE(node_->get_status() == TRACE_STATUS::RECORD);
 
-    set_lttng_session_running_return_value(true);
+    set_lttng_session_running_return_value(false);
     auto start_msg = get_start_msg();
     node_->start_callback(std::move(start_msg));
 
     EXPECT_TRUE(node_->get_status() == TRACE_STATUS::RECORD);
   }
 
-  {  // subscribe start message without lttng session: RECORD -> RECORD
+  {  // subscribe start message with lttng session: RECORD -> RECORD
     set_status(TRACE_STATUS::RECORD);
     EXPECT_TRUE(node_->get_status() == TRACE_STATUS::RECORD);
 
-    set_lttng_session_running_return_value(false);
+    set_lttng_session_running_return_value(true);
     auto start_msg = get_start_msg();
     node_->start_callback(std::move(start_msg));
 
