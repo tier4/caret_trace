@@ -142,7 +142,6 @@ TEST(CaretTraceTest, TestStartTransition)
 
 TEST_F(CaretTraceNodeTest, TestWaitTransition)
 {
-  // set_lttng_session_running_return_value(true);
   init_context();
 
   {  // subscribe start message without lttng session: WAIT -> WAIT
@@ -168,7 +167,16 @@ TEST_F(CaretTraceNodeTest, TestWaitTransition)
   }
 
   {  // subscribe end message without lttng session: WAIT -> WAIT
+    set_status(TRACE_STATUS::WAIT);
+    EXPECT_TRUE(node_->get_status() == TRACE_STATUS::WAIT);
     set_lttng_session_running_return_value(false);
+    auto end_msg = get_end_msg();
+    node_->end_callback(std::move(end_msg));
+
+    EXPECT_TRUE(node_->get_status() == TRACE_STATUS::WAIT);
+  }
+
+  {  // subscribe end message with lttng session: WAIT -> WAIT
     set_status(TRACE_STATUS::WAIT);
     EXPECT_TRUE(node_->get_status() == TRACE_STATUS::WAIT);
     set_lttng_session_running_return_value(true);
@@ -207,7 +215,7 @@ TEST_F(CaretTraceNodeTest, TestPrepareTransition)
     EXPECT_TRUE(node_->get_status() == TRACE_STATUS::PREPARE);
   }
 
-  {  // subscribe end message with lttng session: PREPARE -> WAIT
+  {  // subscribe end message with lttng session: PREPARE -> PREPARE
     set_status(TRACE_STATUS::PREPARE);
     set_lttng_session_running_return_value(true);
 
@@ -219,7 +227,7 @@ TEST_F(CaretTraceNodeTest, TestPrepareTransition)
     EXPECT_TRUE(node_->get_status() == TRACE_STATUS::PREPARE);
   }
 
-  {  // subscribe end message without lttng session: PREPARE -> PREPARE
+  {  // subscribe end message without lttng session: PREPARE -> WAIT
     set_status(TRACE_STATUS::PREPARE);
     set_lttng_session_running_return_value(false);
 
@@ -248,11 +256,11 @@ TEST_F(CaretTraceNodeTest, TestPrepareTransition)
   }
 }
 
-TEST_F(CaretTraceNodeTest, TestMeasureTransition)
+TEST_F(CaretTraceNodeTest, TestRecordTransition)
 {
   init_context();
 
-  {  // subscribe start message with lttng session: MEASURE -> PREPARE
+  {  // subscribe start message with lttng session: RECORD -> RECORD
     set_status(TRACE_STATUS::RECORD);
     EXPECT_TRUE(node_->get_status() == TRACE_STATUS::RECORD);
 
@@ -263,7 +271,7 @@ TEST_F(CaretTraceNodeTest, TestMeasureTransition)
     EXPECT_TRUE(node_->get_status() == TRACE_STATUS::RECORD);
   }
 
-  {  // subscribe start message without lttng session: MEASURE -> PREPARE
+  {  // subscribe start message without lttng session: RECORD -> RECORD
     set_status(TRACE_STATUS::RECORD);
     EXPECT_TRUE(node_->get_status() == TRACE_STATUS::RECORD);
 
@@ -274,7 +282,7 @@ TEST_F(CaretTraceNodeTest, TestMeasureTransition)
     EXPECT_TRUE(node_->get_status() == TRACE_STATUS::RECORD);
   }
 
-  {  // subscribe end message without lttng session: MEASURE -> WAIT
+  {  // subscribe end message without lttng session: RECORD -> WAIT
     set_status(TRACE_STATUS::RECORD);
     EXPECT_TRUE(node_->get_status() == TRACE_STATUS::RECORD);
 
@@ -285,7 +293,7 @@ TEST_F(CaretTraceNodeTest, TestMeasureTransition)
     EXPECT_TRUE(node_->get_status() == TRACE_STATUS::WAIT);
   }
 
-  {  // subscribe end message with lttng session: MEASURE -> WAIT
+  {  // subscribe end message with lttng session: RECORD -> RECORD
     set_status(TRACE_STATUS::RECORD);
     EXPECT_TRUE(node_->get_status() == TRACE_STATUS::RECORD);
 
@@ -311,12 +319,11 @@ TEST_F(CaretTraceNodeTest, TestPrepare)
   init_context();
 
   set_status(TRACE_STATUS::PREPARE);
-  set_lttng_session_running_return_value(true);
   EXPECT_FALSE(node_->is_recording_allowed());
   EXPECT_TRUE(node_->is_timer_running());
 }
 
-TEST_F(CaretTraceNodeTest, TestMeasure)
+TEST_F(CaretTraceNodeTest, TestRecord)
 {
   init_context();
 
