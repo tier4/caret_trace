@@ -101,15 +101,15 @@ std::string TraceNode::get_formatted_uuid()
   std::unique_ptr<char[]> uuid_string_ptr = std::make_unique<char[]>(UUID_STR_LEN);
   uuid_generate(uuid_value);
   uuid_unparse_lower(uuid_value, uuid_string_ptr.get());
-  auto base_name = std::string(uuid_string_ptr.get());
+  auto uuid_string = std::string(uuid_string_ptr.get());
 
   // Avoid violating node naming conventions
-  auto pos = base_name.find('-');
+  auto pos = uuid_string.find('-');
   while (pos != std::string::npos) {
-    base_name.replace(pos, 1, "_");
-    pos = base_name.find('-');
+    uuid_string.replace(pos, 1, "_");
+    pos = uuid_string.find('-');
   }
-  return base_name;
+  return uuid_string;
 }
 
 void TraceNode::debug(std::string message) const
