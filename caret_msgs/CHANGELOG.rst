@@ -2,8 +2,8 @@
 Changelog for package caret_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.0 (2024-01-31)
+------------------
 * chore: update package.xml version to 0.4.24 (`#266 <https://github.com/tier4/caret_trace/issues/266>`_)
 * Contributors: h-suzuki-isp
 
