@@ -1,0 +1,64 @@
+name: Update Version and Create PR
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  update-version-and-create-pr:
+    permissions:
+      actions: write
+      checks: write
+      contents: write
+      deployments: write
+      issues: write
+      packages: write
+      pull-requests: write
+      repository-projects: write
+      security-events: write
+      statuses: write
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Git
+        run: |
+          git config --global user.name github-actions
+          git config --global user.email github-actions@github.com
+      - name: Get New Branch and Tag
+        id: tag
+        run: |
+          latest_tag=$(curl -s https://api.github.com/repos/${GITHUB_REPOSITORY}/tags | jq -r .[0].name)
+          current_tag=${{ github.ref_name }}
+          branch=rc/$current_tag
+          echo "LATEST_TAG_NAME=$latest_tag" >> "$GITHUB_OUTPUT"
+          echo "TAG_NAME=$current_tag" >> "$GITHUB_OUTPUT"
+          echo "BRANCH_NAME=$branch" >> "$GITHUB_OUTPUT"
+      - name: Checkout repository2
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.BRANCH_NAME }}
+
+      - name: Commit and push changes
+        run: |
+          sed -i "s|<version>.*</version>|<version>$(echo "${{ steps.tag.outputs.TAG_NAME }}" | sed 's/^.//')</version>|" caret_msgs/package.xml
+          git add caret_msgs/package.xml
+          sed -i "s|<version>.*</version>|<version>$(echo "${{ steps.tag.outputs.TAG_NAME }}" | sed 's/^.//')</version>|" CARET_trace/package.xml
+          git add CARET_trace/package.xml
+          git commit -m "chore: update package.xml version to ${{ steps.tag.outputs.TAG_NAME }}" -s
+          git push origin ${{ steps.tag.outputs.BRANCH_NAME }}
+      - name: Re-create tag
+        run: |
+          git push -d origin ${{ steps.tag.outputs.TAG_NAME }}
+          git tag ${{ steps.tag.outputs.TAG_NAME }}
+          git push origin ${{ steps.tag.outputs.TAG_NAME }}
+      - name: Create PR to main branch if the created tag is the latest
+        run: |
+          if [ ${{ steps.tag.outputs.LATEST_TAG_NAME }} == ${{ steps.tag.outputs.TAG_NAME }} ]; then
+            gh pr create --title "chore: update version to ${{ steps.tag.outputs.TAG_NAME }}" \
+                         --body "This pull request updates the version in package.xml to ${{ steps.tag.outputs.TAG_NAME }}" \
+                         --base main \
+                         --head ${{ steps.tag.outputs.BRANCH_NAME }}
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
