@@ -33,6 +33,7 @@
 #define IGNORE_NODES_ENV_NAME "CARET_IGNORE_NODES"
 #define SELECT_TOPICS_ENV_NAME "CARET_SELECT_TOPICS"
 #define IGNORE_TOPICS_ENV_NAME "CARET_IGNORE_TOPICS"
+#define IGNORE_PROCESSES_ENV_NAME "CARET_IGNORE_PROCESSES"
 
 bool partial_match(std::unordered_set<std::string> set, std::string target_name)
 {
@@ -120,8 +121,13 @@ TracingController::TracingController(bool use_log)
   ignored_node_names_(get_env_vars(IGNORE_NODES_ENV_NAME)),
   selected_topic_names_(get_env_vars(SELECT_TOPICS_ENV_NAME)),
   ignored_topic_names_(get_env_vars(IGNORE_TOPICS_ENV_NAME)),
+  ignored_process_names_(get_env_vars(IGNORE_PROCESSES_ENV_NAME)),
   select_enabled_(selected_topic_names_.size() > 0 || selected_node_names_.size() > 0),
-  ignore_enabled_(ignored_topic_names_.size() > 0 || ignored_node_names_.size() > 0),
+  ignore_enabled_(
+    ignored_topic_names_.size() > 0 ||
+    ignored_node_names_.size() > 0 ||
+    ignored_process_names_.size() > 0
+  ),
   use_log_(use_log)
 {
   if (select_enabled_ || ignore_enabled_) {
@@ -144,12 +150,16 @@ TracingController::TracingController(bool use_log)
     if (ignored_topic_names_.size() > 0) {
       info(IGNORE_TOPICS_ENV_NAME + std::string(": ") + get_env_var(IGNORE_TOPICS_ENV_NAME));
     }
+    if (ignored_process_names_.size() > 0) {
+      info(IGNORE_PROCESSES_ENV_NAME + std::string(": ") + get_env_var(IGNORE_PROCESSES_ENV_NAME));
+    }
   }
 
   check_condition_set(selected_node_names_, use_log);
   check_condition_set(ignored_node_names_, use_log);
   check_condition_set(selected_topic_names_, use_log);
   check_condition_set(ignored_topic_names_, use_log);
+  check_condition_set(ignored_process_names_, use_log);
 }
 
 void TracingController::debug(std::string message) const
@@ -202,9 +212,14 @@ bool TracingController::is_allowed_callback(const void * callback)
       return false;
     }
     if (ignore_enabled_) {
+      auto is_ignored_process = partial_match(ignored_process_names_, program_invocation_short_name);
       auto is_ignored_node = partial_match(ignored_node_names_, node_name);
       auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name);
 
+      if (ignored_process_names_.size() > 0 && is_ignored_process) {
+        allowed_callbacks_.insert(std::make_pair(callback, false));
+        return false;
+      }
       if (ignored_node_names_.size() > 0 && is_ignored_node) {
         allowed_callbacks_.insert(std::make_pair(callback, false));
         return false;
@@ -228,9 +243,17 @@ bool TracingController::is_allowed_node(const void * node_handle)
   if (select_enabled_ && selected_node_names_.size() > 0) {
     auto is_selected_node = partial_match(selected_node_names_, node_name);
     return is_selected_node;
-  } else if (ignore_enabled_ && ignored_node_names_.size() > 0) {
+  }
+  if (ignore_enabled_) {
+    auto is_ignored_process = partial_match(ignored_process_names_, program_invocation_short_name);
     auto is_ignored_node = partial_match(ignored_node_names_, node_name);
-    return !is_ignored_node;
+    
+    if (is_ignored_process && ignored_process_names_.size() > 0) {
+      return false;
+    }
+    if (is_ignored_process && ignored_node_names_.size() > 0) {
+      return false;
+    }
   }
   return true;
 }
@@ -254,9 +277,13 @@ bool TracingController::is_allowed_subscription_handle(const void * subscription
     }
     return false;
   } else if (ignore_enabled_) {
+    auto is_ignored_process = partial_match(ignored_process_names_, program_invocation_short_name);
     auto is_ignored_node = partial_match(ignored_node_names_, node_name);
     auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name);
 
+    if (is_ignored_process && ignored_process_names_.size() > 0) {
+      return false;
+    }
     if (is_ignored_node && ignored_node_names_.size() > 0) {
       return false;
     }
@@ -302,9 +329,13 @@ bool TracingController::is_allowed_rmw_subscription_handle(const void * rmw_subs
       return false;
     }
     if (ignore_enabled_) {
+      auto is_ignored_process = partial_match(ignored_process_names_, program_invocation_short_name);
       auto is_ignored_node = partial_match(ignored_node_names_, node_name);
       auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name);
 
+      if (is_ignored_process && ignored_process_names_.size() > 0) {
+        return false;
+      }
       if (ignored_node_names_.size() > 0 && is_ignored_node) {
         allowed_rmw_subscription_handles_.insert(std::make_pair(rmw_subscription_handle, false));
         return false;
@@ -353,9 +384,13 @@ bool TracingController::is_allowed_publisher_handle(const void * publisher_handl
       allowed_publishers_.insert(std::make_pair(publisher_handle, false));
       return false;
     } else if (ignore_enabled_) {
+      auto is_ignored_process = partial_match(ignored_process_names_, program_invocation_short_name);
       auto is_ignored_node = partial_match(ignored_node_names_, node_name);
       auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name);
 
+      if (is_ignored_process && ignored_process_names_.size() > 0) {
+        return false;
+      }
       if (is_ignored_node && ignored_node_names_.size() > 0) {
         allowed_publishers_.insert(std::make_pair(publisher_handle, false));
         return false;
@@ -409,9 +444,13 @@ bool TracingController::is_allowed_buffer(const void * buffer)
       return false;
     }
     if (ignore_enabled_) {
+      auto is_ignored_process = partial_match(ignored_process_names_, program_invocation_short_name);
       auto is_ignored_node = partial_match(ignored_node_names_, node_name);
       auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name);
 
+      if (is_ignored_process && ignored_process_names_.size() > 0) {
+        return false;
+      }
       if (ignored_node_names_.size() > 0 && is_ignored_node) {
         allowed_buffers_.insert(std::make_pair(buffer, false));
         return false;
