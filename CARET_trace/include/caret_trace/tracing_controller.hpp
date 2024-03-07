@@ -119,6 +119,10 @@ public:
   /// @param buffer Address of the intra-process buffer.
   /// @return True if the buffer is enabled, false otherwise.
   bool is_allowed_buffer(const void * buffer);
+  
+  /// @brief Check if trace point is a not ignore process
+  /// @return True if the process is enabled, false otherwise.
+  bool is_allowed_process();
 
 private:
   void debug(std::string message) const;
@@ -132,6 +136,7 @@ private:
   const std::unordered_set<std::string> ignored_node_names_;
   const std::unordered_set<std::string> selected_topic_names_;
   const std::unordered_set<std::string> ignored_topic_names_;
+  const std::unordered_set<std::string> ignored_process_names_;
 
   const bool select_enabled_;
   const bool ignore_enabled_;

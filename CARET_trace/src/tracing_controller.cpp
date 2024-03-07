@@ -212,14 +212,9 @@ bool TracingController::is_allowed_callback(const void * callback)
       return false;
     }
     if (ignore_enabled_) {
-      auto is_ignored_process = partial_match(ignored_process_names_, program_invocation_short_name);
       auto is_ignored_node = partial_match(ignored_node_names_, node_name);
       auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name);
 
-      if (ignored_process_names_.size() > 0 && is_ignored_process) {
-        allowed_callbacks_.insert(std::make_pair(callback, false));
-        return false;
-      }
       if (ignored_node_names_.size() > 0 && is_ignored_node) {
         allowed_callbacks_.insert(std::make_pair(callback, false));
         return false;
@@ -243,17 +238,9 @@ bool TracingController::is_allowed_node(const void * node_handle)
   if (select_enabled_ && selected_node_names_.size() > 0) {
     auto is_selected_node = partial_match(selected_node_names_, node_name);
     return is_selected_node;
-  }
-  if (ignore_enabled_) {
-    auto is_ignored_process = partial_match(ignored_process_names_, program_invocation_short_name);
+  } else if (ignore_enabled_ && ignored_node_names_.size() > 0) {
     auto is_ignored_node = partial_match(ignored_node_names_, node_name);
-    
-    if (is_ignored_process && ignored_process_names_.size() > 0) {
-      return false;
-    }
-    if (is_ignored_process && ignored_node_names_.size() > 0) {
-      return false;
-    }
+    return !is_ignored_node;
   }
   return true;
 }
@@ -277,13 +264,9 @@ bool TracingController::is_allowed_subscription_handle(const void * subscription
     }
     return false;
   } else if (ignore_enabled_) {
-    auto is_ignored_process = partial_match(ignored_process_names_, program_invocation_short_name);
     auto is_ignored_node = partial_match(ignored_node_names_, node_name);
     auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name);
 
-    if (is_ignored_process && ignored_process_names_.size() > 0) {
-      return false;
-    }
     if (is_ignored_node && ignored_node_names_.size() > 0) {
       return false;
     }
@@ -329,13 +312,9 @@ bool TracingController::is_allowed_rmw_subscription_handle(const void * rmw_subs
       return false;
     }
     if (ignore_enabled_) {
-      auto is_ignored_process = partial_match(ignored_process_names_, program_invocation_short_name);
       auto is_ignored_node = partial_match(ignored_node_names_, node_name);
       auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name);
 
-      if (is_ignored_process && ignored_process_names_.size() > 0) {
-        return false;
-      }
       if (ignored_node_names_.size() > 0 && is_ignored_node) {
         allowed_rmw_subscription_handles_.insert(std::make_pair(rmw_subscription_handle, false));
         return false;
@@ -384,13 +363,9 @@ bool TracingController::is_allowed_publisher_handle(const void * publisher_handl
       allowed_publishers_.insert(std::make_pair(publisher_handle, false));
       return false;
     } else if (ignore_enabled_) {
-      auto is_ignored_process = partial_match(ignored_process_names_, program_invocation_short_name);
       auto is_ignored_node = partial_match(ignored_node_names_, node_name);
       auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name);
 
-      if (is_ignored_process && ignored_process_names_.size() > 0) {
-        return false;
-      }
       if (is_ignored_node && ignored_node_names_.size() > 0) {
         allowed_publishers_.insert(std::make_pair(publisher_handle, false));
         return false;
@@ -444,13 +419,9 @@ bool TracingController::is_allowed_buffer(const void * buffer)
       return false;
     }
     if (ignore_enabled_) {
-      auto is_ignored_process = partial_match(ignored_process_names_, program_invocation_short_name);
       auto is_ignored_node = partial_match(ignored_node_names_, node_name);
       auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name);
 
-      if (is_ignored_process && ignored_process_names_.size() > 0) {
-        return false;
-      }
       if (ignored_node_names_.size() > 0 && is_ignored_node) {
         allowed_buffers_.insert(std::make_pair(buffer, false));
         return false;
@@ -463,6 +434,18 @@ bool TracingController::is_allowed_buffer(const void * buffer)
       return true;
     }
     allowed_buffers_.insert(std::make_pair(buffer, true));
+    return true;
+  }
+}
+
+bool TracingController::is_allowed_process()
+{
+  if (ignore_enabled_) {
+    auto is_ignored_process = partial_match(ignored_process_names_, std::string(program_invocation_short_name));
+    if (is_ignored_process && ignored_process_names_.size() > 0) {
+      RCLCPP_DEBUG(rclcpp::get_logger("caret"), program_invocation_short_name);
+      return false;
+    }
     return true;
   }
 }
