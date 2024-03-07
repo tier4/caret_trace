@@ -441,13 +441,15 @@ bool TracingController::is_allowed_buffer(const void * buffer)
 bool TracingController::is_allowed_process()
 {
   if (ignore_enabled_) {
-    auto is_ignored_process = partial_match(ignored_process_names_, std::string(program_invocation_short_name));
+    auto is_ignored_process = partial_match(
+      ignored_process_names_,
+      std::string(program_invocation_short_name)
+    );
     if (is_ignored_process && ignored_process_names_.size() > 0) {
-      RCLCPP_DEBUG(rclcpp::get_logger("caret"), program_invocation_short_name);
       return false;
     }
-    return true;
   }
+  return true;
 }
 
 std::string TracingController::to_node_name(const void * callback)

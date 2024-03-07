@@ -189,17 +189,19 @@ void update_dds_function_addr()
       "Could not load library %s: %s", library_name.c_str(), e.what());
   }
 
-  static auto record = [](const char * rmw_implementation, int64_t init_time) {
-    tracepoint(TRACEPOINT_PROVIDER, rmw_implementation, rmw_implementation, init_time);
-  };
+  if (context.get_controller().is_allowed_process()) {
+    static auto record = [](const char * rmw_implementation, int64_t init_time) {
+      tracepoint(TRACEPOINT_PROVIDER, rmw_implementation, rmw_implementation, init_time);
+    };
 
-  if (!data_container.is_assigned_rmw_implementation()) {
-    data_container.assign_rmw_implementation(record);
+    if (!data_container.is_assigned_rmw_implementation()) {
+      data_container.assign_rmw_implementation(record);
+    }
+
+    data_container.store_rmw_implementation(env_var.c_str(), now);
+
+    record(env_var.c_str(), now);
   }
-
-  data_container.store_rmw_implementation(env_var.c_str(), now);
-
-  record(env_var.c_str(), now);
 
   if (env_var == "rmw_fastrtps_cpp") {
     // clang-format off

@@ -244,10 +244,6 @@ void ros_trace_rcl_node_init(
     static auto & context = Singleton<Context>::get_instance();
     static auto & controller = context.get_controller();
 
-    if (!controller.is_allowed_process()) {
-      return;
-    }
-
     if (!controller.is_allowed_node(node_handle)) {
       return;
     }
@@ -261,6 +257,10 @@ void ros_trace_rcl_node_init(
       node_namespace << std::endl;
 #endif
   };
+
+  if (!controller.is_allowed_process()) {
+    return;
+  }
 
   auto now = clock.now();
 
@@ -307,10 +307,6 @@ void ros_trace_rcl_subscription_init(
     static auto & context = Singleton<Context>::get_instance();
     static auto & controller = context.get_controller();
 
-    if (!controller.is_allowed_process()) {
-      return;
-    }
-
     if (!controller.is_allowed_subscription_handle(subscription_handle)) {
       return;
     }
@@ -325,6 +321,10 @@ void ros_trace_rcl_subscription_init(
       queue_depth << std::endl;
 #endif
   };
+
+  if (!controller.is_allowed_process()) {
+    return;
+  }
 
   auto now = clock.now();
 
@@ -359,11 +359,6 @@ void ros_trace_rclcpp_subscription_init(
   ) {
     static auto & context = Singleton<Context>::get_instance();
     static auto & controller = context.get_controller();
-    
-    if (!controller.is_allowed_process()) {
-      return;
-    }
-
     if (!controller.is_allowed_subscription_handle(subscription_handle)){
       return;
     }
@@ -375,6 +370,10 @@ void ros_trace_rclcpp_subscription_init(
       subscription << std::endl;
 #endif
   };
+
+  if (!controller.is_allowed_process()) {
+    return;
+  }
 
   auto now = clock.now();
   check_and_run_trace_node();
@@ -404,11 +403,6 @@ void ros_trace_rclcpp_subscription_callback_added(
     const void * callback,
     int64_t init_time
   ) {
-    
-    if (!controller.is_allowed_process()) {
-      return;
-    }
-
     if (!controller.is_allowed_callback(callback)) {
       return;
     }
@@ -420,6 +414,10 @@ void ros_trace_rclcpp_subscription_callback_added(
       callback << std::endl;
 #endif
   };
+
+  if (!controller.is_allowed_process()) {
+    return;
+  }
 
   auto now = clock.now();
   check_and_run_trace_node();
@@ -447,11 +445,6 @@ void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void
     const void * callback,
     int64_t init_time
   ) {
-
-  if (!controller.is_allowed_process()) {
-    return;
-  }
-
   if (!controller.is_allowed_callback(callback)) {
     return;
   }
@@ -462,6 +455,10 @@ void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void
       callback << std::endl;
 #endif
   };
+
+  if (!controller.is_allowed_process()) {
+    return;
+  }
 
   auto now = clock.now();
   check_and_run_trace_node();
@@ -487,11 +484,6 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
     const void * node_handle,
     int64_t init_time
   ) {
-
-  if (!controller.is_allowed_process()) {
-    return;
-  }
-
   if (!controller.is_allowed_node(node_handle)) {
     return;
   }
@@ -502,6 +494,10 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
       node_handle << std::endl;
 #endif
   };
+
+  if (!controller.is_allowed_process()) {
+    return;
+  }
 
   auto now = clock.now();
   check_and_run_trace_node();
@@ -724,12 +720,11 @@ void ros_trace_rcl_init(
     tracepoint(TRACEPOINT_PROVIDER, rcl_init, context_handle, init_time);
   };
 
-  auto now = clock.now();
-
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
 
+  auto now = clock.now();
   if (!data_container.is_assigned_rcl_init()) {
     data_container.assign_rcl_init(record);
   }
@@ -767,15 +762,15 @@ void ros_trace_rcl_publisher_init(
     rmw_publisher_handle, topic_name, queue_depth, init_time);
   };
 
+  if (!controller.is_allowed_process()) {
+    return;
+  }
+
   auto now = clock.now();
   controller.add_publisher_handle(node_handle, publisher_handle, topic_name);
 
   // TODO(hsgwa): support topic_name filtering
   // It seems to be executed before the topic name and node name are known.
-
-  if (!controller.is_allowed_process()) {
-    return;
-  }
 
   if (!data_container.is_assigned_rcl_publisher_init()) {
     data_container.assign_rcl_publisher_init(record);
@@ -855,11 +850,11 @@ void ros_trace_rcl_service_init(
 #endif
   };
 
-  auto now = clock.now();
-
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
+
+  auto now = clock.now();
 
   if (!data_container.is_assigned_rcl_service_init()) {
     data_container.assign_rcl_service_init(record);
@@ -889,11 +884,12 @@ void ros_trace_rclcpp_service_callback_added(
       callback << std::endl;
 #endif
   };
-  auto now = clock.now();
 
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
+
+  auto now = clock.now();
 
   check_and_run_trace_node();
 
@@ -930,11 +926,12 @@ void ros_trace_rcl_client_init(
       service_name << std::endl;
 #endif
   };
-  auto now = clock.now();
 
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
+
+  auto now = clock.now();
 
   if (!data_container.is_assigned_rcl_client_init()) {
     data_container.assign_rcl_client_init(record);
@@ -974,11 +971,12 @@ void ros_trace_rclcpp_callback_register(
       symbol << std::endl;
 #endif
   };
-  auto now = clock.now();
 
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
+
+  auto now = clock.now();
 
   check_and_run_trace_node();
 
@@ -1024,11 +1022,12 @@ void ros_trace_do_rclcpp_callback_register(
       symbol << std::endl;
 #endif
   };
-  auto now = clock.now();
 
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
+
+  auto now = clock.now();
 
   check_and_run_trace_node();
 
@@ -1060,11 +1059,12 @@ void ros_trace_rcl_lifecycle_state_machine_init(
       state_machine << std::endl;
 #endif
   };
-  auto now = clock.now();
 
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
+
+  auto now = clock.now();
 
   check_and_run_trace_node();
 
@@ -1269,11 +1269,11 @@ void ros_trace_rclcpp_buffer_to_ipb(
 #endif
   };
 
-  auto now = clock.now();
-
   if (!controller.is_allowed_process()) {
     return;
   }
+
+  auto now = clock.now();
 
   if (!data_container.is_assigned_rclcpp_buffer_to_ipb()){
     data_container.assign_rclcpp_buffer_to_ipb(record);
@@ -1311,11 +1311,11 @@ void ros_trace_rclcpp_ipb_to_subscription(
 #endif
   };
 
-  auto now = clock.now();
-
   if (!controller.is_allowed_process()) {
     return;
   }
+
+  auto now = clock.now();
 
   if (!data_container.is_assigned_rclcpp_ipb_to_subscription()){
     data_container.assign_rclcpp_ipb_to_subscription(record);
@@ -1350,11 +1350,11 @@ void ros_trace_rclcpp_construct_ring_buffer(
 #endif
   };
 
-  auto now = clock.now();
-
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
+
+  auto now = clock.now();
 
   if (!data_container.is_assigned_rclcpp_construct_ring_buffer()) {
     data_container.assign_rclcpp_construct_ring_buffer(record);

@@ -181,6 +181,10 @@ void TraceNode::start_callback(caret_msgs::msg::Start::UniquePtr msg)
 
   debug("Received start message.");
 
+  if (!context.get_controller().is_allowed_process()) {
+    return;
+  }
+
   // As long as PREPARE state, data of initialization trace point are stored into pending.
   // Before calling the caret_init trace point,
   // transition to the prepare state to set is_recording_allowed to False.
