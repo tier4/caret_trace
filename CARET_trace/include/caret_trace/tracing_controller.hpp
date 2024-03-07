@@ -119,7 +119,7 @@ public:
   /// @param buffer Address of the intra-process buffer.
   /// @return True if the buffer is enabled, false otherwise.
   bool is_allowed_buffer(const void * buffer);
-  
+
   /// @brief Check if trace point is a not ignore process
   /// @return True if the process is enabled, false otherwise.
   bool is_allowed_process();

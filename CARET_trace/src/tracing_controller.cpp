@@ -124,10 +124,8 @@ TracingController::TracingController(bool use_log)
   ignored_process_names_(get_env_vars(IGNORE_PROCESSES_ENV_NAME)),
   select_enabled_(selected_topic_names_.size() > 0 || selected_node_names_.size() > 0),
   ignore_enabled_(
-    ignored_topic_names_.size() > 0 ||
-    ignored_node_names_.size() > 0 ||
-    ignored_process_names_.size() > 0
-  ),
+    ignored_topic_names_.size() > 0 || ignored_node_names_.size() > 0 ||
+    ignored_process_names_.size() > 0),
   use_log_(use_log)
 {
   if (select_enabled_ || ignore_enabled_) {
@@ -441,10 +439,8 @@ bool TracingController::is_allowed_buffer(const void * buffer)
 bool TracingController::is_allowed_process()
 {
   if (ignore_enabled_) {
-    auto is_ignored_process = partial_match(
-      ignored_process_names_,
-      std::string(program_invocation_short_name)
-    );
+    auto is_ignored_process =
+      partial_match(ignored_process_names_, std::string(program_invocation_short_name));
     if (is_ignored_process && ignored_process_names_.size() > 0) {
       return false;
     }

@@ -571,7 +571,7 @@ void ros_trace_dispatch_subscription_callback(
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
   using functionT = void (*)(const void *, const void *, const uint64_t, const uint64_t);
-  
+
   if (!controller.is_allowed_process()) {
     return;
   }
@@ -629,7 +629,7 @@ void ros_trace_rclcpp_publish(
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
 
   using functionT = void (*)(const void *, const void *);
-  
+
   if (!controller.is_allowed_process()) {
     return;
   }
@@ -806,7 +806,7 @@ void ros_trace_rcl_publish(
   static auto & controller = context.get_controller();
 
   using functionT = void (*)(const void *, const void *);
-  
+
   if (!controller.is_allowed_process()) {
     return;
   }

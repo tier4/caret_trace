@@ -604,7 +604,7 @@ void _ZN6rclcpp13CallbackGroup16add_subscriptionESt10shared_ptrINS_16Subscriptio
   auto subscription_handle =
     static_cast<const void *>(subscription_ptr->get_subscription_handle().get());
   ((functionT)orig_func)(obj, subscription_ptr);
-  
+
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
@@ -637,7 +637,7 @@ void _ZN6rclcpp13CallbackGroup11add_serviceESt10shared_ptrINS_11ServiceBaseEE(
   auto now = clock.now();
   auto service_handle = static_cast<const void *>(service_ptr->get_service_handle().get());
   ((functionT)orig_func)(obj, service_ptr);
-  
+
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
@@ -670,7 +670,7 @@ void _ZN6rclcpp13CallbackGroup10add_clientESt10shared_ptrINS_10ClientBaseEE(
   auto now = clock.now();
   auto client_handle = static_cast<const void *>(client_ptr->get_client_handle().get());
   ((functionT)orig_func)(obj, client_ptr);
-  
+
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
