@@ -1253,6 +1253,9 @@ void ros_trace_rclcpp_buffer_to_ipb(
   static auto & data_container = context.get_data_container();
   static auto & controller = context.get_controller();
 
+  if (!controller.is_allowed_process()) {
+    return;
+  }
   controller.add_buffer(buffer, ipb);
   static auto record = [](
     const void * buffer,
@@ -1268,10 +1271,6 @@ void ros_trace_rclcpp_buffer_to_ipb(
     ipb << std::endl;
 #endif
   };
-
-  if (!controller.is_allowed_process()) {
-    return;
-  }
 
   auto now = clock.now();
 
@@ -1295,6 +1294,9 @@ void ros_trace_rclcpp_ipb_to_subscription(
   static auto & data_container = context.get_data_container();
   static auto & controller = context.get_controller();
 
+  if (!controller.is_allowed_process()) {
+    return;
+  }
   controller.add_ipb(ipb, subscription);
   static auto record = [](
     const void * ipb,
@@ -1310,10 +1312,6 @@ void ros_trace_rclcpp_ipb_to_subscription(
     subscription << std::endl;
 #endif
   };
-
-  if (!controller.is_allowed_process()) {
-    return;
-  }
 
   auto now = clock.now();
 
