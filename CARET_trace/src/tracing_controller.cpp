@@ -153,9 +153,8 @@ TracingController::TracingController(bool use_log)
   }
 
   is_ignored_process_ =
-      ignored_process_names_.size() > 0 &&
-      partial_match(ignored_process_names_, std::string(program_invocation_short_name));
-
+    ignored_process_names_.size() > 0 &&
+    partial_match(ignored_process_names_, std::string(program_invocation_short_name));
 
   check_condition_set(selected_node_names_, use_log);
   check_condition_set(ignored_node_names_, use_log);
