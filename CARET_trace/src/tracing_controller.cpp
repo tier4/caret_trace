@@ -336,7 +336,7 @@ bool TracingController::is_allowed_publisher_handle(const void * publisher_handl
     auto node_handle = publisher_handle_to_node_handles_[publisher_handle];
     auto node_name = node_handle_to_node_names_[node_handle];
     auto topic_name = publisher_handle_to_topic_names_[publisher_handle];
-    auto is_unregistered_pubsliher_handle = (node_name == "");
+    auto is_unregistered_publisher_handle = (node_name == "");
 
     if (select_enabled_) {
       auto is_selected_node = partial_match(selected_node_names_, node_name);
