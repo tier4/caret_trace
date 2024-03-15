@@ -339,9 +339,9 @@ bool TracingController::is_allowed_publisher_handle(const void * publisher_handl
     auto is_unregistered_publisher_handle = (node_name == "");
 
     if (is_unregistered_publisher_handle) {
-        allowed_publishers_.insert(std::make_pair(publisher_handle, false));
-        return false;
-      }
+      allowed_publishers_.insert(std::make_pair(publisher_handle, false));
+      return false;
+    }
 
     if (select_enabled_) {
       auto is_selected_node = partial_match(selected_node_names_, node_name);
