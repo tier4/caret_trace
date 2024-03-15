@@ -336,6 +336,7 @@ bool TracingController::is_allowed_publisher_handle(const void * publisher_handl
     auto node_handle = publisher_handle_to_node_handles_[publisher_handle];
     auto node_name = node_handle_to_node_names_[node_handle];
     auto topic_name = publisher_handle_to_topic_names_[publisher_handle];
+    auto is_unregistered_pubsliher_handle = (node_name == "");
 
     if (select_enabled_) {
       auto is_selected_node = partial_match(selected_node_names_, node_name);
@@ -356,6 +357,10 @@ bool TracingController::is_allowed_publisher_handle(const void * publisher_handl
       auto is_ignored_node = partial_match(ignored_node_names_, node_name);
       auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name);
 
+      if (is_unregistered_pubsliher_handle){
+        allowed_publishers_.insert(std::make_pair(publisher_handle, false));
+        return false;
+      }
       if (is_ignored_node && ignored_node_names_.size() > 0) {
         allowed_publishers_.insert(std::make_pair(publisher_handle, false));
         return false;
