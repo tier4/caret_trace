@@ -357,7 +357,7 @@ bool TracingController::is_allowed_publisher_handle(const void * publisher_handl
       auto is_ignored_node = partial_match(ignored_node_names_, node_name);
       auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name);
 
-      if (is_unregistered_pubsliher_handle) {
+      if (is_unregistered_publisher_handle) {
         allowed_publishers_.insert(std::make_pair(publisher_handle, false));
         return false;
       }
