@@ -869,3 +869,64 @@ void TracingController::add_client_handle(const void * client_handle, const void
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   client_handle_to_node_handles_[client_handle] = node_handle;
 }
+
+std::string TracingController::get_node_name(const std::string type, const void * key) {
+    if (type == "NH") {
+      if (node_handle_to_node_names_.count(key) > 0) {
+        return node_handle_to_node_names_[key];
+      }
+    } else if (type == "SH") {
+      if (service_handle_to_node_handles_.count(key) > 0) {
+        auto nh = service_handle_to_node_handles_[key];
+        return node_handle_to_node_names_[nh];
+      }
+    } else if (type == "CH") {
+      if (client_handle_to_node_handles_.count(key) > 0) {
+        auto nh = client_handle_to_node_handles_[key];
+        return node_handle_to_node_names_[nh];
+      }
+    } else if (type == "CB") {
+      if (callback_to_timer_handles_.count(key) > 0) {
+        auto th = callback_to_timer_handles_[key];
+        if (timer_handle_to_node_handles_.count(key) > 0) {
+          auto nh = timer_handle_to_node_handles_[th];
+          return node_handle_to_node_names_[nh];
+        }
+      } else if (callback_to_subscriptions_.count(key)) {
+        auto sub = callback_to_subscriptions_[key];
+        if (subscription_to_subscription_handles_.count(sub)) {
+          auto subh = subscription_to_subscription_handles_[sub];
+          if (subscription_handle_to_node_handles_.count(subh)) {
+            auto nh = subscription_handle_to_node_handles_[subh];
+            return node_handle_to_node_names_[nh];
+          }
+        }
+      }
+    } else if (type == "SM") {
+      if (buffer_to_ipbs_.count(key) > 0) {
+        auto ipb = buffer_to_ipbs_[key];
+        if (ipb_to_subscriptions_.count(ipb)) {
+          auto sub = ipb_to_subscriptions_[ipb];
+          if (subscription_to_subscription_handles_.count(sub)) {
+            auto subh = subscription_to_subscription_handles_[sub];
+            if (subscription_handle_to_node_handles_.count(subh)) {
+              auto nh = subscription_handle_to_node_handles_[subh];
+              return node_handle_to_node_names_[nh];
+            }
+          }
+        }
+      }
+    } else if (type == "IPB") {
+      if (ipb_to_subscriptions_.count(key)) {
+        auto sub = ipb_to_subscriptions_[key];
+        if (subscription_to_subscription_handles_.count(sub)) {
+          auto subh = subscription_to_subscription_handles_[sub];
+          if (subscription_handle_to_node_handles_.count(subh)) {
+            auto nh = subscription_handle_to_node_handles_[subh];
+            return node_handle_to_node_names_[nh];
+          }
+        }
+      }
+    }
+    return std::string("- NOTHING -");
+  }

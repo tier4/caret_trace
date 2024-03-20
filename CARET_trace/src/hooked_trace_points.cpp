@@ -232,7 +232,6 @@ int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
   static auto & context = Singleton<Context>::get_instance();
   using functionT = int (*)(void *, void *, long, int);  // NOLINT
 
-D("")
   // clang-format on
   if (CYCLONEDDS::DDS_WRITE_IMPL == nullptr) {
     update_dds_function_addr();
@@ -463,6 +462,7 @@ void SYMBOL_CONCAT_3(
     [](const void * obj, const void * group_addr, const char * group_type_name, const void * node_handle, int64_t init_time) {
       DS(node_handle)
       if (!context.get_controller().is_allowed_node(node_handle)) {
+        D_NH("NH", node_handle, group_addr)
         return;
       }
       tracepoint(
@@ -549,6 +549,7 @@ bool SYMBOL_CONCAT_3(
     [](const void * obj, const void * group_addr, const char * group_type_name, const void * node_handle, int64_t init_time) {
       DS(node_handle)
       if (!context.get_controller().is_allowed_node(node_handle)) {
+        D_NH("NH", node_handle, group_addr)
         return;
       }
       tracepoint(
@@ -698,8 +699,8 @@ void _ZN6rclcpp13CallbackGroup11add_serviceESt10shared_ptrINS_11ServiceBaseEE(
   static auto & data_container = context.get_data_container();
   static auto record = [](const void * obj, const void * service_handle, int64_t init_time) {
 DS(service_handle)
-D("")
     if (!context.get_controller().is_allowed_service_handle(service_handle)) {
+      D_NH("SH", service_handle, 0)
       return;
     }
     tracepoint(TRACEPOINT_PROVIDER, callback_group_add_service, obj, service_handle, init_time);

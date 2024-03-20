@@ -1,5 +1,7 @@
 #pragma once
 
+#include "caret_trace/tracing_controller.hpp"
+
 #include <execinfo.h>
 #ifdef __cplusplus
   #include <cstring>
@@ -31,10 +33,13 @@ static void extractc_fn(const char* symbol, char* fn, size_t bufSize) {
   char** symbols = backtrace_symbols(callstack, frames); \
   char fn[512]; \
   extractc_fn(symbols[1], fn, 512); \
-  std::cout << getpid() << "/ " << gettid() << ": [" << fn << "->" <<__func__ << "] " << __LINE__ << ": " << X << std::endl; \
+  std::cout << getpid() << "/ " << gettid() << ": [" << fn << "->" <<__func__ << "] " << __LINE__ << ": " << #X << "=" << X << std::endl; \
   free(symbols); \
 }
 
-#define D(X) {std::cout << __func__ << ": " << __LINE__ << " | " << X << std::endl;}
+#define D(X) {std::cout << __func__ << ": " << __LINE__ << " | " << #X << "=" << X << std::endl;}
+
+#define D_NH(TYPE, KEY, X) {std::cout << __func__ << ": " << __LINE__ << " | " << #KEY << "=" << KEY << " " << \
+            "NODE=" << context.get_controller().get_node_name(TYPE, KEY) << " " << #X << "=" << X << std::endl;}
 
 #define SEL 1
