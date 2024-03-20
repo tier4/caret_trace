@@ -41,6 +41,8 @@
 #include <string>
 #include <thread>
 
+#include "caret_trace/DEBUG.hpp"
+
 #undef ros_trace_rclcpp_publish
 #undef ros_trace_rclcpp_service_callback_added
 #undef ros_trace_rmw_publisher_init
@@ -484,6 +486,7 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
     const void * node_handle,
     int64_t init_time
   ) {
+  D(node_handle)
   if (!controller.is_allowed_node(node_handle)) {
     return;
   }
@@ -502,7 +505,7 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
   auto now = clock.now();
   check_and_run_trace_node();
 
-  controller.add_timer_handle(node_handle, timer_handle);
+  controller.add_timer_handle(timer_handle, node_handle);
 
   if (!data_container.is_assigned_rclcpp_timer_link_node()) {
     data_container.assign_rclcpp_timer_link_node(record);
@@ -686,6 +689,9 @@ void ros_trace_rcl_timer_init(
   }
 
   static auto record = [](const void * timer_handle, int64_t period, int64_t init_time) {
+    if (!context.get_controller().is_allowed_timer_handle(timer_handle)) {
+      return;
+    }
     tracepoint(TRACEPOINT_PROVIDER, rcl_timer_init, timer_handle, period, init_time);
   };
 
@@ -758,6 +764,9 @@ void ros_trace_rcl_publisher_init(
   const size_t queue_depth,
   int64_t init_time
 ) {
+    if (!controller.is_allowed_publisher_handle(publisher_handle)){
+      return;
+    }
     tracepoint(TRACEPOINT_PROVIDER, rcl_publisher_init, publisher_handle, node_handle,
     rmw_publisher_handle, topic_name, queue_depth, init_time);
   };
@@ -838,6 +847,9 @@ void ros_trace_rcl_service_init(
   const void * rmw_service_handle,
   const char * service_name,
   int64_t init_time) {
+    if (!context.get_controller().is_allowed_node(node_handle)) {
+      return;
+    }
     tracepoint(TRACEPOINT_PROVIDER, rcl_service_init, service_handle,
     node_handle, rmw_service_handle, service_name, init_time);
 
@@ -855,6 +867,11 @@ void ros_trace_rcl_service_init(
   }
 
   auto now = clock.now();
+
+  
+  check_and_run_trace_node();
+
+  context.get_controller().add_service_handle(service_handle, node_handle);
 
   if (!data_container.is_assigned_rcl_service_init()) {
     data_container.assign_rcl_service_init(record);
@@ -875,6 +892,9 @@ void ros_trace_rclcpp_service_callback_added(
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto record = [](const void * service_handle, const char * callback, int64_t init_time) {
+    if (!context.get_controller().is_allowed_service_handle(service_handle)) {
+      return;
+    }
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_service_callback_added,
       service_handle, callback, init_time);
 
@@ -915,6 +935,9 @@ void ros_trace_rcl_client_init(
   const void * rmw_client_handle,
   const char * service_name,
   int64_t init_time) {
+    if (!context.get_controller().is_allowed_node(node_handle)) {
+      return;
+    }
     tracepoint(TRACEPOINT_PROVIDER, rcl_client_init, client_handle, node_handle,
       rmw_client_handle, service_name, init_time);
 
@@ -932,6 +955,8 @@ void ros_trace_rcl_client_init(
   }
 
   auto now = clock.now();
+
+  context.get_controller().add_client_handle(client_handle, node_handle);
 
   if (!data_container.is_assigned_rcl_client_init()) {
     data_container.assign_rcl_client_init(record);
@@ -1050,6 +1075,9 @@ void ros_trace_rcl_lifecycle_state_machine_init(
     const void * node_handle,
     const void * state_machine,
     int64_t init_time) {
+      if (!context.get_controller().is_allowed_node(node_handle)) {
+        return;
+      }
     tracepoint(TRACEPOINT_PROVIDER, rcl_lifecycle_state_machine_init,
       node_handle, state_machine, init_time);
 
@@ -1065,6 +1093,8 @@ void ros_trace_rcl_lifecycle_state_machine_init(
   }
 
   auto now = clock.now();
+
+  context.get_controller().add_state_machine(state_machine, node_handle);
 
   check_and_run_trace_node();
 
@@ -1086,6 +1116,10 @@ void ros_trace_rcl_lifecycle_transition(
 
   if (context.is_recording_allowed()) {
     ((functionT) orig_func)(state_machine, start_label, goal_label);
+
+    if (!context.get_controller().is_allowed_state_machine(state_machine)) {
+      return;
+    }
 
 #ifdef DEBUG_OUTPUT
     std::cerr << "rcl_lifecycle_transition," <<
@@ -1262,6 +1296,9 @@ void ros_trace_rclcpp_buffer_to_ipb(
     const void * ipb,
     int64_t init_timestamp
   ){
+    if (!controller.is_allowed_buffer(buffer)) {
+      return;
+    }
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_buffer_to_ipb,
       buffer, ipb, init_timestamp);
 
@@ -1303,6 +1340,9 @@ void ros_trace_rclcpp_ipb_to_subscription(
     const void * subscription,
     int64_t init_timestamp
   ){
+    if (!controller.is_allowed_ipb(ipb)) {
+      return;
+    }
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_ipb_to_subscription,
       ipb, subscription, init_timestamp);
 
@@ -1338,6 +1378,9 @@ void ros_trace_rclcpp_construct_ring_buffer(
     uint64_t capacity,
     int64_t init_timestamp
   ){
+    if (!context.get_controller().is_allowed_buffer(buffer)) {
+      return;
+    }
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_construct_ring_buffer,
       buffer, capacity, init_timestamp);
 

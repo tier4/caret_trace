@@ -21,7 +21,7 @@
 
 /// @brief Classes that implement trace filtering functions such as CARET_SELECT_NODES.
 /// @details Reads the environment variables CARET_SELECT_NODES,
-/// CARET_IGNORE_NODES, CARET_SELECT_TOPICS, and CARET_IGNORE_TOPICS.
+/// CARET_IGNORE_NODES, CARET_SELECT_TOPICS, CARET_IGNORE_TOPICS, and CARET_IGNORE_NODES.
 /// Tracepoints related to the specified node name or topic name are filtered
 /// so that they are not recorded by LTTng.
 /// If both SELECT and IGNORE are specified, SELECT takes priority.
@@ -65,7 +65,7 @@ public:
   /// @brief Register binding information for rclcpp_timer_link_node tracepoint hook.
   /// @param node_handle Address of the node handle.
   /// @param timer_handle Address of the timer handle.
-  void add_timer_handle(const void * node_handle, const void * timer_handle);
+  void add_timer_handle(const void * timer_handle, const void * node_handle);
 
   /// @brief Register topic name for ros_trace_rcl_publisher_init
   /// @param node_handle  Address of the node handle.
@@ -88,6 +88,21 @@ public:
   /// @param ipb  Address of the IntraProcessBuffer.
   /// @param subscription  Address of the subscription instance.
   void add_ipb(const void * ipb, const void * subscription);
+
+  /// @brief Register binding information for ros_trace_rcl_lifecycle_state_machine_init tracepoint.
+  /// @param state_machine  Address of the lifecycle state machine.
+  /// @param node_handle  Address of the node handle.
+  void add_state_machine(const void * state_machine, const void * node_handle);
+
+  /// @brief Register binding information for rclcpp_service_callback_added tracepoint.
+  /// @param service_handle  Address of the servece handle.
+  /// @param node_handle  Address of the node handle instance.
+  void add_service_handle(const void * service_handle, const void * node_handle);
+
+  /// @brief Register binding information for rcl_client_init tracepoint.
+  /// @param client_handle  Address of the client handle.
+  /// @param node_handle  Address of the node handle instance.
+  void add_client_handle(const void * client_handle, const void * node_handle);
 
   /// @brief Check if trace point is a enabled callback
   /// @param callback
@@ -124,6 +139,31 @@ public:
   /// @return True if the process is enabled, false otherwise.
   bool is_allowed_process();
 
+  /// @brief Check if trace point is a enabled node
+  /// @param timer_handle  Address of the timer handle.
+  /// @return True if the timer_handle is enabled, false otherwise.
+  bool is_allowed_timer_handle(const void * timer_handle);
+
+  /// @brief Check if trace point is a enabled node
+  /// @param state_machine  Address of the lifecycle state machine.
+  /// @return True if the state_machine is enabled, false otherwise.
+  bool is_allowed_state_machine(const void * state_machine);
+
+  /// @brief Check if trace point is a enabled subscription
+  /// @param buffer Address of the intra-process buffer.
+  /// @return True if the buffer is enabled, false otherwise.
+  bool is_allowed_ipb(const void * ipb);
+
+  /// @brief Check if trace point is a enabled callback
+  /// @param service_handle Address of the service handle.
+  /// @return True if the buffer is enabled, false otherwise.
+  bool is_allowed_service_handle(const void * service_handle);
+
+  /// @brief Check if trace point is a enabled callback
+  /// @param client_handle Address of the client handle.
+  /// @return True if the buffer is enabled, false otherwise.
+  bool is_allowed_client_handle(const void * client_handle);
+
 private:
   void debug(std::string message) const;
   void info(std::string message) const;
@@ -155,9 +195,11 @@ private:
   std::unordered_map<const void *, bool> allowed_rmw_subscription_handles_;
 
   std::unordered_map<const void *, std::string> node_handle_to_node_names_;
+  std::unordered_map<const void *, bool> allowed_node_handle_;
   std::unordered_map<const void *, const void *> callback_to_timer_handles_;
   std::unordered_map<const void *, const void *> timer_handle_to_node_handles_;
   std::unordered_map<const void *, bool> allowed_callbacks_;
+  std::unordered_map<const void *, bool> allowed_timer_handle_;
 
   std::unordered_map<const void *, const void *> publisher_handle_to_node_handles_;
   std::unordered_map<const void *, std::string> publisher_handle_to_topic_names_;
@@ -166,6 +208,14 @@ private:
   std::unordered_map<const void *, const void *> buffer_to_ipbs_;
   std::unordered_map<const void *, const void *> ipb_to_subscriptions_;
   std::unordered_map<const void *, bool> allowed_buffers_;
+  std::unordered_map<const void *, bool> allowed_ipbs;
+  
+  std::unordered_map<const void *, const void *> state_machine_to_node_handles_;
+  
+  std::unordered_map<const void *, const void *> service_handle_to_node_handles_;
+  std::unordered_map<const void *, bool> allowed_service_handle_;
+  std::unordered_map<const void *, const void *> client_handle_to_node_handles_;
+  std::unordered_map<const void *, bool> allowed_client_handle_;
 };
 
 #endif  // CARET_TRACE__TRACING_CONTROLLER_HPP_
