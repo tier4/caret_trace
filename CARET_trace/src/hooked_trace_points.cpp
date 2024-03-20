@@ -28,6 +28,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include "caret_trace/DEBUG.hpp"
+
 #define TRACEPOINT_DEFINE
 #include "caret_trace/context.hpp"
 #include "caret_trace/singleton.hpp"
@@ -45,6 +47,8 @@
 #define STRINGIFY(s) STRINGIFY_(s)
 
 #include "caret_trace/keys_set.hpp"
+
+#include "caret_trace/DEBUG.hpp"
 
 #define SYMBOL_CONCAT_2(x, y) x##y
 #define SYMBOL_CONCAT_3(x, y, z) x##y##z
@@ -166,6 +170,7 @@ void update_dds_function_addr()
       e.what());
   }
 
+D("")
   if (env_var.empty()) {
     env_var = STRINGIFY(DEFAULT_RMW_IMPLEMENTATION);
   }
@@ -191,7 +196,9 @@ void update_dds_function_addr()
 
   if (context.get_controller().is_allowed_process()) {
     static auto record = [](const char * rmw_implementation, int64_t init_time) {
-      tracepoint(TRACEPOINT_PROVIDER, rmw_implementation, rmw_implementation, init_time);
+      if (context.is_recording_allowed() && trace_filter_is_rcl_publish_recorded) {
+        tracepoint(TRACEPOINT_PROVIDER, rmw_implementation, rmw_implementation, init_time);
+      }
     };
 
     if (!data_container.is_assigned_rmw_implementation()) {
@@ -225,6 +232,7 @@ int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
   static auto & context = Singleton<Context>::get_instance();
   using functionT = int (*)(void *, void *, long, int);  // NOLINT
 
+D("")
   // clang-format on
   if (CYCLONEDDS::DDS_WRITE_IMPL == nullptr) {
     update_dds_function_addr();
@@ -252,6 +260,7 @@ int dds_writecdr_impl(void * wr, void * xp, struct ddsi_serdata * dinp, bool flu
   static auto & context = Singleton<Context>::get_instance();
   using functionT = int (*)(void *, void *, struct ddsi_serdata *, bool);  // NOLINT
 
+D("")
   // clang-format on
   if (CYCLONEDDS::DDS_WRITECDR_IMPL == nullptr) {
     update_dds_function_addr();
@@ -262,11 +271,12 @@ int dds_writecdr_impl(void * wr, void * xp, struct ddsi_serdata * dinp, bool flu
     return dds_return;
   }
 
-  if (context.is_recording_allowed()) {
+  if (context.is_recording_allowed() && trace_filter_is_rcl_publish_recorded) {
     tracepoint(
       TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, serialized_message_addr, dinp->timestamp.v);
 #ifdef DEBUG_OUTPUT
-    std::cerr << "dds_bind_addr_to_stamp," << data << "," << tstamp << std::endl;
+    //std::cerr << "dds_bind_addr_to_stamp," << data << "," << tstamp << std::endl;
+    std::cerr << "dds_bind_addr_to_stamp," << serialized_message_addr << "," << dinp->timestamp.v << std::endl;
 #endif
   }
   return dds_return;
@@ -278,7 +288,6 @@ void _ZN8eprosima8fastrtps4rtps13WriterHistory13set_fragmentsEPNS1_13CacheChange
   void * obj, eprosima::fastrtps::rtps::CacheChange_t * change)
 {
   static auto & context = Singleton<Context>::get_instance();
-
   using functionT = void (*)(void *, eprosima::fastrtps::rtps::CacheChange_t *);
   if (FASTDDS::SET_FRAGMENTS == nullptr) {
     update_dds_function_addr();
@@ -289,7 +298,7 @@ void _ZN8eprosima8fastrtps4rtps13WriterHistory13set_fragmentsEPNS1_13CacheChange
     return;
   }
 
-  if (context.is_recording_allowed()) {
+  if (context.is_recording_allowed() && trace_filter_is_rcl_publish_recorded) {
     tracepoint(
       TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, nullptr, change->sourceTimestamp.to_ns());
 #ifdef DEBUG_OUTPUT
@@ -327,6 +336,7 @@ void _ZN6rclcpp9executors22SingleThreadedExecutorC1ERKNS_15ExecutorOptionsE(
 #endif
   };
   auto now = clock.now();
+D("")
   using functionT = void (*)(void *, const void *);
   ((functionT)orig_func)(obj, option);
 
@@ -364,6 +374,7 @@ void SYMBOL_CONCAT_2(
   static auto & clock = context.get_clock();
   auto now = clock.now();
 
+D("")
   static auto & data_container = context.get_data_container();
   const std::string executor_type_name = "multi_threaded_executor";
 
@@ -406,6 +417,7 @@ void _ZN6rclcpp9executors28StaticSingleThreadedExecutorC1ERKNS_15ExecutorOptions
   };
   auto now = clock.now();
 
+D("")
   using functionT = void (*)(void *, const void *);
   ((functionT)orig_func)(obj, option);
 
@@ -421,7 +433,7 @@ void _ZN6rclcpp9executors28StaticSingleThreadedExecutorC1ERKNS_15ExecutorOptions
   }
 
   auto entities_collector_ptr = static_cast<const void *>(exec_ptr->entities_collector_.get());
-  data_container.store_add_callback_group_static_executor(
+  data_container.store_construct_static_executor(
     obj, entities_collector_ptr, "static_single_threaded_executor", now);
   record(obj, entities_collector_ptr, "static_single_threaded_executor", now);
 }
@@ -439,7 +451,7 @@ void SYMBOL_CONCAT_3(
   _ZN6rclcpp8Executor25add_callback_group_to_map,
   ESt10shared_ptrINS_13CallbackGroupEES1_INS_15node_interfaces17NodeBaseInterface,
   EERSt3mapISt8weak_ptrIS2_ES8_IS5_ESt10owner_lessIS9_ESaISt4pairIKS9_SA_EEEb)(
-  void * obj, rclcpp::CallbackGroup::SharedPtr group_ptr, const void * node_ptr,
+  void * obj, rclcpp::CallbackGroup::SharedPtr group_ptr, rclcpp::node_interfaces::NodeBaseInterface::SharedPtr node_ptr,
   const void * weak_groups_to_nodes, bool notify)
 {
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
@@ -447,9 +459,19 @@ void SYMBOL_CONCAT_3(
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto record =
+#if SEL
+    [](const void * obj, const void * group_addr, const char * group_type_name, const void * node_handle, int64_t init_time) {
+      DS(node_handle)
+      if (!context.get_controller().is_allowed_node(node_handle)) {
+        return;
+      }
+      tracepoint(
+        TRACEPOINT_PROVIDER, add_callback_group, obj, group_addr, group_type_name, init_time);
+#else
     [](const void * obj, const void * group_addr, const char * group_type_name, int64_t init_time) {
       tracepoint(
         TRACEPOINT_PROVIDER, add_callback_group, obj, group_addr, group_type_name, init_time);
+#endif
 
 #ifdef DEBUG_OUTPUT
       std::cerr << "add_callback_group," << obj << "," << group_addr << "," << group_type_name
@@ -458,8 +480,9 @@ void SYMBOL_CONCAT_3(
     };
   auto now = clock.now();
 
+  D(node_ptr)
   using functionT =
-    void (*)(void *, rclcpp::CallbackGroup::SharedPtr, const void *, const void *, bool);
+    void (*)(void *, rclcpp::CallbackGroup::SharedPtr, rclcpp::node_interfaces::NodeBaseInterface::SharedPtr, const void *, bool);
   auto group_addr = static_cast<const void *>(group_ptr.get());
 
   ((functionT)orig_func)(obj, group_ptr, node_ptr, weak_groups_to_nodes, notify);
@@ -474,9 +497,10 @@ void SYMBOL_CONCAT_3(
 
   static KeysSet<void *, void *, void *> recorded_args;
 
-  auto node_ptr_ = const_cast<void *>(node_ptr);
   auto group_addr_ = const_cast<void *>(group_addr);
+  auto node_ptr_ = static_cast<const void *>(node_ptr.get());
 
+  D(node_ptr_)
   std::string group_type_name = "unknown";
   auto group_type = group_ptr->type();
   if (group_type == rclcpp::CallbackGroupType::MutuallyExclusive) {
@@ -485,11 +509,23 @@ void SYMBOL_CONCAT_3(
     group_type_name = "reentrant";
   }
 
+#if SEL
+  auto node_handle = static_cast<const void *>(node_ptr->get_rcl_node_handle());
+  data_container.store_add_callback_group(obj, group_addr, group_type_name.c_str(), node_handle, now);
+#else
   data_container.store_add_callback_group(obj, group_addr, group_type_name.c_str(), now);
-  if (!recorded_args.has(obj, group_addr_, node_ptr_)) {
-    recorded_args.insert(obj, group_addr_, node_ptr_);
+#endif
+  D(node_handle)
+  auto node_p = const_cast<void *>(node_ptr_);
+  if (!recorded_args.has(obj, group_addr_, node_p)) {
+    recorded_args.insert(obj, group_addr_, node_p);
+  D(node_handle)
 
+#if SEL
+    record(obj, group_addr, group_type_name.c_str(), node_handle, now);
+#else
     record(obj, group_addr, group_type_name.c_str(), now);
+#endif
   }
 }
 
@@ -509,10 +545,21 @@ bool SYMBOL_CONCAT_3(
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto record =
+#if SEL
+    [](const void * obj, const void * group_addr, const char * group_type_name, const void * node_handle, int64_t init_time) {
+      DS(node_handle)
+      if (!context.get_controller().is_allowed_node(node_handle)) {
+        return;
+      }
+      tracepoint(
+        TRACEPOINT_PROVIDER, add_callback_group_static_executor, obj, group_addr, group_type_name,
+        init_time);
+#else
     [](const void * obj, const void * group_addr, const char * group_type_name, int64_t init_time) {
       tracepoint(
         TRACEPOINT_PROVIDER, add_callback_group_static_executor, obj, group_addr, group_type_name,
         init_time);
+#endif
 
 #ifdef DEBUG_OUTPUT
       std::cerr << "add_callback_group_static_executor," << obj << "," << group_addr << ","
@@ -530,6 +577,7 @@ bool SYMBOL_CONCAT_3(
     group_type_name = "reentrant";
   }
 
+D(node_ptr)
   auto ret = ((functionT)orig_func)(obj, group_ptr, node_ptr, weak_groups_to_nodes);
 
   if (!context.get_controller().is_allowed_process()) {
@@ -540,9 +588,17 @@ bool SYMBOL_CONCAT_3(
     data_container.assign_add_callback_group_static_executor(record);
   }
 
+#if SEL
+  auto node_handle = node_ptr->get_rcl_node_handle();
+  data_container.store_add_callback_group_static_executor(
+    obj, group_addr, group_type_name.c_str(), node_handle, now);
+D(node_handle)
+  record(obj, group_addr, group_type_name.c_str(), node_handle, now);
+#else
   data_container.store_add_callback_group_static_executor(
     obj, group_addr, group_type_name.c_str(), now);
   record(obj, group_addr, group_type_name.c_str(), now);
+#endif
 
   return ret;
 }
@@ -558,6 +614,10 @@ void _ZN6rclcpp13CallbackGroup9add_timerESt10shared_ptrINS_9TimerBaseEE(
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto record = [](const void * obj, const void * timer_handle, int64_t init_time) {
+    DS(timer_handle)
+    if (!context.get_controller().is_allowed_timer_handle(timer_handle)) {
+      return;
+    }
     tracepoint(TRACEPOINT_PROVIDER, callback_group_add_timer, obj, timer_handle, init_time);
 
 #ifdef DEBUG_OUTPUT
@@ -568,16 +628,19 @@ void _ZN6rclcpp13CallbackGroup9add_timerESt10shared_ptrINS_9TimerBaseEE(
   auto now = clock.now();
   auto timer_handle = static_cast<const void *>(timer_ptr->get_timer_handle().get());
   ((functionT)orig_func)(obj, timer_ptr);
-
+  
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
 
+D(timer_handle)
   if (!data_container.is_assigned_callback_group_add_timer()) {
     data_container.assign_callback_group_add_timer(record);
   }
 
+D(timer_handle)
   data_container.store_callback_group_add_timer(obj, timer_handle, now);
+D(timer_handle)
   record(obj, timer_handle, now);
 }
 
@@ -591,6 +654,10 @@ void _ZN6rclcpp13CallbackGroup16add_subscriptionESt10shared_ptrINS_16Subscriptio
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto record = [](const void * obj, const void * subscription_handle, int64_t init_time) {
+DS(subscription_handle)
+    if (!context.get_controller().is_allowed_subscription_handle(subscription_handle)) {
+      return;
+    }
     tracepoint(
       TRACEPOINT_PROVIDER, callback_group_add_subscription, obj, subscription_handle, init_time);
 
@@ -604,16 +671,19 @@ void _ZN6rclcpp13CallbackGroup16add_subscriptionESt10shared_ptrINS_16Subscriptio
   auto subscription_handle =
     static_cast<const void *>(subscription_ptr->get_subscription_handle().get());
   ((functionT)orig_func)(obj, subscription_ptr);
-
+  
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
 
+D(subscription_handle)
   if (!data_container.is_assigned_callback_group_add_subscription()) {
     data_container.assign_callback_group_add_subscription(record);
   }
 
+D(subscription_handle)
   data_container.store_callback_group_add_subscription(obj, subscription_handle, now);
+D(subscription_handle)
   record(obj, subscription_handle, now);
 }
 
@@ -627,6 +697,11 @@ void _ZN6rclcpp13CallbackGroup11add_serviceESt10shared_ptrINS_11ServiceBaseEE(
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto record = [](const void * obj, const void * service_handle, int64_t init_time) {
+DS(service_handle)
+D("")
+    if (!context.get_controller().is_allowed_service_handle(service_handle)) {
+      return;
+    }
     tracepoint(TRACEPOINT_PROVIDER, callback_group_add_service, obj, service_handle, init_time);
 
 #ifdef DEBUG_OUTPUT
@@ -637,16 +712,19 @@ void _ZN6rclcpp13CallbackGroup11add_serviceESt10shared_ptrINS_11ServiceBaseEE(
   auto now = clock.now();
   auto service_handle = static_cast<const void *>(service_ptr->get_service_handle().get());
   ((functionT)orig_func)(obj, service_ptr);
-
+  
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
 
+D(service_handle)
   if (!data_container.is_assigned_callback_group_add_service()) {
     data_container.assign_callback_group_add_service(record);
   }
 
+D(service_handle)
   data_container.store_callback_group_add_service(obj, service_handle, now);
+D(service_handle)
   record(obj, service_handle, now);
 }
 
@@ -660,6 +738,10 @@ void _ZN6rclcpp13CallbackGroup10add_clientESt10shared_ptrINS_10ClientBaseEE(
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto record = [](const void * obj, const void * client_handle, int64_t init_time) {
+DS(client_handle)
+    if (!context.get_controller().is_allowed_client_handle(client_handle)) {
+      return;
+    }
     tracepoint(TRACEPOINT_PROVIDER, callback_group_add_client, obj, client_handle, init_time);
 
 #ifdef DEBUG_OUTPUT
@@ -670,16 +752,19 @@ void _ZN6rclcpp13CallbackGroup10add_clientESt10shared_ptrINS_10ClientBaseEE(
   auto now = clock.now();
   auto client_handle = static_cast<const void *>(client_ptr->get_client_handle().get());
   ((functionT)orig_func)(obj, client_ptr);
-
+  
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
 
+D(client_handle)
   if (!data_container.is_assigned_callback_group_add_client()) {
     data_container.assign_callback_group_add_client(record);
   }
 
+D(client_handle)
   data_container.store_callback_group_add_client(obj, client_handle, now);
+D(client_handle)
   record(obj, client_handle, now);
 }
 }
