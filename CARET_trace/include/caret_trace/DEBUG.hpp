@@ -39,7 +39,8 @@ static void extractc_fn(const char* symbol, char* fn, size_t bufSize) {
 
 #define D(X) {std::cout << __func__ << ": " << __LINE__ << " | " << #X << "=" << X << std::endl;}
 
-#define D_NH(TYPE, KEY, X) {std::cout << __func__ << ": " << __LINE__ << " | " << #KEY << "=" << KEY << " " << \
+#define D_NH(TYPE, KEY, X, TRC) {std::cout << std::setbase(10) << "FILTERED " << __func__ << ": " << __LINE__ << \
+            " [" << #TRC << "] " << std::setbase(16) << std::uppercase << #KEY << "=" << KEY << " " << \
             "NODE=" << context.get_controller().get_node_name(TYPE, KEY) << " " << #X << "=" << X << std::endl;}
 
 #define SEL 1

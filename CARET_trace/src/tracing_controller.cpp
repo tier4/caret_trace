@@ -239,13 +239,10 @@ bool TracingController::is_allowed_node(const void * node_handle)
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   if (allowed_node_handle_.count(node_handle) > 0) {
     auto allowed = allowed_node_handle_[node_handle];
-    auto ss = (allowed)? "--- ALLOW ": "--- NOT ALLOW ";
-    std::cout << ss << node_handle << std::endl;
     return allowed;
   }
   if (node_handle_to_node_names_.count(node_handle) > 0) {
     auto node_name = node_handle_to_node_names_[node_handle];
-    std::cout << "--- NODE " << node_handle << ": " << node_name << std::endl;
 
     if (select_enabled_ && selected_node_names_.size() > 0) {
       auto is_selected_node = partial_match(selected_node_names_, node_name);
@@ -259,7 +256,7 @@ bool TracingController::is_allowed_node(const void * node_handle)
     allowed_node_handle_[node_handle] = true;
     return true;
   }
-  std::cout << "--- UNREG NODE " << node_handle << std::endl;
+  D("UNREGISTERED ")
   return true;
 }
 
@@ -534,7 +531,6 @@ bool TracingController::is_allowed_timer_handle(const void * timer_handle)
       allowed_node_handle_[node_handle] = true;
     }
   }
-  D(timer_handle)
   return true;
 }
 
@@ -885,23 +881,32 @@ std::string TracingController::get_node_name(const std::string type, const void 
         auto nh = client_handle_to_node_handles_[key];
         return node_handle_to_node_names_[nh];
       }
-    } else if (type == "CB") {
-      if (callback_to_timer_handles_.count(key) > 0) {
-        auto th = callback_to_timer_handles_[key];
-        if (timer_handle_to_node_handles_.count(key) > 0) {
-          auto nh = timer_handle_to_node_handles_[th];
-          return node_handle_to_node_names_[nh];
-        }
-      } else if (callback_to_subscriptions_.count(key)) {
-        auto sub = callback_to_subscriptions_[key];
-        if (subscription_to_subscription_handles_.count(sub)) {
-          auto subh = subscription_to_subscription_handles_[sub];
-          if (subscription_handle_to_node_handles_.count(subh)) {
-            auto nh = subscription_handle_to_node_handles_[subh];
-            return node_handle_to_node_names_[nh];
-          }
-        }
+    } else if (type == "SUBH") {
+      if (subscription_handle_to_node_handles_.count(key) > 0) {
+        auto nh = subscription_handle_to_node_handles_[key];
+        return node_handle_to_node_names_[nh];
       }
+    } else if (type == "RMW_SUBH") {
+      if (rmw_subscription_handle_to_node_handles_.count(key) > 0) {
+        auto nh = rmw_subscription_handle_to_node_handles_[key];
+        return node_handle_to_node_names_[nh];
+      }
+    } else if (type == "PUBH") {
+     if (publisher_handle_to_node_handles_.count(key) > 0) {
+        auto nh = publisher_handle_to_node_handles_[key];
+        return node_handle_to_node_names_[nh];
+      }
+    } else if (type == "TH") {
+      if (timer_handle_to_node_handles_.count(key) > 0) {
+        auto nh = timer_handle_to_node_handles_[key];
+        return node_handle_to_node_names_[nh];
+      }
+    } else if (type == "CB") {
+      auto node_name = to_node_name(key);
+      if (node_name == "") {
+        return "- NOTHING -";
+      }
+      return node_name;
     } else if (type == "SM") {
       if (buffer_to_ipbs_.count(key) > 0) {
         auto ipb = buffer_to_ipbs_[key];
@@ -927,6 +932,8 @@ std::string TracingController::get_node_name(const std::string type, const void 
           }
         }
       }
+    } else if (type == "OTH") {
+      return "OTH(dds_write/bind/message)";
     }
-    return std::string("- NOTHING -");
+    return "(NOTHING)";
   }
