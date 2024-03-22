@@ -120,6 +120,10 @@ public:
   /// @return True if the buffer is enabled, false otherwise.
   bool is_allowed_buffer(const void * buffer);
 
+  /// @brief Check if current process is allowed to output trace events
+  /// @return True if the process is enabled, false otherwise.
+  bool is_allowed_process();
+
 private:
   void debug(std::string message) const;
   void info(std::string message) const;
@@ -132,9 +136,12 @@ private:
   const std::unordered_set<std::string> ignored_node_names_;
   const std::unordered_set<std::string> selected_topic_names_;
   const std::unordered_set<std::string> ignored_topic_names_;
+  const std::unordered_set<std::string> ignored_process_names_;
 
   const bool select_enabled_;
   const bool ignore_enabled_;
+
+  bool is_ignored_process_;
 
   const bool use_log_;  // for test
 

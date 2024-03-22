@@ -33,6 +33,7 @@
 #define IGNORE_NODES_ENV_NAME "CARET_IGNORE_NODES"
 #define SELECT_TOPICS_ENV_NAME "CARET_SELECT_TOPICS"
 #define IGNORE_TOPICS_ENV_NAME "CARET_IGNORE_TOPICS"
+#define IGNORE_PROCESSES_ENV_NAME "CARET_IGNORE_PROCESSES"
 
 bool partial_match(std::unordered_set<std::string> set, std::string target_name)
 {
@@ -120,6 +121,7 @@ TracingController::TracingController(bool use_log)
   ignored_node_names_(get_env_vars(IGNORE_NODES_ENV_NAME)),
   selected_topic_names_(get_env_vars(SELECT_TOPICS_ENV_NAME)),
   ignored_topic_names_(get_env_vars(IGNORE_TOPICS_ENV_NAME)),
+  ignored_process_names_(get_env_vars(IGNORE_PROCESSES_ENV_NAME)),
   select_enabled_(selected_topic_names_.size() > 0 || selected_node_names_.size() > 0),
   ignore_enabled_(ignored_topic_names_.size() > 0 || ignored_node_names_.size() > 0),
   use_log_(use_log)
@@ -146,10 +148,19 @@ TracingController::TracingController(bool use_log)
     }
   }
 
+  if (ignored_process_names_.size() > 0) {
+    info(IGNORE_PROCESSES_ENV_NAME + std::string(": ") + get_env_var(IGNORE_PROCESSES_ENV_NAME));
+  }
+
+  is_ignored_process_ =
+    ignored_process_names_.size() > 0 &&
+    partial_match(ignored_process_names_, std::string(program_invocation_short_name));
+
   check_condition_set(selected_node_names_, use_log);
   check_condition_set(ignored_node_names_, use_log);
   check_condition_set(selected_topic_names_, use_log);
   check_condition_set(ignored_topic_names_, use_log);
+  check_condition_set(ignored_process_names_, use_log);
 }
 
 void TracingController::debug(std::string message) const
@@ -432,6 +443,11 @@ bool TracingController::is_allowed_buffer(const void * buffer)
     allowed_buffers_.insert(std::make_pair(buffer, true));
     return true;
   }
+}
+
+bool TracingController::is_allowed_process()
+{
+  return !is_ignored_process_;
 }
 
 std::string TracingController::to_node_name(const void * callback)

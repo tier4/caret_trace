@@ -189,17 +189,19 @@ void update_dds_function_addr()
       "Could not load library %s: %s", library_name.c_str(), e.what());
   }
 
-  static auto record = [](const char * rmw_implementation, int64_t init_time) {
-    tracepoint(TRACEPOINT_PROVIDER, rmw_implementation, rmw_implementation, init_time);
-  };
+  if (context.get_controller().is_allowed_process()) {
+    static auto record = [](const char * rmw_implementation, int64_t init_time) {
+      tracepoint(TRACEPOINT_PROVIDER, rmw_implementation, rmw_implementation, init_time);
+    };
 
-  if (!data_container.is_assigned_rmw_implementation()) {
-    data_container.assign_rmw_implementation(record);
+    if (!data_container.is_assigned_rmw_implementation()) {
+      data_container.assign_rmw_implementation(record);
+    }
+
+    data_container.store_rmw_implementation(env_var.c_str(), now);
+
+    record(env_var.c_str(), now);
   }
-
-  data_container.store_rmw_implementation(env_var.c_str(), now);
-
-  record(env_var.c_str(), now);
 
   if (env_var == "rmw_fastrtps_cpp") {
     // clang-format off
@@ -229,6 +231,10 @@ int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
   }
   int dds_return = ((functionT)CYCLONEDDS::DDS_WRITE_IMPL)(wr, data, tstamp, action);
 
+  if (!context.get_controller().is_allowed_process()) {
+    return dds_return;
+  }
+
   if (context.is_recording_allowed() && trace_filter_is_rcl_publish_recorded) {
     tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, data, tstamp);
 #ifdef DEBUG_OUTPUT
@@ -252,6 +258,10 @@ int dds_writecdr_impl(void * wr, void * xp, struct ddsi_serdata * dinp, bool flu
   }
   int dds_return = ((functionT)CYCLONEDDS::DDS_WRITECDR_IMPL)(wr, xp, dinp, flush);
 
+  if (!context.get_controller().is_allowed_process()) {
+    return dds_return;
+  }
+
   if (context.is_recording_allowed()) {
     tracepoint(
       TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, serialized_message_addr, dinp->timestamp.v);
@@ -274,6 +284,11 @@ void _ZN8eprosima8fastrtps4rtps13WriterHistory13set_fragmentsEPNS1_13CacheChange
     update_dds_function_addr();
   }
   ((functionT)FASTDDS::SET_FRAGMENTS)(obj, change);
+
+  if (!context.get_controller().is_allowed_process()) {
+    return;
+  }
+
   if (context.is_recording_allowed()) {
     tracepoint(
       TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, nullptr, change->sourceTimestamp.to_ns());
@@ -315,6 +330,10 @@ void _ZN6rclcpp9executors22SingleThreadedExecutorC1ERKNS_15ExecutorOptionsE(
   using functionT = void (*)(void *, const void *);
   ((functionT)orig_func)(obj, option);
 
+  if (!context.get_controller().is_allowed_process()) {
+    return;
+  }
+
   const std::string executor_type_name = "single_threaded_executor";
 
   if (!data_container.is_assigned_construct_executor()) {
@@ -351,6 +370,10 @@ void SYMBOL_CONCAT_2(
   using functionT = void (*)(void *, const void *, size_t, bool, const void *);
   ((functionT)orig_func)(obj, option, number_of_thread, yield_before_execute, timeout);
 
+  if (!context.get_controller().is_allowed_process()) {
+    return;
+  }
+
   if (!data_container.is_assigned_construct_executor()) {
     data_container.assign_construct_executor(record);
   }
@@ -385,6 +408,10 @@ void _ZN6rclcpp9executors28StaticSingleThreadedExecutorC1ERKNS_15ExecutorOptions
 
   using functionT = void (*)(void *, const void *);
   ((functionT)orig_func)(obj, option);
+
+  if (!context.get_controller().is_allowed_process()) {
+    return;
+  }
 
   using StaticSingleThreadedExecutorPublic = rclcpp::executors::StaticSingleThreadedExecutorPublic;
   auto exec_ptr = reinterpret_cast<StaticSingleThreadedExecutorPublic *>(obj);
@@ -436,6 +463,10 @@ void SYMBOL_CONCAT_3(
   auto group_addr = static_cast<const void *>(group_ptr.get());
 
   ((functionT)orig_func)(obj, group_ptr, node_ptr, weak_groups_to_nodes, notify);
+
+  if (!context.get_controller().is_allowed_process()) {
+    return;
+  }
 
   if (!data_container.is_assigned_add_callback_group()) {
     data_container.assign_add_callback_group(record);
@@ -501,6 +532,10 @@ bool SYMBOL_CONCAT_3(
 
   auto ret = ((functionT)orig_func)(obj, group_ptr, node_ptr, weak_groups_to_nodes);
 
+  if (!context.get_controller().is_allowed_process()) {
+    return ret;
+  }
+
   if (!data_container.is_assigned_add_callback_group_static_executor()) {
     data_container.assign_add_callback_group_static_executor(record);
   }
@@ -534,6 +569,10 @@ void _ZN6rclcpp13CallbackGroup9add_timerESt10shared_ptrINS_9TimerBaseEE(
   auto timer_handle = static_cast<const void *>(timer_ptr->get_timer_handle().get());
   ((functionT)orig_func)(obj, timer_ptr);
 
+  if (!context.get_controller().is_allowed_process()) {
+    return;
+  }
+
   if (!data_container.is_assigned_callback_group_add_timer()) {
     data_container.assign_callback_group_add_timer(record);
   }
@@ -566,6 +605,10 @@ void _ZN6rclcpp13CallbackGroup16add_subscriptionESt10shared_ptrINS_16Subscriptio
     static_cast<const void *>(subscription_ptr->get_subscription_handle().get());
   ((functionT)orig_func)(obj, subscription_ptr);
 
+  if (!context.get_controller().is_allowed_process()) {
+    return;
+  }
+
   if (!data_container.is_assigned_callback_group_add_subscription()) {
     data_container.assign_callback_group_add_subscription(record);
   }
@@ -595,6 +638,10 @@ void _ZN6rclcpp13CallbackGroup11add_serviceESt10shared_ptrINS_11ServiceBaseEE(
   auto service_handle = static_cast<const void *>(service_ptr->get_service_handle().get());
   ((functionT)orig_func)(obj, service_ptr);
 
+  if (!context.get_controller().is_allowed_process()) {
+    return;
+  }
+
   if (!data_container.is_assigned_callback_group_add_service()) {
     data_container.assign_callback_group_add_service(record);
   }
@@ -623,6 +670,10 @@ void _ZN6rclcpp13CallbackGroup10add_clientESt10shared_ptrINS_10ClientBaseEE(
   auto now = clock.now();
   auto client_handle = static_cast<const void *>(client_ptr->get_client_handle().get());
   ((functionT)orig_func)(obj, client_ptr);
+
+  if (!context.get_controller().is_allowed_process()) {
+    return;
+  }
 
   if (!data_container.is_assigned_callback_group_add_client()) {
     data_container.assign_callback_group_add_client(record);
