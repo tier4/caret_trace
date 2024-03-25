@@ -399,9 +399,8 @@ void _ZN6rclcpp9executors28StaticSingleThreadedExecutorC1ERKNS_15ExecutorOptions
       init_time);
 
 #ifdef DEBUG_OUTPUT
-    std::cerr << "construct_static_executor,"
-              << "static_single_threaded_executor"
-              << "," << obj << "," << entities_collector_ptr << std::endl;
+    std::cerr << "construct_static_executor," << "static_single_threaded_executor" << "," << obj
+              << "," << entities_collector_ptr << std::endl;
 #endif
   };
   auto now = clock.now();
