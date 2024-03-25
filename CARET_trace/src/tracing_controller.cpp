@@ -855,6 +855,9 @@ void TracingController::add_rmw_subscription_handle(
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   rmw_subscription_handle_to_node_handles_[rmw_subscription_handle] = node_handle;
+  if (allowed_rmw_subscription_handles_.count(rmw_subscription_handle) > 0) {
+    allowed_rmw_subscription_handles_.erase(rmw_subscription_handle);
+  }
   rmw_subscription_handle_to_topic_names_[rmw_subscription_handle] = topic_name;
 }
 
@@ -891,6 +894,9 @@ void TracingController::add_publisher_handle(
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   publisher_handle_to_node_handles_[publisher_handle] = node_handle;
+  if (allowed_publishers_.count(publisher_handle) > 0) {
+    allowed_publishers_.erase(publisher_handle);
+  }
   publisher_handle_to_topic_names_[publisher_handle] = topic_name;
 }
 
@@ -898,12 +904,18 @@ void TracingController::add_buffer(const void * buffer, const void * ipb)
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   buffer_to_ipbs_[buffer] = ipb;
+  if (allowed_buffers_.count(buffer) > 0) {
+    allowed_buffers_.erase(buffer);
+  }
 }
 
 void TracingController::add_ipb(const void * ipb, const void * subscription)
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   ipb_to_subscriptions_[ipb] = subscription;
+  if (ipb_to_subscriptions_.count(ipb) > 0) {
+    ipb_to_subscriptions_.erase(ipb);
+  }
 }
 
 void TracingController::add_state_machine(const void * state_machine, const void * node_handle)
@@ -916,12 +928,18 @@ void TracingController::add_service_handle(const void * service_handle, const vo
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   service_handle_to_node_handles_[service_handle] = node_handle;
+  if (allowed_service_handle_.count(service_handle) > 0) {
+    allowed_service_handle_.erase(service_handle);
+  }
 }
 
 void TracingController::add_client_handle(const void * client_handle, const void * node_handle)
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   client_handle_to_node_handles_[client_handle] = node_handle;
+  if (allowed_client_handle_.count(client_handle) > 0) {
+    allowed_client_handle_.erase(client_handle);
+  }
 }
 
 std::string TracingController::get_node_name(const std::string type, const void * key) {
