@@ -170,7 +170,6 @@ void update_dds_function_addr()
       e.what());
   }
 
-D("")
   if (env_var.empty()) {
     env_var = STRINGIFY(DEFAULT_RMW_IMPLEMENTATION);
   }
@@ -262,7 +261,6 @@ int dds_writecdr_impl(void * wr, void * xp, struct ddsi_serdata * dinp, bool flu
   static auto & context = Singleton<Context>::get_instance();
   using functionT = int (*)(void *, void *, struct ddsi_serdata *, bool);  // NOLINT
 
-D("")
   // clang-format on
   if (CYCLONEDDS::DDS_WRITECDR_IMPL == nullptr) {
     update_dds_function_addr();
@@ -282,7 +280,7 @@ D("")
 #endif
   }
   else {
-    //D_NH("OTH", serialized_message_addr, serialized_message_addr, dds_bind_addr_to_stamp)
+    D_NH("OTH", serialized_message_addr, serialized_message_addr, dds_bind_addr_to_stamp)
   }
   return dds_return;
 }
@@ -311,7 +309,7 @@ void _ZN8eprosima8fastrtps4rtps13WriterHistory13set_fragmentsEPNS1_13CacheChange
 #endif
   }
   else {
-    //D_NH("OTH", 0, "fastdds:write", dds_bind_addr_to_stamp)
+    D_NH("OTH", 0, "fastdds:write", dds_bind_addr_to_stamp)
   }
 }
 
@@ -344,7 +342,6 @@ void _ZN6rclcpp9executors22SingleThreadedExecutorC1ERKNS_15ExecutorOptionsE(
 #endif
   };
   auto now = clock.now();
-D("")
   using functionT = void (*)(void *, const void *);
   ((functionT)orig_func)(obj, option);
 
@@ -382,7 +379,6 @@ void SYMBOL_CONCAT_2(
   static auto & clock = context.get_clock();
   auto now = clock.now();
 
-D("")
   static auto & data_container = context.get_data_container();
   const std::string executor_type_name = "multi_threaded_executor";
 
@@ -425,7 +421,6 @@ void _ZN6rclcpp9executors28StaticSingleThreadedExecutorC1ERKNS_15ExecutorOptions
   };
   auto now = clock.now();
 
-D("")
   using functionT = void (*)(void *, const void *);
   ((functionT)orig_func)(obj, option);
 
@@ -467,7 +462,6 @@ void SYMBOL_CONCAT_3(
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto record =
-#if SEL
     [](const void * obj, const void * group_addr, const char * group_type_name, const void * node_handle, int64_t init_time) {
       if (!context.get_controller().is_allowed_node(node_handle)) {
         D_NH("NH", node_handle, group_addr, add_callback_group)
@@ -475,11 +469,6 @@ void SYMBOL_CONCAT_3(
       }
       tracepoint(
         TRACEPOINT_PROVIDER, add_callback_group, obj, group_addr, group_type_name, init_time);
-#else
-    [](const void * obj, const void * group_addr, const char * group_type_name, int64_t init_time) {
-      tracepoint(
-        TRACEPOINT_PROVIDER, add_callback_group, obj, group_addr, group_type_name, init_time);
-#endif
 
 #ifdef DEBUG_OUTPUT
       std::cerr << "add_callback_group," << obj << "," << group_addr << "," << group_type_name
@@ -515,21 +504,13 @@ void SYMBOL_CONCAT_3(
     group_type_name = "reentrant";
   }
 
-#if SEL
   auto node_handle = static_cast<const void *>(node_ptr->get_rcl_node_handle());
   data_container.store_add_callback_group(obj, group_addr, group_type_name.c_str(), node_handle, now);
-#else
-  data_container.store_add_callback_group(obj, group_addr, group_type_name.c_str(), now);
-#endif
   auto node_p = const_cast<void *>(node_ptr_);
   if (!recorded_args.has(obj, group_addr_, node_p)) {
     recorded_args.insert(obj, group_addr_, node_p);
 
-#if SEL
     record(obj, group_addr, group_type_name.c_str(), node_handle, now);
-#else
-    record(obj, group_addr, group_type_name.c_str(), now);
-#endif
   }
 }
 
@@ -549,7 +530,6 @@ bool SYMBOL_CONCAT_3(
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto record =
-#if SEL
     [](const void * obj, const void * group_addr, const char * group_type_name, const void * node_handle, int64_t init_time) {
       if (!context.get_controller().is_allowed_node(node_handle)) {
         D_NH("NH", node_handle, group_addr, add_callback_group_static_executor)
@@ -558,12 +538,6 @@ bool SYMBOL_CONCAT_3(
       tracepoint(
         TRACEPOINT_PROVIDER, add_callback_group_static_executor, obj, group_addr, group_type_name,
         init_time);
-#else
-    [](const void * obj, const void * group_addr, const char * group_type_name, int64_t init_time) {
-      tracepoint(
-        TRACEPOINT_PROVIDER, add_callback_group_static_executor, obj, group_addr, group_type_name,
-        init_time);
-#endif
 
 #ifdef DEBUG_OUTPUT
       std::cerr << "add_callback_group_static_executor," << obj << "," << group_addr << ","
@@ -591,16 +565,10 @@ bool SYMBOL_CONCAT_3(
     data_container.assign_add_callback_group_static_executor(record);
   }
 
-#if SEL
   auto node_handle = node_ptr->get_rcl_node_handle();
   data_container.store_add_callback_group_static_executor(
     obj, group_addr, group_type_name.c_str(), node_handle, now);
   record(obj, group_addr, group_type_name.c_str(), node_handle, now);
-#else
-  data_container.store_add_callback_group_static_executor(
-    obj, group_addr, group_type_name.c_str(), now);
-  record(obj, group_addr, group_type_name.c_str(), now);
-#endif
 
   return ret;
 }

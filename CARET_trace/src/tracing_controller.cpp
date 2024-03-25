@@ -192,17 +192,20 @@ bool TracingController::is_allowed_callback(const void * callback)
   {
     std::lock_guard<std::shared_timed_mutex> lock(mutex_);
     auto node_name = to_node_name(callback);
+    bool exist_node = (node_name == "")? false: true;
     auto topic_name = to_topic_name(callback);
+    bool exist_topic = (topic_name == "")? false: true;
+  DIF(exist_node, exist_topic)
 
     if (select_enabled_) {
       auto is_selected_topic = partial_match(selected_topic_names_, topic_name);
       auto is_selected_node = partial_match(selected_node_names_, node_name);
 
-      if (selected_topic_names_.size() > 0 && is_selected_topic) {
+      if (exist_topic && selected_topic_names_.size() > 0 && is_selected_topic) {
         allowed_callbacks_[callback] = true;
         return true;
       }
-      if (selected_node_names_.size() > 0 && is_selected_node) {
+      if (exist_node && selected_node_names_.size() > 0 && is_selected_node) {
         allowed_callbacks_[callback] = true;
         return true;
       }
@@ -210,23 +213,26 @@ bool TracingController::is_allowed_callback(const void * callback)
         allowed_callbacks_[callback] = true;
         return true;
       }
-
-      allowed_callbacks_[callback] = false;
+      if (exist_node || exist_topic) {
+        allowed_callbacks_[callback] = false;
+      }
       return false;
     }
     if (ignore_enabled_) {
       auto is_ignored_node = partial_match(ignored_node_names_, node_name);
       auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name);
 
-      if (ignored_node_names_.size() > 0 && is_ignored_node) {
+      if (exist_node && ignored_node_names_.size() > 0 && is_ignored_node) {
         allowed_callbacks_[callback] = false;
         return false;
       }
-      if (ignored_topic_names_.size() > 0 && is_ignored_topic) {
+      if (exist_topic && ignored_topic_names_.size() > 0 && is_ignored_topic) {
         allowed_callbacks_[callback] = false;
         return false;
       }
-      allowed_callbacks_[callback] = true;
+      if (exist_node || exist_topic) {
+        allowed_callbacks_[callback] = true;
+      }
       return true;
     }
     allowed_callbacks_[callback] = true;
@@ -236,6 +242,7 @@ bool TracingController::is_allowed_callback(const void * callback)
 
 bool TracingController::is_allowed_node(const void * node_handle)
 {
+  DS(node_handle)
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   if (allowed_node_handle_.count(node_handle) > 0) {
     auto allowed = allowed_node_handle_[node_handle];
@@ -256,34 +263,38 @@ bool TracingController::is_allowed_node(const void * node_handle)
     allowed_node_handle_[node_handle] = true;
     return true;
   }
-  D("UNREGISTERED ")
+  D(" UNREG")
   return true;
 }
 
 bool TracingController::is_allowed_subscription_handle(const void * subscription_handle)
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
-  if (subscription_handle_to_node_handles_.count(subscription_handle) <= 0) {
-    return true;
+  bool exist_node = false;
+  bool exist_topic = false;
+  std::string node_name;
+  std::string topic_name;
+  if (subscription_handle_to_node_handles_.count(subscription_handle) > 0) {
+    auto node_handle = subscription_handle_to_node_handles_[subscription_handle];
+    if (node_handle_to_node_names_.count(node_handle) > 0) {
+      node_name = node_handle_to_node_names_[node_handle];
+      exist_node = true;
+    }
   }
-  auto node_handle = subscription_handle_to_node_handles_[subscription_handle];
-  if (node_handle_to_node_names_.count(node_handle) <= 0) {
-    return true;
+  if (subscription_handle_to_topic_names_.count(subscription_handle) > 0) {
+    topic_name = subscription_handle_to_topic_names_[subscription_handle];
+    exist_topic = true;
   }
-  auto node_name = node_handle_to_node_names_[node_handle];
-  if (subscription_handle_to_topic_names_.count(subscription_handle) <= 0) {
-    return true;
-  }
-  auto topic_name = subscription_handle_to_topic_names_[subscription_handle];
+  DIF(exist_node, exist_topic)
 
   if (select_enabled_) {
     auto is_selected_node = partial_match(selected_node_names_, node_name);
     auto is_selected_topic = partial_match(selected_topic_names_, topic_name);
 
-    if (is_selected_node && selected_node_names_.size() > 0) {
+    if (exist_node && is_selected_node && selected_node_names_.size() > 0) {
       return true;
     }
-    if (is_selected_topic && selected_topic_names_.size() > 0) {
+    if (exist_topic && is_selected_topic && selected_topic_names_.size() > 0) {
       return true;
     }
     return false;
@@ -291,10 +302,10 @@ bool TracingController::is_allowed_subscription_handle(const void * subscription
     auto is_ignored_node = partial_match(ignored_node_names_, node_name);
     auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name);
 
-    if (is_ignored_node && ignored_node_names_.size() > 0) {
+    if (exist_node && is_ignored_node && ignored_node_names_.size() > 0) {
       return false;
     }
-    if (is_ignored_topic && ignored_topic_names_.size() > 0) {
+    if (exist_topic && is_ignored_topic && ignored_topic_names_.size() > 0) {
       return false;
     }
     return true;
@@ -315,48 +326,56 @@ bool TracingController::is_allowed_rmw_subscription_handle(const void * rmw_subs
 
   {
     std::lock_guard<std::shared_timed_mutex> lock(mutex_);
-    if (rmw_subscription_handle_to_node_handles_.count(rmw_subscription_handle) <= 0) {
-      return true;
+    bool exist_node = false;
+    bool exist_topic = false;
+    std::string node_name;
+    std::string topic_name;
+    if (rmw_subscription_handle_to_node_handles_.count(rmw_subscription_handle) > 0) {
+      auto node_handle = rmw_subscription_handle_to_node_handles_[rmw_subscription_handle];
+      if (node_handle_to_node_names_.count(node_handle) > 0) {
+        exist_node = true;
+        node_name = node_handle_to_node_names_[node_handle];
+      }
     }
-    auto node_handle = rmw_subscription_handle_to_node_handles_[rmw_subscription_handle];
-    if (node_handle_to_node_names_.count(node_handle) <= 0) {
-      return true;
+    if (rmw_subscription_handle_to_topic_names_.count(rmw_subscription_handle) > 0) {
+      exist_topic = true;
+      topic_name = rmw_subscription_handle_to_topic_names_[rmw_subscription_handle];
     }
-    auto node_name = node_handle_to_node_names_[node_handle];
-    if (node_handle_to_node_names_.count(node_handle) <= 0) {
-      return true;
-    }
-    auto topic_name = rmw_subscription_handle_to_topic_names_[rmw_subscription_handle];
+    DIF(exist_node, exist_topic)
 
     if (select_enabled_) {
       auto is_selected_topic = partial_match(selected_topic_names_, topic_name);
       auto is_selected_node = partial_match(selected_node_names_, node_name);
 
-      if (selected_topic_names_.size() > 0 && is_selected_topic) {
+      if (exist_topic && selected_topic_names_.size() > 0 && is_selected_topic) {
         allowed_rmw_subscription_handles_[rmw_subscription_handle] = true;
         return true;
       }
-      if (selected_node_names_.size() > 0 && is_selected_node) {
+      if (exist_node && selected_node_names_.size() > 0 && is_selected_node) {
         allowed_rmw_subscription_handles_[rmw_subscription_handle] = true;
         return true;
       }
 
-      allowed_rmw_subscription_handles_[rmw_subscription_handle] = false;
+      if (exist_node || exist_topic) {
+        allowed_rmw_subscription_handles_[rmw_subscription_handle] = false;
+      }
       return false;
     }
     if (ignore_enabled_) {
       auto is_ignored_node = partial_match(ignored_node_names_, node_name);
       auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name);
 
-      if (ignored_node_names_.size() > 0 && is_ignored_node) {
+      if (exist_node && ignored_node_names_.size() > 0 && is_ignored_node) {
         allowed_rmw_subscription_handles_[rmw_subscription_handle] = false;
         return false;
       }
-      if (ignored_topic_names_.size() > 0 && is_ignored_topic) {
+      if (exist_topic && ignored_topic_names_.size() > 0 && is_ignored_topic) {
         allowed_rmw_subscription_handles_[rmw_subscription_handle] = false;
         return false;
       }
-      allowed_rmw_subscription_handles_[rmw_subscription_handle] = true;
+      if (exist_node || exist_topic) {
+        allowed_rmw_subscription_handles_[rmw_subscription_handle] = true;
+      }
       return true;
     }
     allowed_rmw_subscription_handles_[rmw_subscription_handle] = true;
@@ -376,47 +395,55 @@ bool TracingController::is_allowed_publisher_handle(const void * publisher_handl
   }
   {
     std::lock_guard<std::shared_timed_mutex> lock(mutex_);
-    if (publisher_handle_to_node_handles_.count(publisher_handle) <= 0) {
-      return true;
+    bool exist_node = false;
+    bool exist_topic = false;
+    std::string node_name;
+    std::string topic_name;
+    if (publisher_handle_to_node_handles_.count(publisher_handle) > 0) {
+      auto node_handle = publisher_handle_to_node_handles_[publisher_handle];
+      if (node_handle_to_node_names_.count(node_handle) > 0) {
+        exist_node = true;
+        node_name = node_handle_to_node_names_[node_handle];
+      }
     }
-    auto node_handle = publisher_handle_to_node_handles_[publisher_handle];
-    if (node_handle_to_node_names_.count(node_handle) <= 0) {
-      return true;
+    if (publisher_handle_to_topic_names_.count(publisher_handle) > 0) {
+      exist_topic = true;
+      topic_name = publisher_handle_to_topic_names_[publisher_handle];
     }
-    auto node_name = node_handle_to_node_names_[node_handle];
-    if (publisher_handle_to_topic_names_.count(publisher_handle) <= 0) {
-      return true;
-    }
-    auto topic_name = publisher_handle_to_topic_names_[publisher_handle];
+    DIF(exist_node, exist_topic)
 
     if (select_enabled_) {
       auto is_selected_node = partial_match(selected_node_names_, node_name);
       auto is_selected_topic = partial_match(selected_topic_names_, topic_name);
 
-      if (is_selected_node && selected_node_names_.size() > 0) {
+      if (exist_topic && is_selected_topic && selected_topic_names_.size() > 0) {
         allowed_publishers_[publisher_handle] = true;
         return true;
       }
-      if (is_selected_topic && selected_topic_names_.size() > 0) {
+      if (exist_node && is_selected_node && selected_node_names_.size() > 0) {
         allowed_publishers_[publisher_handle] = true;
         return true;
       }
 
-      allowed_publishers_[publisher_handle] = false;
+      if (exist_node || exist_topic) {
+        allowed_publishers_[publisher_handle] = false;
+      }
       return false;
     } else if (ignore_enabled_) {
       auto is_ignored_node = partial_match(ignored_node_names_, node_name);
       auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name);
 
-      if (is_ignored_node && ignored_node_names_.size() > 0) {
+      if (exist_node && is_ignored_node && ignored_node_names_.size() > 0) {
         allowed_publishers_[publisher_handle] = false;
         return false;
       }
-      if (is_ignored_topic && ignored_topic_names_.size() > 0) {
+      if (exist_topic && is_ignored_topic && ignored_topic_names_.size() > 0) {
         allowed_publishers_[publisher_handle] = false;
         return false;
       }
-      allowed_publishers_[publisher_handle] = true;
+      if (exist_node || exist_topic) {
+        allowed_publishers_[publisher_handle] = true;
+      }
       return true;
     }
     allowed_publishers_[publisher_handle] = true;
@@ -437,60 +464,65 @@ bool TracingController::is_allowed_buffer(const void * buffer)
 
   {
     std::lock_guard<std::shared_timed_mutex> lock(mutex_);
-    if (buffer_to_ipbs_.count(buffer) <= 0) {
-      return true;
+    bool exist_node = false;
+    bool exist_topic = false;
+    const void * subscription_handle;
+    std::string node_name;
+    std::string topic_name;
+    if (buffer_to_ipbs_.count(buffer) > 0) {
+      auto ipb = buffer_to_ipbs_[buffer];
+      if (ipb_to_subscriptions_.count(ipb) > 0) {
+        auto subscription = ipb_to_subscriptions_[ipb];
+        if (subscription_to_subscription_handles_.count(ipb) > 0) {
+          subscription_handle = subscription_to_subscription_handles_[subscription];
+          if (subscription_handle_to_node_handles_.count(subscription_handle) > 0) {
+            auto node_handle = subscription_handle_to_node_handles_[subscription_handle];
+            if (node_handle_to_node_names_.count(node_handle) > 0) {
+              exist_node = true;
+              node_name = node_handle_to_node_names_[node_handle];
+            }
+          }
+        }
+      }
     }
-    auto ipb = buffer_to_ipbs_[buffer];
-    if (ipb_to_subscriptions_.count(ipb) <= 0) {
-      return true;
+    if (subscription_handle_to_topic_names_.count(subscription_handle) > 0) {
+      exist_topic = true;
+      topic_name = subscription_handle_to_topic_names_[subscription_handle];
     }
-    auto subscription = ipb_to_subscriptions_[ipb];
-    if (subscription_to_subscription_handles_.count(ipb) <= 0) {
-      return true;
-    }
-    auto subscription_handle = subscription_to_subscription_handles_[subscription];
-    if (subscription_handle_to_node_handles_.count(subscription_handle) <= 0) {
-      return true;
-    }
-    auto node_handle = subscription_handle_to_node_handles_[subscription_handle];
-    if (node_handle_to_node_names_.count(node_handle) <= 0) {
-      return true;
-    }
-    auto node_name = node_handle_to_node_names_[node_handle];
-    if (subscription_handle_to_topic_names_.count(subscription_handle) <= 0) {
-      return true;
-    }
-    auto topic_name = subscription_handle_to_topic_names_[subscription_handle];
 
     if (select_enabled_) {
       auto is_selected_topic = partial_match(selected_topic_names_, topic_name);
       auto is_selected_node = partial_match(selected_node_names_, node_name);
 
-      if (selected_topic_names_.size() > 0 && is_selected_topic) {
+      if (exist_topic && selected_topic_names_.size() > 0 && is_selected_topic) {
         allowed_buffers_[buffer] = true;
         return true;
       }
-      if (selected_node_names_.size() > 0 && is_selected_node) {
+      if (exist_node && selected_node_names_.size() > 0 && is_selected_node) {
         allowed_buffers_[buffer] = true;
         return true;
       }
 
-      allowed_buffers_[buffer] = false;
+      if (exist_node || exist_topic) {
+        allowed_buffers_[buffer] = false;
+      }
       return false;
     }
     if (ignore_enabled_) {
       auto is_ignored_node = partial_match(ignored_node_names_, node_name);
       auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name);
 
-      if (ignored_node_names_.size() > 0 && is_ignored_node) {
+      if (exist_node && ignored_node_names_.size() > 0 && is_ignored_node) {
         allowed_buffers_[buffer] = false;
         return false;
       }
-      if (ignored_topic_names_.size() > 0 && is_ignored_topic) {
+      if (exist_topic && ignored_topic_names_.size() > 0 && is_ignored_topic) {
         allowed_buffers_[buffer] = false;
         return false;
       }
-      allowed_buffers_[buffer] = true;
+      if (exist_node || exist_topic) {
+        allowed_buffers_[buffer] = true;
+      }
       return true;
     }
     allowed_buffers_[buffer] = true;
@@ -531,14 +563,23 @@ bool TracingController::is_allowed_timer_handle(const void * timer_handle)
       allowed_node_handle_[node_handle] = true;
     }
   }
+  if (select_enabled_) {
+    return false;
+  }
   return true;
 }
 
 bool TracingController::is_allowed_state_machine(const void * state_machine)
 {
   std::shared_lock<std::shared_timed_mutex> lock(mutex_);
-  auto node_handle = state_machine_to_node_handles_[state_machine];
-  return is_allowed_node(node_handle);
+  if (state_machine_to_node_handles_.count(state_machine) > 0) {
+    auto node_handle = state_machine_to_node_handles_[state_machine];
+    return is_allowed_node(node_handle);
+  }
+  if (select_enabled_) {
+    return false;
+  }
+  return true;
 }
 
 bool TracingController::is_allowed_ipb(const void * ipb)
@@ -554,56 +595,62 @@ bool TracingController::is_allowed_ipb(const void * ipb)
 
   {
     std::lock_guard<std::shared_timed_mutex> lock(mutex_);
-    if (ipb_to_subscriptions_.count(ipb) <= 0) {
-      return true;
+    bool exist_node = false;
+    bool exist_topic = false;
+    const void * subscription_handle;
+    std::string node_name;
+    std::string topic_name;
+    if (ipb_to_subscriptions_.count(ipb) > 0) {
+      auto subscription = ipb_to_subscriptions_[ipb];
+      if (subscription_to_subscription_handles_.count(ipb) > 0) {
+        subscription_handle = subscription_to_subscription_handles_[subscription];
+        if (subscription_handle_to_node_handles_.count(subscription_handle) > 0) {
+          auto node_handle = subscription_handle_to_node_handles_[subscription_handle];
+          if (node_handle_to_node_names_.count(node_handle) > 0) {
+            exist_node = true;
+            node_name = node_handle_to_node_names_[node_handle];
+          }
+        }
+      }
     }
-    auto subscription = ipb_to_subscriptions_[ipb];
-    if (ipb_to_subscriptions_.count(subscription) <= 0) {
-      return true;
+    if (subscription_handle_to_topic_names_.count(subscription_handle) > 0) {
+      exist_topic = true;
+      topic_name = subscription_handle_to_topic_names_[subscription_handle];
     }
-    auto subscription_handle = subscription_to_subscription_handles_[subscription];
-    if (subscription_handle_to_node_handles_.count(subscription_handle) <= 0) {
-      return true;
-    }
-    auto node_handle = subscription_handle_to_node_handles_[subscription_handle];
-    if (node_handle_to_node_names_.count(node_handle) <= 0) {
-      return true;
-    }
-    auto node_name = node_handle_to_node_names_[node_handle];
-    if (subscription_handle_to_topic_names_.count(subscription_handle) <= 0) {
-      return true;
-    }
-    auto topic_name = subscription_handle_to_topic_names_[subscription_handle];
 
     if (select_enabled_) {
       auto is_selected_topic = partial_match(selected_topic_names_, topic_name);
       auto is_selected_node = partial_match(selected_node_names_, node_name);
 
-      if (selected_topic_names_.size() > 0 && is_selected_topic) {
+      if (exist_topic && selected_topic_names_.size() > 0 && is_selected_topic) {
         allowed_ipbs[ipb] = true;
         return true;
       }
-      if (selected_node_names_.size() > 0 && is_selected_node) {
+      if (exist_node && selected_node_names_.size() > 0 && is_selected_node) {
         allowed_ipbs[ipb] = true;
         return true;
       }
 
-      allowed_ipbs[ipb] = false;
+      if (exist_node || exist_topic) {
+        allowed_ipbs[ipb] = false;
+      }
       return false;
     }
     if (ignore_enabled_) {
       auto is_ignored_node = partial_match(ignored_node_names_, node_name);
       auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name);
 
-      if (ignored_node_names_.size() > 0 && is_ignored_node) {
+      if (exist_node && ignored_node_names_.size() > 0 && is_ignored_node) {
         allowed_ipbs[ipb] = false;
         return false;
       }
-      if (ignored_topic_names_.size() > 0 && is_ignored_topic) {
+      if (exist_topic && ignored_topic_names_.size() > 0 && is_ignored_topic) {
         allowed_ipbs[ipb] = false;
         return false;
       }
-      allowed_ipbs[ipb] = true;
+      if (exist_node || exist_topic) {
+        allowed_ipbs[ipb] = true;
+      }
       return true;
     }
     allowed_ipbs[ipb] = true;
@@ -624,33 +671,39 @@ bool TracingController::is_allowed_service_handle(const void * service_handle)
 
   {
     std::lock_guard<std::shared_timed_mutex> lock(mutex_);
-    if (service_handle_to_node_handles_.count(service_handle) <= 0) {
-      return true;
+    bool exist_node = false;
+    std::string node_name;
+    if (service_handle_to_node_handles_.count(service_handle) > 0) {
+      auto node_handle = service_handle_to_node_handles_[service_handle];
+      if (node_handle_to_node_names_.count(node_handle) > 0) {
+        exist_node = true;
+        node_name = node_handle_to_node_names_[node_handle];
+      }
     }
-    auto node_handle = service_handle_to_node_handles_[service_handle];
-    if (node_handle_to_node_names_.count(node_handle) <= 0) {
-      return true;
-    }
-    auto node_name = node_handle_to_node_names_[node_handle];
+    DIF(exist_node, 1)
 
     if (select_enabled_) {
       auto is_selected_node = partial_match(selected_node_names_, node_name);
 
-      if (is_selected_node && selected_node_names_.size() > 0) {
+      if (exist_node && is_selected_node && selected_node_names_.size() > 0) {
         allowed_service_handle_[service_handle] = true;
         return true;
       }
 
-      allowed_service_handle_[service_handle] = false;
+      if (exist_node) {
+        allowed_service_handle_[service_handle] = false;
+      }
       return false;
     } else if (ignore_enabled_) {
       auto is_ignored_node = partial_match(ignored_node_names_, node_name);
 
-      if (is_ignored_node && ignored_node_names_.size() > 0) {
+      if (exist_node && is_ignored_node && ignored_node_names_.size() > 0) {
         allowed_service_handle_[service_handle] = false;
         return false;
       }
-      allowed_service_handle_[service_handle] = true;
+      if (exist_node) {
+        allowed_service_handle_[service_handle] = true;
+      }
       return true;
     }
     allowed_service_handle_[service_handle] = true;
@@ -670,33 +723,39 @@ bool TracingController::is_allowed_client_handle(const void * client_handle) {
   
   {
     std::lock_guard<std::shared_timed_mutex> lock(mutex_);
-    if (client_handle_to_node_handles_.count(client_handle) <= 0) {
-      return true;
+    bool exist_node = false;
+    std::string node_name;
+    if (client_handle_to_node_handles_.count(client_handle) > 0) {
+      auto node_handle = client_handle_to_node_handles_[client_handle];
+      if (node_handle_to_node_names_.count(node_handle) > 0) {
+        exist_node = true;
+        node_name = node_handle_to_node_names_[node_handle];
+      }
     }
-    auto node_handle = client_handle_to_node_handles_[client_handle];
-    if (node_handle_to_node_names_.count(node_handle) <= 0) {
-      return true;
-    }
-    auto node_name = node_handle_to_node_names_[node_handle];
+    DIF(exist_node, 1)
 
     if (select_enabled_) {
       auto is_selected_node = partial_match(selected_node_names_, node_name);
 
-      if (is_selected_node && selected_node_names_.size() > 0) {
+      if (exist_node && is_selected_node && selected_node_names_.size() > 0) {
         allowed_client_handle_[client_handle] = true;
         return true;
       }
 
-      allowed_client_handle_[client_handle] = false;
+      if (exist_node) {
+        allowed_client_handle_[client_handle] = false;
+      }
       return false;
     } else if (ignore_enabled_) {
       auto is_ignored_node = partial_match(ignored_node_names_, node_name);
 
-      if (is_ignored_node && ignored_node_names_.size() > 0) {
+      if (exist_node && is_ignored_node && ignored_node_names_.size() > 0) {
         allowed_client_handle_[client_handle] = false;
         return false;
       }
-      allowed_client_handle_[client_handle] = true;
+      if (exist_node) {
+        allowed_client_handle_[client_handle] = true;
+      }
       return true;
     }
     allowed_client_handle_[client_handle] = true;
