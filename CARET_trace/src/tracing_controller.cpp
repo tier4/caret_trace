@@ -244,10 +244,6 @@ bool TracingController::is_allowed_node(const void * node_handle)
 {
   DS(node_handle)
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
-  if (allowed_node_handle_.count(node_handle) > 0) {
-    auto allowed = allowed_node_handle_[node_handle];
-    return allowed;
-  }
   if (node_handle_to_node_names_.count(node_handle) > 0) {
     auto node_name = node_handle_to_node_names_[node_handle];
 
@@ -552,6 +548,8 @@ bool TracingController::is_allowed_timer_handle(const void * timer_handle)
           allowed_timer_handle_[timer_handle] = true;
           return true;
         }
+        allowed_timer_handle_[timer_handle] = false;
+        return false;
       }
       if (ignore_enabled_) {
         auto is_ignored_node = partial_match(ignored_node_names_, node_name);
@@ -559,8 +557,9 @@ bool TracingController::is_allowed_timer_handle(const void * timer_handle)
           allowed_timer_handle_[timer_handle] = false;
           return false;
         }
+        allowed_timer_handle_[timer_handle] = true;
+        return true;
       }
-      allowed_node_handle_[node_handle] = true;
     }
   }
   if (select_enabled_) {
