@@ -197,7 +197,6 @@ private:
   std::unordered_map<const void *, bool> allowed_rmw_subscription_handles_;
 
   std::unordered_map<const void *, std::string> node_handle_to_node_names_;
-  std::unordered_map<const void *, bool> allowed_node_handle_;
   std::unordered_map<const void *, const void *> callback_to_timer_handles_;
   std::unordered_map<const void *, const void *> timer_handle_to_node_handles_;
   std::unordered_map<const void *, bool> allowed_callbacks_;

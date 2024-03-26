@@ -249,14 +249,11 @@ bool TracingController::is_allowed_node(const void * node_handle)
 
     if (select_enabled_ && selected_node_names_.size() > 0) {
       auto is_selected_node = partial_match(selected_node_names_, node_name);
-      allowed_node_handle_[node_handle] = is_selected_node;
       return is_selected_node;
     } else if (ignore_enabled_ && ignored_node_names_.size() > 0) {
       auto is_ignored_node = partial_match(ignored_node_names_, node_name);
-      allowed_node_handle_[node_handle] = !is_ignored_node;
       return !is_ignored_node;
     }
-    allowed_node_handle_[node_handle] = true;
     return true;
   }
   D(" UNREG")
@@ -886,6 +883,9 @@ void TracingController::add_timer_handle(const void * timer_handle, const void *
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
 
   timer_handle_to_node_handles_[timer_handle] = node_handle;
+  if (allowed_timer_handle_.count(timer_handle)) {
+    allowed_timer_handle_.erase(timer_handle);
+  }
 }
 
 void TracingController::add_timer_callback(const void * timer_handle, const void * callback)
