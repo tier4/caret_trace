@@ -873,6 +873,12 @@ void TracingController::add_subscription_callback(const void * subscription, con
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
 
   callback_to_subscriptions_[callback] = subscription;
+  if (callback_to_timer_handles_.count(callback) > 0) {
+    callback_to_timer_handles_.erase(callback);
+  }
+  if (allowed_callbacks_.count(callback) > 0) {
+    allowed_callbacks_.erase(callback);
+  }
 }
 
 void TracingController::add_timer_handle(const void * timer_handle, const void * node_handle)
@@ -887,6 +893,12 @@ void TracingController::add_timer_callback(const void * timer_handle, const void
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
 
   callback_to_timer_handles_[callback] = timer_handle;
+  if (callback_to_subscriptions_.count(callback) > 0) {
+    callback_to_subscriptions_.erase(callback);
+  }
+  if (allowed_callbacks_.count(callback) > 0) {
+    allowed_callbacks_.erase(callback);
+  }
 }
 
 void TracingController::add_publisher_handle(
@@ -913,8 +925,8 @@ void TracingController::add_ipb(const void * ipb, const void * subscription)
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   ipb_to_subscriptions_[ipb] = subscription;
-  if (ipb_to_subscriptions_.count(ipb) > 0) {
-    ipb_to_subscriptions_.erase(ipb);
+  if (allowed_ipbs.count(ipb) > 0) {
+    allowed_ipbs.erase(ipb);
   }
 }
 
