@@ -138,6 +138,7 @@ TEST(ScenarioTest, RepetitiveRecordingCase)
     EXPECT_CALL(func, Call(addr_0, 0)).Times(1);
     EXPECT_CALL(func, Call(addr_1, 0)).Times(1);
 
+    EXPECT_CALL(*lttng, is_session_running()).WillRepeatedly(Return(true));
     auto start_msg = std::make_unique<caret_msgs::msg::Start>();
     start_msg->recording_frequency = 1;  // record nullptr only.
     node.start_callback(std::move(start_msg));
@@ -146,6 +147,7 @@ TEST(ScenarioTest, RepetitiveRecordingCase)
     node.timer_callback();  // record rest data.
     EXPECT_EQ(node.get_status(), TRACE_STATUS::RECORD);
 
+    EXPECT_CALL(*lttng, is_session_running()).WillRepeatedly(Return(false));
     auto end_msg = std::make_unique<caret_msgs::msg::End>();
     node.end_callback(std::move(end_msg));
     EXPECT_EQ(node.get_status(), TRACE_STATUS::WAIT);
@@ -155,6 +157,7 @@ TEST(ScenarioTest, RepetitiveRecordingCase)
     EXPECT_CALL(func, Call(addr_0, 0)).Times(1);
     EXPECT_CALL(func, Call(addr_1, 0)).Times(1);
 
+    EXPECT_CALL(*lttng, is_session_running()).WillRepeatedly(Return(true));
     auto start_msg = std::make_unique<caret_msgs::msg::Start>();
     start_msg->recording_frequency = 1;  // record nullptr only.
     node.start_callback(std::move(start_msg));
@@ -163,6 +166,7 @@ TEST(ScenarioTest, RepetitiveRecordingCase)
     node.timer_callback();  // record rest data.
     EXPECT_EQ(node.get_status(), TRACE_STATUS::RECORD);
 
+    EXPECT_CALL(*lttng, is_session_running()).WillRepeatedly(Return(false));
     auto end_msg = std::make_unique<caret_msgs::msg::End>();
     node.end_callback(std::move(end_msg));
     EXPECT_EQ(node.get_status(), TRACE_STATUS::WAIT);
@@ -194,6 +198,7 @@ TEST(ScenarioTest, IsRecordingAllowed)
 
   auto start_msg = std::make_unique<caret_msgs::msg::Start>();
   start_msg->recording_frequency = 1;
+  EXPECT_CALL(*lttng, is_session_running()).WillRepeatedly(Return(true));
   node->start_callback(std::move(start_msg));
   EXPECT_EQ(node->get_status(), TRACE_STATUS::PREPARE);
   EXPECT_FALSE(context.is_recording_allowed());
@@ -254,6 +259,7 @@ TEST(ScenarioTest, Record)
   // case: PREPARE status
   auto start_msg = std::make_unique<caret_msgs::msg::Start>();
   start_msg->recording_frequency = 1;
+  EXPECT_CALL(*lttng, is_session_running()).WillRepeatedly(Return(true));
   node->start_callback(std::move(start_msg));
 
   EXPECT_EQ(node->get_status(), TRACE_STATUS::PREPARE);
@@ -270,4 +276,40 @@ TEST(ScenarioTest, Record)
 
   container->store_rcl_init(addr_4, 0);
   EXPECT_EQ(keys->size(), (size_t)4);
+}
+
+TEST(ScenarioTest, WithoutLttngSession)
+{
+  init_context();
+
+  auto container = std::make_shared<DataContainer>();
+  Context context;
+
+  void * addr_0 = reinterpret_cast<void *>(0);
+  void * addr_1 = reinterpret_cast<void *>(1);
+  container->store_rcl_init(addr_0, 0);
+  container->store_rcl_init(addr_1, 0);
+
+  auto lttng = std::make_shared<LttngSessionMock>();
+  EXPECT_CALL(*lttng, started_session_running()).WillRepeatedly(Return(false));
+
+  rclcpp::NodeOptions options;
+  auto node =
+    std::make_shared<TraceNode>("test", options, lttng, container, Logger::Level::Warn, false);
+  context.assign_node(node);
+
+  EXPECT_EQ(node->get_status(), TRACE_STATUS::WAIT);
+  EXPECT_FALSE(context.is_recording_allowed());
+
+  EXPECT_CALL(*lttng, is_session_running()).WillRepeatedly(Return(false));
+  auto start_msg = std::make_unique<caret_msgs::msg::Start>();
+  start_msg->recording_frequency = 1;
+
+  node->start_callback(std::move(start_msg));
+  EXPECT_EQ(node->get_status(), TRACE_STATUS::WAIT);
+  EXPECT_FALSE(context.is_recording_allowed());
+
+  // node->timer_callback(); // time_callback only execute with PREPARE state
+  // EXPECT_EQ(node->get_status(), TRACE_STATUS::WAIT);
+  // EXPECT_FALSE(context.is_recording_allowed());
 }
