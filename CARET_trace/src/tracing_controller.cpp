@@ -834,6 +834,7 @@ std::string TracingController::to_topic_name(const void * callback)
 
 void TracingController::add_node(const void * node_handle, std::string node_name)
 {
+  DS(node_name)
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
 
   node_handle_to_node_names_[node_handle] = node_name;

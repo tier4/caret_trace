@@ -247,9 +247,10 @@ void ros_trace_rcl_node_init(
     static auto & controller = context.get_controller();
 
     if (!controller.is_allowed_node(node_handle)) {
-      D_NH("NH", node_handle, node_name, rcl_node_init)
+      D_IGN("NH", node_handle, node_name, rcl_node_init)
       return;
     }
+    D_SEL("NH", node_handle, node_name, rcl_node_init)
     tracepoint(TRACEPOINT_PROVIDER, rcl_node_init, node_handle, rmw_handle,
       node_name, node_namespace, init_time);
 #ifdef DEBUG_OUTPUT
@@ -261,6 +262,8 @@ void ros_trace_rcl_node_init(
 #endif
   };
 
+D(node_handle)
+D(node_name)
   if (!controller.is_allowed_process()) {
     return;
   }
@@ -310,10 +313,12 @@ void ros_trace_rcl_subscription_init(
     static auto & context = Singleton<Context>::get_instance();
     static auto & controller = context.get_controller();
 
+D(subscription_handle)
     if (!controller.is_allowed_subscription_handle(subscription_handle)) {
-      D_NH("NH", node_handle, subscription_handle, rcl_subscription_init)
+      D_IGN("NH", node_handle, subscription_handle, rcl_subscription_init)
       return;
     }
+    D_SEL("NH", node_handle, subscription_handle, rcl_subscription_init)
     tracepoint(TRACEPOINT_PROVIDER, rcl_subscription_init, subscription_handle,
       node_handle, rmw_subscription_handle, topic_name, queue_depth, init_time);
 #ifdef DEBUG_OUTPUT
@@ -326,6 +331,7 @@ void ros_trace_rcl_subscription_init(
 #endif
   };
 
+D(node_handle)
   if (!controller.is_allowed_process()) {
     return;
   }
@@ -364,9 +370,10 @@ void ros_trace_rclcpp_subscription_init(
     static auto & context = Singleton<Context>::get_instance();
     static auto & controller = context.get_controller();
     if (!controller.is_allowed_subscription_handle(subscription_handle)){
-      D_NH("SUBH", subscription_handle, subscription, rclcpp_subscription_init)
+      D_IGN("SUBH", subscription_handle, subscription, rclcpp_subscription_init)
       return;
     }
+    D_SEL("SUBH", subscription_handle, subscription, rclcpp_subscription_init)
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_subscription_init,
       subscription_handle, subscription, init_time);
 #ifdef DEBUG_OUTPUT
@@ -376,6 +383,7 @@ void ros_trace_rclcpp_subscription_init(
 #endif
   };
 
+D(subscription_handle)
   if (!controller.is_allowed_process()) {
     return;
   }
@@ -409,9 +417,10 @@ void ros_trace_rclcpp_subscription_callback_added(
     int64_t init_time
   ) {
     if (!controller.is_allowed_callback(callback)) {
-      D_NH("CB", callback, subscription, rclcpp_subscription_callback_added)
+      D_IGN("CB", callback, subscription, rclcpp_subscription_callback_added)
       return;
     }
+    D_SEL("CB", callback, subscription, rclcpp_subscription_callback_added)
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_subscription_callback_added,
       subscription, callback, init_time);
 #ifdef DEBUG_OUTPUT
@@ -425,6 +434,7 @@ void ros_trace_rclcpp_subscription_callback_added(
     return;
   }
 
+D(subscription)
   auto now = clock.now();
   check_and_run_trace_node();
 
@@ -452,9 +462,10 @@ void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void
     int64_t init_time
   ) {
   if (!controller.is_allowed_callback(callback)) {
-    D_NH("CB", callback, timer_handle, rclcpp_timer_callback_added)
+    D_IGN("CB", callback, timer_handle, rclcpp_timer_callback_added)
     return;
   }
+    D_SEL("CB", callback, timer_handle, rclcpp_timer_callback_added)
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_timer_callback_added, timer_handle, callback, init_time);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_timer_callback_added," <<
@@ -467,6 +478,7 @@ void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void
     return;
   }
 
+D(timer_handle)
   auto now = clock.now();
   check_and_run_trace_node();
 
@@ -492,9 +504,10 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
     int64_t init_time
   ) {
   if (!controller.is_allowed_node(node_handle)) {
-    D_NH("NH", node_handle, timer_handle, rclcpp_timer_link_node)
+    D_IGN("NH", node_handle, timer_handle, rclcpp_timer_link_node)
     return;
   }
+    D_SEL("NH", node_handle, timer_handle, rclcpp_timer_link_node)
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_timer_link_node, timer_handle, node_handle, init_time);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_timer_link_node," <<
@@ -503,6 +516,7 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
 #endif
   };
 
+D(node_handle)
   if (!controller.is_allowed_process()) {
     return;
   }
@@ -541,10 +555,10 @@ void ros_trace_callback_start(const void * callback, bool is_intra_process)
       callback << "," <<
       is_intra_process << std::endl;
 #endif
-  }
-  else {
+      D_SEL_ONCE("CB", callback, is_intra_process, callback_start)
+  } else {
     if (!context.is_recording_allowed()) {
-      //D_NH("CB", callback, is_intra_process, callback_start)
+      D_IGN_ONCE("CB", callback, is_intra_process, callback_start)
     }
   }
 }
@@ -570,10 +584,10 @@ void ros_trace_callback_end(const void * callback)
     std::cerr << "callback_end," <<
       callback << std::endl;
 #endif
-  }
-  else {
+      D_SEL_ONCE("CB", callback, 0, callback_end)
+  } else {
     if (!context.is_recording_allowed()) {
-      //D_NH("CB", callback, 0, callback_end)
+      D_IGN_ONCE("CB", callback, 0, callback_end)
     }
   }
 }
@@ -590,6 +604,7 @@ void ros_trace_dispatch_subscription_callback(
 
   using functionT = void (*)(const void *, const void *, const uint64_t, const uint64_t);
 
+D(callback)
   if (!controller.is_allowed_process()) {
     return;
   }
@@ -606,10 +621,10 @@ void ros_trace_dispatch_subscription_callback(
       source_timestamp << "," <<
       message_timestamp << std::endl;
 #endif
-  }
-  else {
+      D_SEL("CB", callback, message, dispatch_subscription_callback)
+  } else {
     if (!context.is_recording_allowed()) {
-      D_NH("CB", callback, message, dispatch_subscription_callback)
+      D_IGN("CB", callback, message, dispatch_subscription_callback)
     }
   }
 }
@@ -625,6 +640,7 @@ void ros_trace_dispatch_intra_process_subscription_callback(
 
   using functionT = void (*)(const void *, const void *, const uint64_t);
 
+D(callback)
   if (!controller.is_allowed_process()) {
     return;
   }
@@ -640,10 +656,10 @@ void ros_trace_dispatch_intra_process_subscription_callback(
       callback << "," <<
       message_timestamp << std::endl;
 #endif
-  }
-  else {
+      D_SEL("CB", callback, message, dispatch_intra_process_subscription_callback)
+  } else {
     if (context.is_recording_allowed()) {
-      D_NH("CB", callback, message, dispatch_intra_process_subscription_callback)
+      D_IGN("CB", callback, message, dispatch_intra_process_subscription_callback)
     }
   }
 }
@@ -671,10 +687,10 @@ void ros_trace_rclcpp_publish(
       publisher_handle << "," <<
       message << std::endl;
 #endif
-  }
-  else {
+      D_SEL_ONCE("PUBH", publisher_handle, message, rclcpp_publish)
+  } else {
     if (!context.is_recording_allowed()) {
-      //D_NH("PUBH", publisher_handle, message, rclcpp_publish)
+      D_IGN_ONCE("PUBH", publisher_handle, message, rclcpp_publish)
     }
   }
 }
@@ -693,6 +709,7 @@ void ros_trace_rclcpp_intra_publish(
     return;
   }
 
+D(publisher_handle)
   if (controller.is_allowed_publisher_handle(publisher_handle) &&
     context.is_recording_allowed())
   {
@@ -702,10 +719,10 @@ void ros_trace_rclcpp_intra_publish(
       publisher_handle << "," <<
       message << std::endl;
 #endif
-  }
-  else {
+      D_SEL("PUBH", publisher_handle, message, rclcpp_intra_publish)
+  } else {
     if (!context.is_recording_allowed()) {
-      D_NH("PUBH", publisher_handle, message, rclcpp_intra_publish)
+      D_IGN("PUBH", publisher_handle, message, rclcpp_intra_publish)
     }
   }
 }
@@ -725,9 +742,10 @@ void ros_trace_rcl_timer_init(
 
   static auto record = [](const void * timer_handle, int64_t period, int64_t init_time) {
     if (!context.get_controller().is_allowed_timer_handle(timer_handle)) {
-      D_NH("TH", timer_handle, period, rcl_timer_init)
+      D_IGN("TH", timer_handle, period, rcl_timer_init)
       return;
     }
+    D_SEL("TH", timer_handle, period, rcl_timer_init)
     tracepoint(TRACEPOINT_PROVIDER, rcl_timer_init, timer_handle, period, init_time);
   };
 
@@ -801,13 +819,16 @@ void ros_trace_rcl_publisher_init(
   int64_t init_time
 ) {
     if (!controller.is_allowed_node(node_handle)){
-      D_NH("NH", node_handle, publisher_handle, rcl_publisher_init)
+      D_IGN("NH", node_handle, publisher_handle, rcl_publisher_init)
       return;
     }
+    D_SEL("NH", node_handle, publisher_handle, rcl_publisher_init)
     tracepoint(TRACEPOINT_PROVIDER, rcl_publisher_init, publisher_handle, node_handle,
     rmw_publisher_handle, topic_name, queue_depth, init_time);
   };
 
+D(node_handle)
+D(topic_name)
   if (!controller.is_allowed_process()) {
     return;
   }
@@ -865,9 +886,10 @@ void ros_trace_rcl_publish(
       publisher_handle << "," <<
       message << std::endl;
 #endif
+      D_SEL_ONCE("PUBH", publisher_handle, message, rcl_publish)
   } else {
     if (!context.is_recording_allowed()) {
-      //D_NH("PUBH", publisher_handle, message, rcl_publish)
+      D_IGN_ONCE("PUBH", publisher_handle, message, rcl_publish)
     }
     trace_filter_is_rcl_publish_recorded = false;
   }
@@ -888,9 +910,10 @@ void ros_trace_rcl_service_init(
   const char * service_name,
   int64_t init_time) {
     if (!context.get_controller().is_allowed_node(node_handle)) {
-      D_NH("NH", node_handle, service_handle, rcl_service_init)
+      D_IGN("NH", node_handle, service_handle, rcl_service_init)
       return;
     }
+    D_SEL("NH", node_handle, service_handle, rcl_service_init)
     tracepoint(TRACEPOINT_PROVIDER, rcl_service_init, service_handle,
     node_handle, rmw_service_handle, service_name, init_time);
 
@@ -903,6 +926,7 @@ void ros_trace_rcl_service_init(
 #endif
   };
 
+D(node_handle)
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
@@ -934,9 +958,10 @@ void ros_trace_rclcpp_service_callback_added(
   static auto & data_container = context.get_data_container();
   static auto record = [](const void * service_handle, const char * callback, int64_t init_time) {
     if (!context.get_controller().is_allowed_service_handle(service_handle)) {
-      D_NH("SH", service_handle, callback, rclcpp_service_callback_added)
+      D_IGN("SH", service_handle, callback, rclcpp_service_callback_added)
       return;
     }
+    D_SEL("SH", service_handle, callback, rclcpp_service_callback_added)
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_service_callback_added,
       service_handle, callback, init_time);
 
@@ -978,9 +1003,10 @@ void ros_trace_rcl_client_init(
   const char * service_name,
   int64_t init_time) {
     if (!context.get_controller().is_allowed_node(node_handle)) {
-      D_NH("CH", client_handle, client_handle, rcl_client_init)
+      D_IGN("CH", client_handle, client_handle, rcl_client_init)
       return;
     }
+    D_SEL("CH", client_handle, client_handle, rcl_client_init)
     tracepoint(TRACEPOINT_PROVIDER, rcl_client_init, client_handle, node_handle,
       rmw_client_handle, service_name, init_time);
 
@@ -993,6 +1019,7 @@ void ros_trace_rcl_client_init(
 #endif
   };
 
+D(node_handle)
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
@@ -1029,9 +1056,10 @@ void ros_trace_rclcpp_callback_register(
     static auto & context = Singleton<Context>::get_instance();
     static auto & controller = context.get_controller();
     if (!controller.is_allowed_callback(callback)) {
-      D_NH("CB", callback, symbol, rclcpp_callback_register)
+      D_IGN("CB", callback, symbol, rclcpp_callback_register)
       return;
     }
+    D_SEL("CB", callback, symbol, rclcpp_callback_register)
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_callback_register, callback, symbol, init_time);
 
 #ifdef DEBUG_OUTPUT
@@ -1041,6 +1069,7 @@ void ros_trace_rclcpp_callback_register(
 #endif
   };
 
+D(callback)
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
@@ -1081,9 +1110,10 @@ void ros_trace_do_rclcpp_callback_register(
     static auto & context = Singleton<Context>::get_instance();
     static auto & controller = context.get_controller();
     if (!controller.is_allowed_callback(callback)) {
-      D_NH("CB", callback, symbol, "rclcpp_callback_register-iron")
+      D_IGN("CB", callback, symbol, "rclcpp_callback_register-iron")
       return;
     }
+    D_SEL("CB", callback, symbol, "rclcpp_callback_register-iron")
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_callback_register, callback, symbol, init_time);
 
 #ifdef DEBUG_OUTPUT
@@ -1093,6 +1123,7 @@ void ros_trace_do_rclcpp_callback_register(
 #endif
   };
 
+D(callback)
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
@@ -1121,9 +1152,10 @@ void ros_trace_rcl_lifecycle_state_machine_init(
     const void * state_machine,
     int64_t init_time) {
       if (!context.get_controller().is_allowed_node(node_handle)) {
-        D_NH("NH", node_handle, state_machine, rcl_lifecycle_state_machine_init)
+        D_IGN("NH", node_handle, state_machine, rcl_lifecycle_state_machine_init)
         return;
       }
+      D_SEL("NH", node_handle, state_machine, rcl_lifecycle_state_machine_init)
     tracepoint(TRACEPOINT_PROVIDER, rcl_lifecycle_state_machine_init,
       node_handle, state_machine, init_time);
 
@@ -1134,6 +1166,7 @@ void ros_trace_rcl_lifecycle_state_machine_init(
 #endif
   };
 
+D(node_handle)
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
@@ -1164,9 +1197,10 @@ void ros_trace_rcl_lifecycle_transition(
     ((functionT) orig_func)(state_machine, start_label, goal_label);
 
     if (!context.get_controller().is_allowed_state_machine(state_machine)) {
-      D_NH("SM", state_machine, start_label, rcl_lifecycle_transition)
+      D_IGN("SM", state_machine, start_label, rcl_lifecycle_transition)
       return;
     }
+    D_SEL("SM", state_machine, start_label, rcl_lifecycle_transition)
 
 #ifdef DEBUG_OUTPUT
     std::cerr << "rcl_lifecycle_transition," <<
@@ -1197,10 +1231,10 @@ void ros_trace_message_construct(
       original_message << "," <<
       constructed_message << std::endl;
 #endif
-  }
-  else {
+      D_SEL("OTH", original_message, constructed_message, message_construct)
+  } else {
     if (!context.is_recording_allowed()) {
-      D_NH("OTH", original_message, constructed_message, message_construct)
+      D_IGN("OTH", original_message, constructed_message, message_construct)
     }
   }
 }
@@ -1278,10 +1312,10 @@ void ros_trace_rmw_take(
     source_timestamp << "," <<
     taken << "," << std::endl;
 #endif
-  }
-  else {
+      D_SEL_ONCE("RMW_SUBH", rmw_subscription_handle, message, rmw_take)
+  } else {
     if (!context.is_recording_allowed()) {
-      //D_NH("RMW_SUBH", rmw_subscription_handle, message, rmw_take)
+      D_IGN_ONCE("RMW_SUBH", rmw_subscription_handle, message, rmw_take)
     }
   }
 }
@@ -1354,9 +1388,10 @@ void ros_trace_rclcpp_buffer_to_ipb(
     int64_t init_timestamp
   ){
     if (!controller.is_allowed_buffer(buffer)) {
-      D_NH("BUF", buffer, ipb, rclcpp_buffer_to_ipb)
+      D_IGN("BUF", buffer, ipb, rclcpp_buffer_to_ipb)
       return;
     }
+    D_SEL("BUF", buffer, ipb, rclcpp_buffer_to_ipb)
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_buffer_to_ipb,
       buffer, ipb, init_timestamp);
 
@@ -1399,9 +1434,10 @@ void ros_trace_rclcpp_ipb_to_subscription(
     int64_t init_timestamp
   ){
     if (!controller.is_allowed_ipb(ipb)) {
-      D_NH("IPB", ipb, subscription, rclcpp_ipb_to_subscription)
+      D_IGN("IPB", ipb, subscription, rclcpp_ipb_to_subscription)
       return;
     }
+    D_SEL("IPB", ipb, subscription, rclcpp_ipb_to_subscription)
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_ipb_to_subscription,
       ipb, subscription, init_timestamp);
 
@@ -1438,9 +1474,10 @@ void ros_trace_rclcpp_construct_ring_buffer(
     int64_t init_timestamp
   ){
     if (!context.get_controller().is_allowed_buffer(buffer)) {
-      D_NH("BUF", buffer, capacity, rclcpp_construct_ring_buffer)
+      D_IGN("BUF", buffer, capacity, rclcpp_construct_ring_buffer)
       return;
     }
+    D_SEL("BUF", buffer, capacity, rclcpp_construct_ring_buffer)
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_construct_ring_buffer,
       buffer, capacity, init_timestamp);
 
@@ -1496,10 +1533,10 @@ void ros_trace_rclcpp_ring_buffer_enqueue(
     size << "," <<
     overwritten << std::endl;
 #endif
-  }
-  else {
+      D_SEL("BUF", buffer, index, rclcpp_ring_buffer_enqueue)
+  } else {
     if (!context.is_recording_allowed()) {
-      D_NH("BUF", buffer, index, rclcpp_ring_buffer_enqueue)
+      D_IGN("BUF", buffer, index, rclcpp_ring_buffer_enqueue)
     }
   }
 }
@@ -1530,10 +1567,10 @@ void ros_trace_rclcpp_ring_buffer_dequeue(
     index << "," <<
     size << "," << std::endl;
 #endif
-  }
-  else {
+      D_SEL("BUF", buffer, index, rclcpp_ring_buffer_dequeue)
+  } else {
     if (!context.is_recording_allowed()) {
-      D_NH("BUF", buffer, index, rclcpp_ring_buffer_dequeue)
+      D_IGN("BUF", buffer, index, rclcpp_ring_buffer_dequeue)
     }
   }
 }
@@ -1560,10 +1597,10 @@ void ros_trace_rclcpp_ring_buffer_clear(
   std::cerr << "rclcpp_ring_buffer_clear," <<
     buffer << "," << std::endl;
 #endif
-  }
-  else {
+      D_SEL("BUF", buffer, 0, rclcpp_ring_buffer_clear)
+  } else {
     if (!context.is_recording_allowed()) {
-      D_NH("BUF", buffer, 0, rclcpp_ring_buffer_clear)
+      D_IGN("BUF", buffer, 0, rclcpp_ring_buffer_clear)
     }
   }
 }

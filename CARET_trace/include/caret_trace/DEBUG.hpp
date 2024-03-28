@@ -49,32 +49,54 @@ static void extractc_fn(const char* symbol, char* fn, size_t bufSize) {
   S = fn; \
 }
 
-#define D(X) {std::cout << std::setbase(10) << __func__ << ": " << __LINE__ << " | " << \
+#define D(X) { \
+            std::cout << std::setbase(10) << getpid() << "/ " << gettid() << ": "; \
+            std::cout << __func__ << ": " << __LINE__ << " | " << \
             std::setbase(16) << std::uppercase << #X << "=" << X << std::endl;}
 
-#define D_NH(TYPE, KEY, X, TRC) {std::cout << std::setbase(10) << "FILTERED " << __func__ << ": " << __LINE__ << \
+#define D_IGN(TYPE, KEY, X, TRC) { \
+            std::cout << std::setbase(10) << getpid() << "/ " << gettid() << ": "; \
+            std::cout << "--- IGNORED " << __func__ << ": " << __LINE__ << \
             " [" << #TRC << "] " << std::setbase(16) << std::uppercase << #KEY << "=" << KEY << " " << \
             "NODE=" << context.get_controller().get_node_name(TYPE, KEY) << " " << #X << "=" << X << std::endl;}
 
+#define D_SEL(TYPE, KEY, X, TRC) { \
+            std::cout << std::setbase(10) << getpid() << "/ " << gettid() << ": "; \
+            std::cout << "+++ SELECTED " << __func__ << ": " << __LINE__ << \
+            " [" << #TRC << "] " << std::setbase(16) << std::uppercase << #KEY << "=" << KEY << " " << \
+            "NODE=" << context.get_controller().get_node_name(TYPE, KEY) << " " << #X << "=" << X << std::endl;}
 
-#if 0
+#define D_IGN_ONCE(TYPE, KEY, X, TRC) { \
+            static int once; \
+            if (!once) { \
+              std::cout << std::setbase(10) << getpid() << "/ " << gettid() << ": "; \
+              std::cout << "--- IGNORED " << __func__ << ": " << __LINE__ << \
+              " [" << #TRC << "] " << std::setbase(16) << std::uppercase << #KEY << "=" << KEY << " " << \
+              "NODE=" << context.get_controller().get_node_name(TYPE, KEY) << " " << #X << "=" << X << std::endl; \
+              once = 1; \
+            } \
+          }
+
+#define D_SEL_ONCE(TYPE, KEY, X, TRC) { \
+            static int once; \
+            if (!once) { \
+              std::cout << std::setbase(10) << getpid() << "/ " << gettid() << ": "; \
+              std::cout << "+++ SELECTED " << __func__ << ": " << __LINE__ << \
+              " [" << #TRC << "] " << std::setbase(16) << std::uppercase << #KEY << "=" << KEY << " " << \
+              "NODE=" << context.get_controller().get_node_name(TYPE, KEY) << " " << #X << "=" << X << std::endl; \
+              once = 1; \
+            } \
+          }
+
 #define DIF(cond1, cond2) { \
+              std::cout << std::setbase(10) << getpid() << "/ " << gettid() << ": "; \
               if (!(cond1 && cond2)) { \
-                std::cout << std::setbase(10) << "--ATTENTION " << __func__ << ": " << __LINE__ << " "; \
-                if (!cond1) std::cout << #cond1 << "=" << cond1 << " "; \
-                if (!cond2) std::cout << #cond2 << "=" << cond2; \
-                std::cout << std::endl; \
-              } \
-            }
-#endif
-#define DIF(cond1, cond2) { \
-              if (!(cond1 && cond2)) { \
-                std::cout << std::setbase(10) << "--ATTENTION " << __func__ << ": " << __LINE__ << " "; \
+                std::cout << "--- NOTHING " << __func__ << ": " << __LINE__ << " "; \
                 if (!cond1) std::cout << #cond1 << "=" << cond1 << " "; \
                 if (!cond2) std::cout << #cond2 << "=" << cond2; \
                 std::cout << std::endl; \
               } else { \
-                std::cout << std::setbase(10) << "++OK " << __func__ << ": " << __LINE__ << " "; \
+                std::cout << "+++ EXISTED " << __func__ << ": " << __LINE__ << " "; \
                 std::cout << #cond1 << "=" << cond1 << " "; \
                 std::cout << #cond2 << "=" << cond2; \
                 std::cout << std::endl; \

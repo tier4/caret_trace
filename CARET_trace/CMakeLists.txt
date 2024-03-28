@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 project(caret_trace)
 
-set(CMAKE_CXX_FLAGS "-fcf-protection=none")
+set(CMAKE_CXX_FLAGS "-fcf-protection=none -g")
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} --coverage -g")
-set(CMAKE_EXE_LINKER_FLAGS "--coverage")
+set(CMAKE_EXE_LINKER_FLAGS "--coverage -g")
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
