@@ -658,7 +658,7 @@ D(callback)
 #endif
       D_SEL("CB", callback, message, dispatch_intra_process_subscription_callback)
   } else {
-    if (context.is_recording_allowed()) {
+    if (!context.is_recording_allowed()) {
       D_IGN("CB", callback, message, dispatch_intra_process_subscription_callback)
     }
   }
@@ -689,7 +689,7 @@ void ros_trace_rclcpp_publish(
 #endif
       D_SEL_ONCE("PUBH", publisher_handle, message, rclcpp_publish)
   } else {
-    if (!context.is_recording_allowed()) {
+    if (!controller.is_allowed_publisher_handle(publisher_handle)) {
       D_IGN_ONCE("PUBH", publisher_handle, message, rclcpp_publish)
     }
   }
@@ -721,7 +721,7 @@ D(publisher_handle)
 #endif
       D_SEL("PUBH", publisher_handle, message, rclcpp_intra_publish)
   } else {
-    if (!context.is_recording_allowed()) {
+    if (!controller.is_allowed_publisher_handle(publisher_handle)) {
       D_IGN("PUBH", publisher_handle, message, rclcpp_intra_publish)
     }
   }
@@ -888,7 +888,7 @@ void ros_trace_rcl_publish(
 #endif
       D_SEL_ONCE("PUBH", publisher_handle, message, rcl_publish)
   } else {
-    if (!context.is_recording_allowed()) {
+    if (!controller.is_allowed_publisher_handle(publisher_handle)) {
       D_IGN_ONCE("PUBH", publisher_handle, message, rcl_publish)
     }
     trace_filter_is_rcl_publish_recorded = false;
@@ -1231,11 +1231,9 @@ void ros_trace_message_construct(
       original_message << "," <<
       constructed_message << std::endl;
 #endif
-      D_SEL("OTH", original_message, constructed_message, message_construct)
+    D_SEL("OTH", original_message, constructed_message, message_construct)
   } else {
-    if (!context.is_recording_allowed()) {
-      D_IGN("OTH", original_message, constructed_message, message_construct)
-    }
+    D_IGN("OTH", original_message, constructed_message, message_construct)
   }
 }
 
@@ -1314,7 +1312,7 @@ void ros_trace_rmw_take(
 #endif
       D_SEL_ONCE("RMW_SUBH", rmw_subscription_handle, message, rmw_take)
   } else {
-    if (!context.is_recording_allowed()) {
+    if (!controller.is_allowed_rmw_subscription_handle(rmw_subscription_handle)) {
       D_IGN_ONCE("RMW_SUBH", rmw_subscription_handle, message, rmw_take)
     }
   }
@@ -1337,6 +1335,9 @@ void ros_trace_rmw_publish(
     std::cerr << "rmw_publish," <<
       message << "," << std::endl;
 #endif
+    D_SEL_ONCE("OTH", message, 0, dds_write)
+  } else {
+    D_IGN_ONCE("OTH", message, 0, dds_write)
   }
 }
 
@@ -1535,7 +1536,7 @@ void ros_trace_rclcpp_ring_buffer_enqueue(
 #endif
       D_SEL("BUF", buffer, index, rclcpp_ring_buffer_enqueue)
   } else {
-    if (!context.is_recording_allowed()) {
+    if (!controller.is_allowed_buffer(buffer)) {
       D_IGN("BUF", buffer, index, rclcpp_ring_buffer_enqueue)
     }
   }
@@ -1569,7 +1570,7 @@ void ros_trace_rclcpp_ring_buffer_dequeue(
 #endif
       D_SEL("BUF", buffer, index, rclcpp_ring_buffer_dequeue)
   } else {
-    if (!context.is_recording_allowed()) {
+    if (!controller.is_allowed_buffer(buffer)) {
       D_IGN("BUF", buffer, index, rclcpp_ring_buffer_dequeue)
     }
   }
@@ -1599,7 +1600,7 @@ void ros_trace_rclcpp_ring_buffer_clear(
 #endif
       D_SEL("BUF", buffer, 0, rclcpp_ring_buffer_clear)
   } else {
-    if (!context.is_recording_allowed()) {
+    if (!controller.is_allowed_buffer(buffer)) {
       D_IGN("BUF", buffer, 0, rclcpp_ring_buffer_clear)
     }
   }
