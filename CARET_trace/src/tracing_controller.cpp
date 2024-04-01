@@ -334,7 +334,7 @@ bool TracingController::is_allowed_rmw_subscription_handle(const void * rmw_subs
       exist_topic = true;
       topic_name = rmw_subscription_handle_to_topic_names_[rmw_subscription_handle];
     }
-    DIF(exist_node, exist_topic)
+    DIF_ONCE(exist_node, exist_topic)
 
     if (select_enabled_) {
       auto is_selected_topic = partial_match(selected_topic_names_, topic_name);
@@ -403,7 +403,7 @@ bool TracingController::is_allowed_publisher_handle(const void * publisher_handl
       exist_topic = true;
       topic_name = publisher_handle_to_topic_names_[publisher_handle];
     }
-    DIF(exist_node, exist_topic)
+    DIF_ONCE(exist_node, exist_topic)
 
     if (select_enabled_) {
       auto is_selected_node = partial_match(selected_node_names_, node_name);

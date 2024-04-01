@@ -50,20 +50,11 @@ class DataContainer : public DataContainerInterface
 {
 public:
   /// @brief  for add_callback_group trace points.
-  #if SEL
   using AddCallbackGroup = ContainerTraits<const void *, const void *, const char *, const void *, int64_t>;
-  #else
-  using AddCallbackGroup = ContainerTraits<const void *, const void *, const char *, int64_t>;
-  #endif
 
   /// @brief ContainerTraits for add_callback_group_static_executor trace points.
-  #if SEL
   using AddCallbackGroupStaticExecutor =
     ContainerTraits<const void *, const void *, const char *, const void *, int64_t>;
-  #else
-  using AddCallbackGroupStaticExecutor =
-    ContainerTraits<const void *, const void *, const char *, int64_t>;
-  #endif
 
   /// @brief ContainerTraits for callback_group_add_client trace points.
   using CallbackGroupAddClient = ContainerTraits<const void *, const void *, int64_t>;

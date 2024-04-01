@@ -557,7 +557,7 @@ void ros_trace_callback_start(const void * callback, bool is_intra_process)
 #endif
       D_SEL_ONCE("CB", callback, is_intra_process, callback_start)
   } else {
-    if (!context.is_recording_allowed()) {
+    if (!controller.is_allowed_callback(callback)) {
       D_IGN_ONCE("CB", callback, is_intra_process, callback_start)
     }
   }
