@@ -75,7 +75,7 @@ static void extractc_fn(const char* symbol, char* fn, size_t bufSize) {
           std::ostringstream buf; \
           buf << std::setbase(10) << getpid() << "/ " << gettid() << ": "; \
           buf << "--- IGNORED " << __func__ << ": " << __LINE__ << \
-          " [" << #TRC << "] " << std::setbase(16) << std::uppercase << #KEY << "=" << KEY << " " << \
+          " [-" << #TRC << "] " << std::setbase(16) << std::uppercase << #KEY << "=" << KEY << " " << \
           "NODE=" << context.get_controller().get_node_name(TYPE, KEY) << " " << #X << "=" << X << std::endl; \
           std::cout << buf.str(); \
         }
@@ -85,7 +85,7 @@ static void extractc_fn(const char* symbol, char* fn, size_t bufSize) {
           std::ostringstream buf; \
           buf << std::setbase(10) << getpid() << "/ " << gettid() << ": "; \
           buf << "+++ SELECTED " << __func__ << ": " << __LINE__ << \
-          " [" << #TRC << "] " << std::setbase(16) << std::uppercase << #KEY << "=" << KEY << " " << \
+          " [+" << #TRC << "] " << std::setbase(16) << std::uppercase << #KEY << "=" << KEY << " " << \
           "NODE=" << context.get_controller().get_node_name(TYPE, KEY) << " " << #X << "=" << X << std::endl; \
           std::cout << buf.str(); \
         }
@@ -97,7 +97,7 @@ static void extractc_fn(const char* symbol, char* fn, size_t bufSize) {
           if (once < 5) { \
             buf << std::setbase(10) << getpid() << "/ " << gettid() << ": "; \
             buf << "--- IGNORED_ONCE " << __func__ << ": " << __LINE__ << \
-            " [" << #TRC << "] " << std::setbase(16) << std::uppercase << #KEY << "=" << KEY << " " << \
+            " [-" << #TRC << "] " << std::setbase(16) << std::uppercase << #KEY << "=" << KEY << " " << \
             "NODE=" << context.get_controller().get_node_name(TYPE, KEY) << " " << #X << "=" << X << std::endl; \
             std::cout << buf.str(); \
             once++; \
@@ -111,7 +111,7 @@ static void extractc_fn(const char* symbol, char* fn, size_t bufSize) {
           if (once < 5) { \
             buf << std::setbase(10) << getpid() << "/ " << gettid() << ": "; \
             buf << "+++ SELECTED_ONCE " << __func__ << ": " << __LINE__ << \
-            " [" << #TRC << "] " << std::setbase(16) << std::uppercase << #KEY << "=" << KEY << " " << \
+            " [+" << #TRC << "] " << std::setbase(16) << std::uppercase << #KEY << "=" << KEY << " " << \
             "NODE=" << context.get_controller().get_node_name(TYPE, KEY) << " " << #X << "=" << X << std::endl; \
             std::cout << buf.str(); \
             once++; \

@@ -195,9 +195,7 @@ void update_dds_function_addr()
 
   if (context.get_controller().is_allowed_process()) {
     static auto record = [](const char * rmw_implementation, int64_t init_time) {
-      if (context.is_recording_allowed() && trace_filter_is_rcl_publish_recorded) {
-        tracepoint(TRACEPOINT_PROVIDER, rmw_implementation, rmw_implementation, init_time);
-      }
+      tracepoint(TRACEPOINT_PROVIDER, rmw_implementation, rmw_implementation, init_time);
     };
 
     if (!data_container.is_assigned_rmw_implementation()) {
@@ -484,6 +482,7 @@ D(node_handle)
   using functionT =
     void (*)(void *, rclcpp::CallbackGroup::SharedPtr, rclcpp::node_interfaces::NodeBaseInterface::SharedPtr, const void *, bool);
   auto group_addr = static_cast<const void *>(group_ptr.get());
+  auto node_addr = static_cast<const void *>(node_ptr.get());
 
   ((functionT)orig_func)(obj, group_ptr, node_ptr, weak_groups_to_nodes, notify);
 
@@ -498,7 +497,7 @@ D(node_handle)
   static KeysSet<void *, void *, void *> recorded_args;
 
   auto group_addr_ = const_cast<void *>(group_addr);
-  auto node_ptr_ = static_cast<const void *>(node_ptr.get());
+  auto node_addr_ = const_cast<void *>(node_addr);
 
   std::string group_type_name = "unknown";
   auto group_type = group_ptr->type();
@@ -510,9 +509,8 @@ D(node_handle)
 
   auto node_handle = static_cast<const void *>(node_ptr->get_rcl_node_handle());
   data_container.store_add_callback_group(obj, group_addr, group_type_name.c_str(), node_handle, now);
-  auto node_p = const_cast<void *>(node_ptr_);
-  if (!recorded_args.has(obj, group_addr_, node_p)) {
-    recorded_args.insert(obj, group_addr_, node_p);
+  if (!recorded_args.has(obj, group_addr_, node_addr_)) {
+    recorded_args.insert(obj, group_addr_, node_addr_);
 
     record(obj, group_addr, group_type_name.c_str(), node_handle, now);
   }

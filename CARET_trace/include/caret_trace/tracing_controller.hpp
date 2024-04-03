@@ -65,8 +65,8 @@ public:
   void add_subscription_callback(const void * subscription, const void * callback);
 
   /// @brief Register binding information for rclcpp_timer_link_node tracepoint hook.
-  /// @param node_handle Address of the node handle.
   /// @param timer_handle Address of the timer handle.
+  /// @param node_handle Address of the node handle.
   void add_timer_handle(const void * timer_handle, const void * node_handle);
 
   /// @brief Register topic name for ros_trace_rcl_publisher_init
