@@ -212,6 +212,7 @@ private:
   std::unordered_map<const void *, bool> allowed_ipbs;
   
   std::unordered_map<const void *, const void *> state_machine_to_node_handles_;
+  std::unordered_map<const void *, bool> allowed_state_machine_;
   
   std::unordered_map<const void *, const void *> service_handle_to_node_handles_;
   std::unordered_map<const void *, bool> allowed_service_handle_;

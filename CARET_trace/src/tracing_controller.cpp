@@ -215,6 +215,7 @@ bool TracingController::is_allowed_callback(const void * callback)
         allowed_callbacks_[callback] = true;
         return true;
       }
+      allowed_callbacks_[callback] = false;
       return false;
     }
     if (ignore_enabled_) {
@@ -229,6 +230,7 @@ bool TracingController::is_allowed_callback(const void * callback)
         allowed_callbacks_[callback] = false;
         return false;
       }
+      allowed_callbacks_[callback] = true;
       return true;
     }
     allowed_callbacks_[callback] = true;
@@ -481,7 +483,7 @@ bool TracingController::is_allowed_timer_handle(const void * timer_handle)
       return allowed;
     }
   }
-      
+
   {
     std::shared_lock<std::shared_timed_mutex> lock(mutex_);
     auto node_handle = timer_handle_to_node_handles_[timer_handle];
@@ -517,15 +519,45 @@ bool TracingController::is_allowed_timer_handle(const void * timer_handle)
 
 bool TracingController::is_allowed_state_machine(const void * state_machine)
 {
-  std::shared_lock<std::shared_timed_mutex> lock(mutex_);
-  if (state_machine_to_node_handles_.count(state_machine) > 0) {
+ {
+    std::shared_lock<std::shared_timed_mutex> lock(mutex_);
+    if (allowed_state_machine_.count(state_machine) > 0) {
+      auto allowed = allowed_state_machine_[state_machine];
+      return allowed;
+    }
+  }
+
+  {
+    std::shared_lock<std::shared_timed_mutex> lock(mutex_);
     auto node_handle = state_machine_to_node_handles_[state_machine];
-    return is_allowed_node(node_handle);
+    auto node_name = node_handle_to_node_names_[node_handle];
+
+    if (node_name.size() == 0) {
+      allowed_state_machine_[state_machine] = true;
+      return true;
+    }
+
+    if (select_enabled_) {
+      auto is_selected_node = partial_match(selected_node_names_, node_name);
+      if (is_selected_node && selected_node_names_.size() > 0) {
+        allowed_state_machine_[state_machine] = true;
+        return true;
+      }
+      allowed_state_machine_[state_machine] = false;
+      return false;
+    }
+    if (ignore_enabled_) {
+      auto is_ignored_node = partial_match(ignored_node_names_, node_name);
+      if (is_ignored_node && ignored_node_names_.size() > 0) {
+        allowed_state_machine_[state_machine] = false;
+        return false;
+      }
+      allowed_state_machine_[state_machine] = true;
+      return true;
+    }
+    allowed_state_machine_[state_machine] = true;
+    return true;
   }
-  if (select_enabled_) {
-    return false;
-  }
-  return true;
 }
 
 bool TracingController::is_allowed_ipb(const void * ipb)
@@ -641,7 +673,7 @@ bool TracingController::is_allowed_client_handle(const void * client_handle) {
       return is_allowed_it->second;
     }
   }
-  
+
   {
     std::lock_guard<std::shared_timed_mutex> lock(mutex_);
     auto node_handle = client_handle_to_node_handles_[client_handle];
@@ -770,9 +802,7 @@ void TracingController::add_rmw_subscription_handle(
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   rmw_subscription_handle_to_node_handles_[rmw_subscription_handle] = node_handle;
-  if (allowed_rmw_subscription_handles_.count(rmw_subscription_handle) > 0) {
-    allowed_rmw_subscription_handles_.erase(rmw_subscription_handle);
-  }
+  allowed_rmw_subscription_handles_.erase(rmw_subscription_handle);
   rmw_subscription_handle_to_topic_names_[rmw_subscription_handle] = topic_name;
 }
 
@@ -788,12 +818,8 @@ void TracingController::add_subscription_callback(const void * subscription, con
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
 
   callback_to_subscriptions_[callback] = subscription;
-  if (callback_to_timer_handles_.count(callback) > 0) {
-    callback_to_timer_handles_.erase(callback);
-  }
-  if (allowed_callbacks_.count(callback) > 0) {
-    allowed_callbacks_.erase(callback);
-  }
+  callback_to_timer_handles_.erase(callback);
+  allowed_callbacks_.erase(callback);
 }
 
 void TracingController::add_timer_handle(const void * timer_handle, const void * node_handle)
@@ -801,9 +827,7 @@ void TracingController::add_timer_handle(const void * timer_handle, const void *
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
 
   timer_handle_to_node_handles_[timer_handle] = node_handle;
-  if (allowed_timer_handle_.count(timer_handle)) {
-    allowed_timer_handle_.erase(timer_handle);
-  }
+  allowed_timer_handle_.erase(timer_handle);
 }
 
 void TracingController::add_timer_callback(const void * timer_handle, const void * callback)
@@ -811,12 +835,8 @@ void TracingController::add_timer_callback(const void * timer_handle, const void
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
 
   callback_to_timer_handles_[callback] = timer_handle;
-  if (callback_to_subscriptions_.count(callback) > 0) {
-    callback_to_subscriptions_.erase(callback);
-  }
-  if (allowed_callbacks_.count(callback) > 0) {
-    allowed_callbacks_.erase(callback);
-  }
+  callback_to_subscriptions_.erase(callback);
+  allowed_callbacks_.erase(callback);
 }
 
 void TracingController::add_publisher_handle(
@@ -824,9 +844,7 @@ void TracingController::add_publisher_handle(
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   publisher_handle_to_node_handles_[publisher_handle] = node_handle;
-  if (allowed_publishers_.count(publisher_handle) > 0) {
-    allowed_publishers_.erase(publisher_handle);
-  }
+  allowed_publishers_.erase(publisher_handle);
   publisher_handle_to_topic_names_[publisher_handle] = topic_name;
 }
 
@@ -834,42 +852,35 @@ void TracingController::add_buffer(const void * buffer, const void * ipb)
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   buffer_to_ipbs_[buffer] = ipb;
-  if (allowed_buffers_.count(buffer) > 0) {
-    allowed_buffers_.erase(buffer);
-  }
+  allowed_buffers_.erase(buffer);
 }
 
 void TracingController::add_ipb(const void * ipb, const void * subscription)
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   ipb_to_subscriptions_[ipb] = subscription;
-  if (allowed_ipbs.count(ipb) > 0) {
-    allowed_ipbs.erase(ipb);
-  }
+  allowed_ipbs.erase(ipb);
 }
 
 void TracingController::add_state_machine(const void * state_machine, const void * node_handle)
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   state_machine_to_node_handles_[state_machine] = node_handle;
+  allowed_state_machine_.erase(state_machine);
 }
 
 void TracingController::add_service_handle(const void * service_handle, const void * node_handle)
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   service_handle_to_node_handles_[service_handle] = node_handle;
-  if (allowed_service_handle_.count(service_handle) > 0) {
-    allowed_service_handle_.erase(service_handle);
-  }
+  allowed_service_handle_.erase(service_handle);
 }
 
 void TracingController::add_client_handle(const void * client_handle, const void * node_handle)
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   client_handle_to_node_handles_[client_handle] = node_handle;
-  if (allowed_client_handle_.count(client_handle) > 0) {
-    allowed_client_handle_.erase(client_handle);
-  }
+  allowed_client_handle_.erase(client_handle);
 }
 
 std::string TracingController::get_node_name(const std::string type, const void * key) {
