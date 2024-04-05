@@ -91,7 +91,7 @@ public:
   /// @param subscription  Address of the subscription instance.
   void add_ipb(const void * ipb, const void * subscription);
 
-  /// @brief Register binding information for ros_trace_rcl_lifecycle_state_machine_init tracepoint.
+  /// @brief Register binding information for rcl_lifecycle_state_machine_init tracepoint.
   /// @param state_machine  Address of the lifecycle state machine.
   /// @param node_handle  Address of the node handle.
   void add_state_machine(const void * state_machine, const void * node_handle);

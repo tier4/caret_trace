@@ -1162,20 +1162,23 @@ void ros_trace_rcl_lifecycle_state_machine_init(
     const void * node_handle,
     const void * state_machine,
     int64_t init_time) {
-      if (!context.get_controller().is_allowed_state_machine(state_machine) &&
-          context.is_recording_allowed()) {
-        D_IGN("SH", state_machine, node_handle, rcl_lifecycle_state_machine_init)
-        return;
-      }
-      D_SEL("SH", state_machine, node_handle, rcl_lifecycle_state_machine_init)
-    tracepoint(TRACEPOINT_PROVIDER, rcl_lifecycle_state_machine_init,
-      node_handle, state_machine, init_time);
-
+    if (context.get_controller().is_allowed_state_machine(state_machine) &&
+        context.is_recording_allowed()) {
+      tracepoint(TRACEPOINT_PROVIDER, rcl_lifecycle_state_machine_init,
+        node_handle, state_machine, init_time);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rcl_lifecycle_state_machine_init," <<
       node_handle << "," <<
       state_machine << std::endl;
 #endif
+      D_SEL("SH", state_machine, node_handle, rcl_lifecycle_state_machine_init)
+    } else {
+      if (!context.get_controller().is_allowed_state_machine(state_machine)) {
+        D_IGN("SH", state_machine, node_handle, rcl_lifecycle_state_machine_init)
+      } else {
+        D_SEL("SH", state_machine, node_handle, rcl_lifecycle_state_machine_init)
+      }
+    }
   };
 
 D(node_handle)

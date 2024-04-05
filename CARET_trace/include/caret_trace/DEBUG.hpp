@@ -118,48 +118,4 @@ static void extractc_fn(const char* symbol, char* fn, size_t bufSize) {
           } \
         }
 
-#define DIF(cond1, cond2) { \
-          std::shared_lock<std::shared_mutex> lock(smtx); \
-          std::ostringstream buf; \
-          buf << std::setbase(10) << getpid() << "/ " << gettid() << ": "; \
-          if (!(cond1 && cond2)) { \
-            buf << "NOT REGISTED " << __func__ << ": " << __LINE__ << " "; \
-            if (!cond1) buf << #cond1 << "=" << cond1 << " "; \
-            if (!cond2) buf << #cond2 << "=" << cond2; \
-            buf << std::endl; \
-          } else { \
-            buf << "REGISTED " << __func__ << ": " << __LINE__ << " "; \
-            buf << #cond1 << "=" << cond1 << " "; \
-            buf << #cond2 << "=" << cond2; \
-            buf << std::endl; \
-          } \
-          std::cout << buf.str(); \
-        }
-
-#define DIF_ONCE(cond1, cond2) { \
-          std::shared_lock<std::shared_mutex> lock(smtx); \
-          std::ostringstream buf; \
-          static int once1 = 0; \
-          static int once2 = 0; \
-          buf << std::setbase(10) << getpid() << "/ " << gettid() << ": "; \
-          if (!(cond1 && cond2)) { \
-            if (once1 < 5) { \
-              buf << "NOT REGISTED (ONCE) " << __func__ << ": " << __LINE__ << " "; \
-              if (!cond1) buf << #cond1 << "=" << cond1 << " "; \
-              if (!cond2) buf << #cond2 << "=" << cond2; \
-              buf << std::endl; \
-              once1++; \
-            } \
-          } else { \
-            if (once2 < 5) { \
-              buf << "REGISTED (ONCE) " << __func__ << ": " << __LINE__ << " "; \
-              buf << #cond1 << "=" << cond1 << " "; \
-              buf << #cond2 << "=" << cond2; \
-              buf << std::endl; \
-              once2++; \
-            } \
-          } \
-          std::cout << buf.str(); \
-        }
-
 #define SEL 1
