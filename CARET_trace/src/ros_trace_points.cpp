@@ -461,11 +461,11 @@ void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void
     const void * callback,
     int64_t init_time
   ) {
-  if (!controller.is_allowed_callback(callback)) {
-    D_IGN("CB", callback, timer_handle, rclcpp_timer_callback_added)
-    return;
-  }
-    D_SEL("CB", callback, timer_handle, rclcpp_timer_callback_added)
+    if (!controller.is_allowed_timer_handle(timer_handle)) {
+      D_IGN("TH", timer_handle, callback, rclcpp_timer_callback_added)
+      return;
+    }
+    D_SEL("TH", timer_handle, callback, rclcpp_timer_callback_added)
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_timer_callback_added, timer_handle, callback, init_time);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_timer_callback_added," <<
@@ -503,11 +503,11 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
     const void * node_handle,
     int64_t init_time
   ) {
-  if (!controller.is_allowed_node(node_handle)) {
-    D_IGN("NH", node_handle, timer_handle, rclcpp_timer_link_node)
-    return;
-  }
-    D_SEL("NH", node_handle, timer_handle, rclcpp_timer_link_node)
+    if (!controller.is_allowed_timer_handle(timer_handle)) {
+      D_IGN("TH", timer_handle, node_handle, rclcpp_timer_link_node)
+      return;
+    }
+    D_SEL("TH", timer_handle, node_handle, rclcpp_timer_link_node)
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_timer_link_node, timer_handle, node_handle, init_time);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_timer_link_node," <<
@@ -1171,12 +1171,12 @@ void ros_trace_rcl_lifecycle_state_machine_init(
       node_handle << "," <<
       state_machine << std::endl;
 #endif
-      D_SEL("SH", state_machine, node_handle, rcl_lifecycle_state_machine_init)
+      D_SEL("SM", state_machine, node_handle, rcl_lifecycle_state_machine_init)
     } else {
       if (!context.get_controller().is_allowed_state_machine(state_machine)) {
-        D_IGN("SH", state_machine, node_handle, rcl_lifecycle_state_machine_init)
+        D_IGN("SM", state_machine, node_handle, rcl_lifecycle_state_machine_init)
       } else {
-        D_SEL("SH", state_machine, node_handle, rcl_lifecycle_state_machine_init)
+        D_SEL("SM", state_machine, node_handle, rcl_lifecycle_state_machine_init)
       }
     }
   };
