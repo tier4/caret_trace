@@ -191,6 +191,7 @@ private:
   std::unordered_map<const void *, std::string> subscription_handle_to_topic_names_;
   std::unordered_map<const void *, const void *> subscription_to_subscription_handles_;
   std::unordered_map<const void *, const void *> callback_to_subscriptions_;
+  std::unordered_map<const void *, const void *> subscription_to_callbacks_;
 
   std::unordered_map<const void *, const void *> rmw_subscription_handle_to_node_handles_;
   std::unordered_map<const void *, std::string> rmw_subscription_handle_to_topic_names_;

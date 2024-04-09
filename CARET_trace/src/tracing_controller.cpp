@@ -194,6 +194,8 @@ bool TracingController::is_allowed_callback(const void * callback)
     auto node_name = to_node_name(callback);
     auto topic_name = to_topic_name(callback);
 
+D(node_name)
+D(topic_name)
     if (node_name.size() == 0 || topic_name.size() == 0) {
       allowed_callbacks_[callback] = true;
       return true;
@@ -262,6 +264,8 @@ bool TracingController::is_allowed_subscription_handle(const void * subscription
   auto node_name = node_handle_to_node_names_[node_handle];
   auto topic_name = subscription_handle_to_topic_names_[subscription_handle];
 
+D(node_name)
+D(topic_name)
   if (node_name.size() == 0 || topic_name.size() == 0) {
     return true;
   }
@@ -309,6 +313,8 @@ bool TracingController::is_allowed_rmw_subscription_handle(const void * rmw_subs
     auto node_name = node_handle_to_node_names_[node_handle];
     auto topic_name = rmw_subscription_handle_to_topic_names_[rmw_subscription_handle];
 
+D(node_name)
+D(topic_name)
     if (node_name.size() == 0 || topic_name.size() == 0) {
       allowed_rmw_subscription_handles_[rmw_subscription_handle] = true;
       return true;
@@ -366,6 +372,8 @@ bool TracingController::is_allowed_publisher_handle(const void * publisher_handl
     auto topic_name = publisher_handle_to_topic_names_[publisher_handle];
     auto is_unregistered_publisher_handle = (node_name == "");
 
+D(node_name)
+D(topic_name)
     if (is_unregistered_publisher_handle) {
       allowed_publishers_.insert(std::make_pair(publisher_handle, false));
       return false;
@@ -428,8 +436,14 @@ bool TracingController::is_allowed_buffer(const void * buffer)
     auto subscription_handle = subscription_to_subscription_handles_[subscription];
     auto node_handle = subscription_handle_to_node_handles_[subscription_handle];
     auto node_name = node_handle_to_node_names_[node_handle];
+    if (node_name.size() == 0) {
+      auto callback = subscription_to_callbacks_[subscription];
+      node_name = to_node_name(callback);
+    }
     auto topic_name = subscription_handle_to_topic_names_[subscription_handle];
 
+D(node_name)
+D(topic_name)
     if (node_name.size() == 0 || topic_name.size() == 0) {
       allowed_buffers_[buffer] = true;
       return true;
@@ -583,6 +597,8 @@ bool TracingController::is_allowed_ipb(const void * ipb)
     auto node_name = node_handle_to_node_names_[node_handle];
     auto topic_name = subscription_handle_to_topic_names_[subscription_handle];
 
+D(node_name)
+D(topic_name)
     if (node_name.size() == 0 || topic_name.size() == 0) {
       allowed_ipbs[ipb] = true;
       return true;
@@ -840,6 +856,8 @@ void TracingController::add_subscription_callback(const void * subscription, con
 
   callback_to_subscriptions_[callback] = subscription;
   callback_to_timer_handles_.erase(callback);
+  subscription_to_callbacks_[subscription] = callback;
+  subscription_to_callbacks_.erase(subscription);
   allowed_callbacks_.erase(callback);
 }
 
@@ -980,7 +998,7 @@ std::string TracingController::get_node_name(const std::string type, const void 
         return "";
       }
     } else if (type == "IPB") {
-      if (ipb_to_subscriptions_.count(key)) {
+      if (ipb_to_subscriptions_.count(key) > 0) {
         auto sub = ipb_to_subscriptions_[key];
         if (subscription_to_subscription_handles_.count(sub) > 0) {
           auto subh = subscription_to_subscription_handles_[sub];
@@ -990,6 +1008,23 @@ std::string TracingController::get_node_name(const std::string type, const void 
               return node_handle_to_node_names_[nh];
             }
             return "";
+          }
+        }
+      }
+    } else if (type == "BUF") {
+      if (buffer_to_ipbs_.count(key) > 0) {
+        auto ipb = buffer_to_ipbs_[key];
+        if (ipb_to_subscriptions_.count(ipb) > 0) {
+          auto sub = ipb_to_subscriptions_[ipb];
+          if (subscription_to_subscription_handles_.count(sub) > 0) {
+            auto subh = subscription_to_subscription_handles_[sub];
+            if (subscription_handle_to_node_handles_.count(subh) > 0) {
+              auto nh = subscription_handle_to_node_handles_[subh];
+              if (node_handle_to_node_names_.count(nh) > 0) {
+                return node_handle_to_node_names_[nh];
+              }
+              return "";
+            }
           }
         }
       }
