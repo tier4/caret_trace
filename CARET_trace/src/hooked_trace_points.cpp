@@ -608,6 +608,10 @@ void _ZN6rclcpp13CallbackGroup9add_timerESt10shared_ptrINS_9TimerBaseEE(
     return;
   }
 
+  if (!context.get_controller().is_allowed_process()) {
+    return;
+  }
+
   if (!data_container.is_assigned_callback_group_add_timer()) {
     data_container.assign_callback_group_add_timer(record);
   }
@@ -645,6 +649,10 @@ void _ZN6rclcpp13CallbackGroup16add_subscriptionESt10shared_ptrINS_16Subscriptio
     static_cast<const void *>(subscription_ptr->get_subscription_handle().get());
   ((functionT)orig_func)(obj, subscription_ptr);
   
+  if (!context.get_controller().is_allowed_process()) {
+    return;
+  }
+
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
@@ -687,6 +695,10 @@ void _ZN6rclcpp13CallbackGroup11add_serviceESt10shared_ptrINS_11ServiceBaseEE(
     return;
   }
 
+  if (!context.get_controller().is_allowed_process()) {
+    return;
+  }
+
   if (!data_container.is_assigned_callback_group_add_service()) {
     data_container.assign_callback_group_add_service(record);
   }
@@ -721,6 +733,10 @@ void _ZN6rclcpp13CallbackGroup10add_clientESt10shared_ptrINS_10ClientBaseEE(
   auto client_handle = static_cast<const void *>(client_ptr->get_client_handle().get());
   ((functionT)orig_func)(obj, client_ptr);
   
+  if (!context.get_controller().is_allowed_process()) {
+    return;
+  }
+
   if (!context.get_controller().is_allowed_process()) {
     return;
   }

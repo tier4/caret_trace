@@ -364,6 +364,12 @@ bool TracingController::is_allowed_publisher_handle(const void * publisher_handl
     auto node_handle = publisher_handle_to_node_handles_[publisher_handle];
     auto node_name = node_handle_to_node_names_[node_handle];
     auto topic_name = publisher_handle_to_topic_names_[publisher_handle];
+    auto is_unregistered_publisher_handle = (node_name == "");
+
+    if (is_unregistered_publisher_handle) {
+      allowed_publishers_.insert(std::make_pair(publisher_handle, false));
+      return false;
+    }
 
     if (node_name.size() == 0 || topic_name.size() == 0) {
       allowed_publishers_[publisher_handle] = true;
