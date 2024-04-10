@@ -560,7 +560,7 @@ void ros_trace_callback_start(const void * callback, bool is_intra_process)
     if (!controller.is_allowed_callback(callback)) {
       D_IGN_ONCE("CB", callback, is_intra_process, callback_start)
     } else {
-      D_SEL_ONCE("CB", callback, is_intra_process, callback_start)
+      D_SEL_ONCE_IGN("CB", callback, is_intra_process, callback_start)
     }
   }
 }
@@ -591,7 +591,7 @@ void ros_trace_callback_end(const void * callback)
     if (!controller.is_allowed_callback(callback)) {
       D_IGN_ONCE("CB", callback, 0, callback_end)
     } else {
-      D_SEL_ONCE("CB", callback, 0, callback_end)
+      D_SEL_ONCE_IGN("CB", callback, 0, callback_end)
     }
   }
 }
@@ -630,7 +630,7 @@ D(callback)
     if (!controller.is_allowed_callback(callback)) {
       D_IGN("CB", callback, message, dispatch_subscription_callback)
     } else {
-      D_SEL("CB", callback, message, dispatch_subscription_callback)
+      D_SEL_IGN("CB", callback, message, dispatch_subscription_callback)
     }
   }
 }
@@ -667,7 +667,7 @@ D(callback)
     if (!controller.is_allowed_callback(callback)) {
       D_IGN("CB", callback, message, dispatch_intra_process_subscription_callback)
     } else {
-      D_SEL("CB", callback, message, dispatch_intra_process_subscription_callback)
+      D_SEL_IGN("CB", callback, message, dispatch_intra_process_subscription_callback)
     }
   }
 }
@@ -700,7 +700,7 @@ void ros_trace_rclcpp_publish(
     if (!controller.is_allowed_publisher_handle(publisher_handle)) {
       D_IGN_ONCE("PUBH", publisher_handle, message, rclcpp_publish)
     } else {
-      D_SEL_ONCE("PUBH", publisher_handle, message, rclcpp_publish)
+      D_SEL_ONCE_IGN("PUBH", publisher_handle, message, rclcpp_publish)
     }
   }
 }
@@ -719,6 +719,8 @@ void ros_trace_rclcpp_intra_publish(
     return;
   }
 
+  controller.add_message_publisher_handle(message, publisher_handle);
+
 D(publisher_handle)
   if (controller.is_allowed_publisher_handle(publisher_handle) &&
     context.is_recording_allowed())
@@ -734,7 +736,7 @@ D(publisher_handle)
     if (!controller.is_allowed_publisher_handle(publisher_handle)) {
       D_IGN("PUBH", publisher_handle, message, rclcpp_intra_publish)
     } else {
-      D_SEL("PUBH", publisher_handle, message, rclcpp_intra_publish)
+      D_SEL_IGN("PUBH", publisher_handle, message, rclcpp_intra_publish)
     }
   }
 }
@@ -808,7 +810,6 @@ void ros_trace_rcl_init(
     context_handle << std::endl;
 #endif
 }
-
 
 void ros_trace_rcl_publisher_init(
   const void * publisher_handle,
@@ -903,7 +904,7 @@ void ros_trace_rcl_publish(
     if (!controller.is_allowed_publisher_handle(publisher_handle)) {
       D_IGN_ONCE("PUBH", publisher_handle, message, rcl_publish)
     } else {
-      D_SEL_ONCE("PUBH", publisher_handle, message, rcl_publish)
+      D_SEL_ONCE_IGN("PUBH", publisher_handle, message, rcl_publish)
     }
     trace_filter_is_rcl_publish_recorded = false;
   }
@@ -1176,7 +1177,7 @@ void ros_trace_rcl_lifecycle_state_machine_init(
       if (!context.get_controller().is_allowed_state_machine(state_machine)) {
         D_IGN("SM", state_machine, node_handle, rcl_lifecycle_state_machine_init)
       } else {
-        D_SEL("SM", state_machine, node_handle, rcl_lifecycle_state_machine_init)
+        D_SEL_IGN("SM", state_machine, node_handle, rcl_lifecycle_state_machine_init)
       }
     }
   };
@@ -1231,14 +1232,15 @@ void ros_trace_message_construct(
   const void * constructed_message)
 {
   static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   using functionT = void (*)(const void *, const void *);
 
-  if (!context.get_controller().is_allowed_process()) {
+  if (!controller.is_allowed_process()) {
     return;
   }
 
-  if (context.is_recording_allowed()) {
+  if (controller.is_allowed_message(original_message) && context.is_recording_allowed()) {
     ((functionT) orig_func)(original_message, constructed_message);
 
 #ifdef DEBUG_OUTPUT
@@ -1246,9 +1248,13 @@ void ros_trace_message_construct(
       original_message << "," <<
       constructed_message << std::endl;
 #endif
-    D_SEL("OTH", original_message, constructed_message, message_construct)
+    D_SEL("MSG", original_message, constructed_message, message_construct)
   } else {
-    D_IGN("OTH", original_message, constructed_message, message_construct)
+    if (!controller.is_allowed_message(original_message) ) {
+      D_IGN("MSG", original_message, constructed_message, message_construct)
+      return;
+    }
+    D_SEL_IGN("MSG", original_message, constructed_message, message_construct)
   }
 }
 

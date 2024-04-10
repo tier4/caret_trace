@@ -90,6 +90,16 @@ static void extractc_fn(const char* symbol, char* fn, size_t bufSize) {
           std::cout << buf.str(); \
         }
 
+#define D_SEL_IGN(TYPE, KEY, X, TRC) { \
+          std::shared_lock<std::shared_mutex> lock(smtx); \
+          std::ostringstream buf; \
+          buf << std::setbase(10) << getpid() << "/ " << gettid() << ": "; \
+          buf << "~~~ SEL_NOT_REC " << __func__ << ": " << __LINE__ << \
+          " [+" << #TRC << "] " << std::setbase(16) << std::uppercase << #KEY << "=" << KEY << " " << \
+          "NODE=" << context.get_controller().get_node_name(TYPE, KEY) << " " << #X << "=" << X << std::endl; \
+          std::cout << buf.str(); \
+        }
+
 #define D_IGN_ONCE(TYPE, KEY, X, TRC) { \
           std::shared_lock<std::shared_mutex> lock(smtx); \
           std::ostringstream buf; \
@@ -111,6 +121,20 @@ static void extractc_fn(const char* symbol, char* fn, size_t bufSize) {
           if (once < 5) { \
             buf << std::setbase(10) << getpid() << "/ " << gettid() << ": "; \
             buf << "+++ SELECTED_ONCE " << __func__ << ": " << __LINE__ << \
+            " [+" << #TRC << "] " << std::setbase(16) << std::uppercase << #KEY << "=" << KEY << " " << \
+            "NODE=" << context.get_controller().get_node_name(TYPE, KEY) << " " << #X << "=" << X << std::endl; \
+            std::cout << buf.str(); \
+            once++; \
+          } \
+        }
+
+#define D_SEL_ONCE_IGN(TYPE, KEY, X, TRC) { \
+          std::shared_lock<std::shared_mutex> lock(smtx); \
+          std::ostringstream buf; \
+          static int once = 0; \
+          if (once < 5) { \
+            buf << std::setbase(10) << getpid() << "/ " << gettid() << ": "; \
+            buf << "~~~ SEL_NOT_REC_ONCE " << __func__ << ": " << __LINE__ << \
             " [+" << #TRC << "] " << std::setbase(16) << std::uppercase << #KEY << "=" << KEY << " " << \
             "NODE=" << context.get_controller().get_node_name(TYPE, KEY) << " " << #X << "=" << X << std::endl; \
             std::cout << buf.str(); \
