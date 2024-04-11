@@ -261,6 +261,7 @@ bool TracingController::is_allowed_subscription_handle(const void * subscription
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   auto node_handle = subscription_handle_to_node_handles_[subscription_handle];
+  D(node_handle)
   auto node_name = node_handle_to_node_names_[node_handle];
   auto topic_name = subscription_handle_to_topic_names_[subscription_handle];
 
@@ -426,12 +427,17 @@ bool TracingController::is_allowed_buffer(const void * buffer)
   {
     std::lock_guard<std::shared_timed_mutex> lock(mutex_);
     auto ipb = buffer_to_ipbs_[buffer];
+    D(ipb)
     auto subscription = ipb_to_subscriptions_[ipb];
+    D(subscription)
     auto subscription_handle = subscription_to_subscription_handles_[subscription];
+    D(subscription_handle)
     auto node_handle = subscription_handle_to_node_handles_[subscription_handle];
+    D(node_handle)
     auto node_name = node_handle_to_node_names_[node_handle];
     if (node_name.size() == 0) {
       auto callback = subscription_to_callbacks_[subscription];
+      D(callback)
       node_name = to_node_name(callback);
     }
     auto topic_name = subscription_handle_to_topic_names_[subscription_handle];
@@ -484,7 +490,7 @@ bool TracingController::is_allowed_process()
   return !is_ignored_process_;
 }
 
-bool TracingController::is_allowed_timer_handle(const void * timer_handle)
+bool TracingController::is_allowed_timer_handle(const void * timer_handle, const void * callback)
 {
   std::unordered_map<const void *, bool>::iterator is_allowed_it;
   {
@@ -500,6 +506,7 @@ bool TracingController::is_allowed_timer_handle(const void * timer_handle)
     auto node_handle = timer_handle_to_node_handles_[timer_handle];
     auto node_name = node_handle_to_node_names_[node_handle];
 
+    D(node_name)
     if (node_name.size() == 0) {
       allowed_timer_handles_[timer_handle] = true;
       return true;
@@ -586,9 +593,17 @@ bool TracingController::is_allowed_ipb(const void * ipb)
   {
     std::lock_guard<std::shared_timed_mutex> lock(mutex_);
     auto subscription = ipb_to_subscriptions_[ipb];
+    D(subscription)
     auto subscription_handle = subscription_to_subscription_handles_[subscription];
+    D(subscription_handle)
     auto node_handle = subscription_handle_to_node_handles_[subscription_handle];
+    D(node_handle)
     auto node_name = node_handle_to_node_names_[node_handle];
+    if (node_name.size() == 0) {
+      auto callback = subscription_to_callbacks_[subscription];
+      D(callback)
+      node_name = to_node_name(callback);
+    }
     auto topic_name = subscription_handle_to_topic_names_[subscription_handle];
 
 D(node_name)
@@ -890,8 +905,7 @@ void TracingController::add_rmw_subscription_handle(
   rmw_subscription_handle_to_topic_names_[rmw_subscription_handle] = topic_name;
 }
 
-void TracingController::add_subscription(
-  const void * subscription_handle, const void * subscription)
+void TracingController::add_subscription(const void * subscription, const void * subscription_handle)
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   subscription_to_subscription_handles_[subscription] = subscription_handle;
@@ -906,9 +920,7 @@ void TracingController::add_subscription_callback(const void * subscription, con
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
 
   callback_to_subscriptions_[callback] = subscription;
-  callback_to_timer_handles_.erase(callback);
   subscription_to_callbacks_[subscription] = callback;
-  subscription_to_callbacks_.erase(subscription);
   allowed_callbacks_.erase(callback);
 }
 
@@ -928,7 +940,6 @@ void TracingController::add_timer_callback(const void * timer_handle, const void
 
   callback_to_timer_handles_[callback] = timer_handle;
   allowed_timer_handles_.erase(timer_handle);
-  callback_to_subscriptions_.erase(callback);
   allowed_callbacks_.erase(callback);
 }
 

@@ -94,7 +94,7 @@ static void extractc_fn(const char* symbol, char* fn, size_t bufSize) {
           std::shared_lock<std::shared_mutex> lock(smtx); \
           std::ostringstream buf; \
           buf << std::setbase(10) << getpid() << "/ " << gettid() << ": "; \
-          buf << "~~~ SEL_NOT_REC " << __func__ << ": " << __LINE__ << \
+          buf << "@@@ SEL_NOT_REC " << __func__ << ": " << __LINE__ << \
           " [+" << #TRC << "] " << std::setbase(16) << std::uppercase << #KEY << "=" << KEY << " " << \
           "NODE=" << context.get_controller().get_node_name(TYPE, KEY) << " " << #X << "=" << X << std::endl; \
           std::cout << buf.str(); \
@@ -134,7 +134,7 @@ static void extractc_fn(const char* symbol, char* fn, size_t bufSize) {
           static int once = 0; \
           if (once < 5) { \
             buf << std::setbase(10) << getpid() << "/ " << gettid() << ": "; \
-            buf << "~~~ SEL_NOT_REC_ONCE " << __func__ << ": " << __LINE__ << \
+            buf << "@@@ SEL_NOT_REC_ONCE " << __func__ << ": " << __LINE__ << \
             " [+" << #TRC << "] " << std::setbase(16) << std::uppercase << #KEY << "=" << KEY << " " << \
             "NODE=" << context.get_controller().get_node_name(TYPE, KEY) << " " << #X << "=" << X << std::endl; \
             std::cout << buf.str(); \

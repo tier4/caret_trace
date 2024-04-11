@@ -55,9 +55,9 @@ public:
     const void * node_handle, const void * rmw_subscription_handle, std::string topic_name);
 
   /// @brief Register binding information for rclcpp_subscription_init tracepoint hook.
-  /// @param subscription_handle Address of the subscription handle.
   /// @param subscription Address of subscription instance.
-  void add_subscription(const void * subscription_handle, const void * subscription);
+  /// @param subscription_handle Address of the subscription handle.
+  void add_subscription(const void * subscription, const void * ubscription_handle);
 
   /// @brief Register binding information for rclcpp_subscription_callback_added tracepoint hook.
   /// @param subscription Address of subscription instance.
@@ -148,8 +148,9 @@ public:
 
   /// @brief Check if trace point is a enabled node
   /// @param timer_handle  Address of the timer handle.
+  /// @param callback  Address of the callback.
   /// @return True if the timer_handle is enabled, false otherwise.
-  bool is_allowed_timer_handle(const void * timer_handle);
+  bool is_allowed_timer_handle(const void * timer_handle, const void * callback);
 
   /// @brief Check if trace point is a enabled node
   /// @param state_machine  Address of the lifecycle state machine.

@@ -383,6 +383,8 @@ void ros_trace_rclcpp_subscription_init(
 #endif
   };
 
+D("!!! ros_trace_rclcpp_subscription_init")
+D(subscription)
 D(subscription_handle)
   if (!controller.is_allowed_process()) {
     return;
@@ -391,7 +393,7 @@ D(subscription_handle)
   auto now = clock.now();
   check_and_run_trace_node();
 
-  controller.add_subscription(subscription_handle, subscription);
+  controller.add_subscription(subscription, subscription_handle);
 
   if (!data_container.is_assigned_rclcpp_subscription_init()) {
     data_container.assign_rclcpp_subscription_init(record);
@@ -461,7 +463,7 @@ void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void
     const void * callback,
     int64_t init_time
   ) {
-    if (!controller.is_allowed_timer_handle(timer_handle)) {
+    if (!controller.is_allowed_timer_handle(timer_handle, callback)) {
       D_IGN("TH", timer_handle, callback, rclcpp_timer_callback_added)
       return;
     }
@@ -503,7 +505,7 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
     const void * node_handle,
     int64_t init_time
   ) {
-    if (!controller.is_allowed_timer_handle(timer_handle)) {
+    if (!controller.is_allowed_node(node_handle)) {
       D_IGN("TH", timer_handle, node_handle, rclcpp_timer_link_node)
       return;
     }
@@ -557,7 +559,7 @@ void ros_trace_callback_start(const void * callback, bool is_intra_process)
 #endif
       D_SEL_ONCE("CB", callback, is_intra_process, callback_start)
   } else {
-    if (!controller.is_allowed_callback(callback)) {
+    if (context.is_recording_allowed()) {
       D_IGN_ONCE("CB", callback, is_intra_process, callback_start)
     } else {
       D_SEL_ONCE_IGN("CB", callback, is_intra_process, callback_start)
@@ -588,7 +590,7 @@ void ros_trace_callback_end(const void * callback)
 #endif
       D_SEL_ONCE("CB", callback, 0, callback_end)
   } else {
-    if (!controller.is_allowed_callback(callback)) {
+    if (context.is_recording_allowed()) {
       D_IGN_ONCE("CB", callback, 0, callback_end)
     } else {
       D_SEL_ONCE_IGN("CB", callback, 0, callback_end)
@@ -627,7 +629,7 @@ D(callback)
 #endif
       D_SEL("CB", callback, message, dispatch_subscription_callback)
   } else {
-    if (!controller.is_allowed_callback(callback)) {
+    if (context.is_recording_allowed()) {
       D_IGN("CB", callback, message, dispatch_subscription_callback)
     } else {
       D_SEL_IGN("CB", callback, message, dispatch_subscription_callback)
@@ -664,7 +666,7 @@ D(callback)
 #endif
       D_SEL("CB", callback, message, dispatch_intra_process_subscription_callback)
   } else {
-    if (!controller.is_allowed_callback(callback)) {
+    if (context.is_recording_allowed()) {
       D_IGN("CB", callback, message, dispatch_intra_process_subscription_callback)
     } else {
       D_SEL_IGN("CB", callback, message, dispatch_intra_process_subscription_callback)
@@ -682,6 +684,12 @@ void ros_trace_rclcpp_publish(
 
   using functionT = void (*)(const void *, const void *);
 
+  if (publisher_handle == 0) {
+    D("!!! CATION !!!")
+    D(publisher_handle)
+    return;
+  }
+
   if (!controller.is_allowed_process()) {
     return;
   }
@@ -697,7 +705,7 @@ void ros_trace_rclcpp_publish(
 #endif
       D_SEL_ONCE("PUBH", publisher_handle, message, rclcpp_publish)
   } else {
-    if (!controller.is_allowed_publisher_handle(publisher_handle)) {
+    if (context.is_recording_allowed()) {
       D_IGN_ONCE("PUBH", publisher_handle, message, rclcpp_publish)
     } else {
       D_SEL_ONCE_IGN("PUBH", publisher_handle, message, rclcpp_publish)
@@ -733,7 +741,7 @@ D(publisher_handle)
 #endif
       D_SEL("PUBH", publisher_handle, message, rclcpp_intra_publish)
   } else {
-    if (!controller.is_allowed_publisher_handle(publisher_handle)) {
+    if (context.is_recording_allowed()) {
       D_IGN("PUBH", publisher_handle, message, rclcpp_intra_publish)
     } else {
       D_SEL_IGN("PUBH", publisher_handle, message, rclcpp_intra_publish)
@@ -755,7 +763,7 @@ void ros_trace_rcl_timer_init(
   }
 
   static auto record = [](const void * timer_handle, int64_t period, int64_t init_time) {
-    if (!context.get_controller().is_allowed_timer_handle(timer_handle)) {
+    if (!context.get_controller().is_allowed_timer_handle(timer_handle, nullptr)) {
       D_IGN("TH", timer_handle, period, rcl_timer_init)
       return;
     }
@@ -901,7 +909,7 @@ void ros_trace_rcl_publish(
 #endif
       D_SEL_ONCE("PUBH", publisher_handle, message, rcl_publish)
   } else {
-    if (!controller.is_allowed_publisher_handle(publisher_handle)) {
+    if (context.is_recording_allowed()) {
       D_IGN_ONCE("PUBH", publisher_handle, message, rcl_publish)
     } else {
       D_SEL_ONCE_IGN("PUBH", publisher_handle, message, rcl_publish)
@@ -1174,7 +1182,7 @@ void ros_trace_rcl_lifecycle_state_machine_init(
 #endif
       D_SEL("SM", state_machine, node_handle, rcl_lifecycle_state_machine_init)
     } else {
-      if (!context.get_controller().is_allowed_state_machine(state_machine)) {
+      if (context.is_recording_allowed()) {
         D_IGN("SM", state_machine, node_handle, rcl_lifecycle_state_machine_init)
       } else {
         D_SEL_IGN("SM", state_machine, node_handle, rcl_lifecycle_state_machine_init)
@@ -1209,14 +1217,10 @@ void ros_trace_rcl_lifecycle_transition(
     return;
   }
 
-  if (context.is_recording_allowed()) {
+  if (context.get_controller().is_allowed_state_machine(state_machine) && 
+      context.is_recording_allowed()) {
     ((functionT) orig_func)(state_machine, start_label, goal_label);
 
-    if (!context.get_controller().is_allowed_state_machine(state_machine)) {
-      D_IGN("SM", state_machine, start_label, rcl_lifecycle_transition)
-      return;
-    }
-    D_SEL("SM", state_machine, start_label, rcl_lifecycle_transition)
 
 #ifdef DEBUG_OUTPUT
     std::cerr << "rcl_lifecycle_transition," <<
@@ -1224,6 +1228,13 @@ void ros_trace_rcl_lifecycle_transition(
       start_label << "," <<
       goal_label << "," << std::endl;
 #endif
+    D_SEL("SM", state_machine, start_label, rcl_lifecycle_transition)
+  } else {
+    if (context.is_recording_allowed()) {
+      D_IGN("SM", state_machine, start_label, rcl_lifecycle_transition)
+      return;
+    }
+    D_SEL_IGN("SM", state_machine, start_label, rcl_lifecycle_transition)
   }
 }
 
@@ -1250,7 +1261,7 @@ void ros_trace_message_construct(
 #endif
     D_SEL("MSG", original_message, constructed_message, message_construct)
   } else {
-    if (!controller.is_allowed_message(original_message) ) {
+    if (context.is_recording_allowed()) {
       D_IGN("MSG", original_message, constructed_message, message_construct)
       return;
     }
@@ -1333,10 +1344,10 @@ void ros_trace_rmw_take(
 #endif
       D_SEL_ONCE("RMW_SUBH", rmw_subscription_handle, message, rmw_take)
   } else {
-    if (!controller.is_allowed_rmw_subscription_handle(rmw_subscription_handle)) {
+    if (context.is_recording_allowed()) {
       D_IGN_ONCE("RMW_SUBH", rmw_subscription_handle, message, rmw_take)
     } else {
-      D_SEL_ONCE("RMW_SUBH", rmw_subscription_handle, message, rmw_take)
+      D_SEL_ONCE_IGN("RMW_SUBH", rmw_subscription_handle, message, rmw_take)
     }
   }
 }
@@ -1559,10 +1570,10 @@ void ros_trace_rclcpp_ring_buffer_enqueue(
 #endif
       D_SEL("BUF", buffer, index, rclcpp_ring_buffer_enqueue)
   } else {
-    if (!controller.is_allowed_buffer(buffer)) {
+    if (context.is_recording_allowed()) {
       D_IGN("BUF", buffer, index, rclcpp_ring_buffer_enqueue)
     } else {
-      D_SEL("BUF", buffer, index, rclcpp_ring_buffer_enqueue)
+      D_SEL_IGN("BUF", buffer, index, rclcpp_ring_buffer_enqueue)
     }
   }
 }
@@ -1595,10 +1606,10 @@ void ros_trace_rclcpp_ring_buffer_dequeue(
 #endif
       D_SEL("BUF", buffer, index, rclcpp_ring_buffer_dequeue)
   } else {
-    if (!controller.is_allowed_buffer(buffer)) {
+    if (context.is_recording_allowed()) {
       D_IGN("BUF", buffer, index, rclcpp_ring_buffer_dequeue)
     } else {
-      D_SEL("BUF", buffer, index, rclcpp_ring_buffer_dequeue)
+      D_SEL_IGN("BUF", buffer, index, rclcpp_ring_buffer_dequeue)
     }
   }
 }
@@ -1627,10 +1638,10 @@ void ros_trace_rclcpp_ring_buffer_clear(
 #endif
       D_SEL("BUF", buffer, 0, rclcpp_ring_buffer_clear)
   } else {
-    if (!controller.is_allowed_buffer(buffer)) {
+    if (context.is_recording_allowed()) {
       D_IGN("BUF", buffer, 0, rclcpp_ring_buffer_clear)
     } else {
-      D_SEL("BUF", buffer, 0, rclcpp_ring_buffer_clear)
+      D_SEL_IGN("BUF", buffer, 0, rclcpp_ring_buffer_clear)
     }
   }
 }
