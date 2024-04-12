@@ -48,7 +48,8 @@ class DataContainer : public DataContainerInterface
 {
 public:
   /// @brief  for add_callback_group trace points.
-  using AddCallbackGroup = ContainerTraits<const void *, const void *, const char *, const void *, int64_t>;
+  using AddCallbackGroup =
+    ContainerTraits<const void *, const void *, const char *, const void *, int64_t>;
 
   /// @brief ContainerTraits for add_callback_group_static_executor trace points.
   using AddCallbackGroupStaticExecutor =

@@ -1108,7 +1108,7 @@ void ros_trace_rcl_lifecycle_transition(
     return;
   }
 
-  if (context.get_controller().is_allowed_state_machine(state_machine) && 
+  if (context.get_controller().is_allowed_state_machine(state_machine) &&
       context.is_recording_allowed()) {
     ((functionT) orig_func)(state_machine, start_label, goal_label);
 

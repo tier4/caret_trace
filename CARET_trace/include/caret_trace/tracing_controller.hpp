@@ -39,7 +39,7 @@ public:
   void add_node(const void * node_handle, std::string node_name);
 
   std::string get_node_name(const std::string type, const void * key);
- 
+
   /// @brief Register topic name for rcl_subscription_init hook.
   /// @param node_handle Address of the node handle.
   /// @param subscription_handle Address of the subscription handle.
@@ -222,15 +222,15 @@ private:
   std::unordered_map<const void *, const void *> ipb_to_subscriptions_;
   std::unordered_map<const void *, bool> allowed_buffers_;
   std::unordered_map<const void *, bool> allowed_ipbs_;
-  
+
   std::unordered_map<const void *, const void *> state_machine_to_node_handles_;
   std::unordered_map<const void *, bool> allowed_state_machines_;
-  
+
   std::unordered_map<const void *, const void *> service_handle_to_node_handles_;
   std::unordered_map<const void *, bool> allowed_service_handle_;
   std::unordered_map<const void *, const void *> client_handle_to_node_handles_;
   std::unordered_map<const void *, bool> allowed_client_handles_;
-  
+
   std::unordered_map<const void *, const void *> message_to_publisher_handles_;
   std::unordered_map<const void *, bool> allowed_messages_;
 };
