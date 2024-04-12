@@ -445,7 +445,7 @@ void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void
     const void * callback,
     int64_t init_time
   ) {
-    if (!controller.is_allowed_timer_handle(timer_handle, callback)) {
+    if (!controller.is_allowed_timer_handle(timer_handle)) {
       return;
     }
     tracepoint(TRACEPOINT_PROVIDER, rclcpp_timer_callback_added, timer_handle, callback, init_time);
@@ -688,7 +688,7 @@ void ros_trace_rcl_timer_init(
   }
 
   static auto record = [](const void * timer_handle, int64_t period, int64_t init_time) {
-    if (!context.get_controller().is_allowed_timer_handle(timer_handle, nullptr)) {
+    if (!context.get_controller().is_allowed_timer_handle(timer_handle)) {
       return;
     }
     tracepoint(TRACEPOINT_PROVIDER, rcl_timer_init, timer_handle, period, init_time);

@@ -150,7 +150,7 @@ public:
   /// @param timer_handle  Address of the timer handle.
   /// @param callback  Address of the callback.
   /// @return True if the timer_handle is enabled, false otherwise.
-  bool is_allowed_timer_handle(const void * timer_handle, const void * callback);
+  bool is_allowed_timer_handle(const void * timer_handle);
 
   /// @brief Check if trace point is a enabled node
   /// @param state_machine  Address of the lifecycle state machine.
