@@ -29,8 +29,6 @@
 #include <unordered_set>
 #include <utility>
 
-#include "caret_trace/DEBUG.hpp"
-
 #define SELECT_NODES_ENV_NAME "CARET_SELECT_NODES"
 #define IGNORE_NODES_ENV_NAME "CARET_IGNORE_NODES"
 #define SELECT_TOPICS_ENV_NAME "CARET_SELECT_TOPICS"
@@ -194,8 +192,6 @@ bool TracingController::is_allowed_callback(const void * callback)
     auto node_name = to_node_name(callback);
     auto topic_name = to_topic_name(callback);
 
-D(node_name)
-D(topic_name)
     if (node_name.size() == 0 || topic_name.size() == 0) {
       allowed_callbacks_[callback] = true;
       return true;
@@ -261,12 +257,9 @@ bool TracingController::is_allowed_subscription_handle(const void * subscription
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   auto node_handle = subscription_handle_to_node_handles_[subscription_handle];
-  D(node_handle)
   auto node_name = node_handle_to_node_names_[node_handle];
   auto topic_name = subscription_handle_to_topic_names_[subscription_handle];
 
-D(node_name)
-D(topic_name)
   if (node_name.size() == 0 || topic_name.size() == 0) {
     return true;
   }
@@ -314,8 +307,6 @@ bool TracingController::is_allowed_rmw_subscription_handle(const void * rmw_subs
     auto node_name = node_handle_to_node_names_[node_handle];
     auto topic_name = rmw_subscription_handle_to_topic_names_[rmw_subscription_handle];
 
-D(node_name)
-D(topic_name)
     if (node_name.size() == 0 || topic_name.size() == 0) {
       allowed_rmw_subscription_handles_[rmw_subscription_handle] = true;
       return true;
@@ -372,8 +363,6 @@ bool TracingController::is_allowed_publisher_handle(const void * publisher_handl
     auto node_name = node_handle_to_node_names_[node_handle];
     auto topic_name = publisher_handle_to_topic_names_[publisher_handle];
 
-D(node_name)
-D(topic_name)
     if (node_name.size() == 0 || topic_name.size() == 0) {
       allowed_publishers_[publisher_handle] = true;
       return true;
@@ -427,23 +416,16 @@ bool TracingController::is_allowed_buffer(const void * buffer)
   {
     std::lock_guard<std::shared_timed_mutex> lock(mutex_);
     auto ipb = buffer_to_ipbs_[buffer];
-    D(ipb)
     auto subscription = ipb_to_subscriptions_[ipb];
-    D(subscription)
     auto subscription_handle = subscription_to_subscription_handles_[subscription];
-    D(subscription_handle)
     auto node_handle = subscription_handle_to_node_handles_[subscription_handle];
-    D(node_handle)
     auto node_name = node_handle_to_node_names_[node_handle];
     if (node_name.size() == 0) {
       auto callback = subscription_to_callbacks_[subscription];
-      D(callback)
       node_name = to_node_name(callback);
     }
     auto topic_name = subscription_handle_to_topic_names_[subscription_handle];
 
-D(node_name)
-D(topic_name)
     if (node_name.size() == 0 || topic_name.size() == 0) {
       allowed_buffers_[buffer] = true;
       return true;
@@ -506,7 +488,6 @@ bool TracingController::is_allowed_timer_handle(const void * timer_handle, const
     auto node_handle = timer_handle_to_node_handles_[timer_handle];
     auto node_name = node_handle_to_node_names_[node_handle];
 
-    D(node_name)
     if (node_name.size() == 0) {
       allowed_timer_handles_[timer_handle] = true;
       return true;
@@ -593,21 +574,15 @@ bool TracingController::is_allowed_ipb(const void * ipb)
   {
     std::lock_guard<std::shared_timed_mutex> lock(mutex_);
     auto subscription = ipb_to_subscriptions_[ipb];
-    D(subscription)
     auto subscription_handle = subscription_to_subscription_handles_[subscription];
-    D(subscription_handle)
     auto node_handle = subscription_handle_to_node_handles_[subscription_handle];
-    D(node_handle)
     auto node_name = node_handle_to_node_names_[node_handle];
     if (node_name.size() == 0) {
       auto callback = subscription_to_callbacks_[subscription];
-      D(callback)
       node_name = to_node_name(callback);
     }
     auto topic_name = subscription_handle_to_topic_names_[subscription_handle];
 
-D(node_name)
-D(topic_name)
     if (node_name.size() == 0 || topic_name.size() == 0) {
       allowed_ipbs_[ipb] = true;
       return true;
@@ -869,7 +844,6 @@ std::string TracingController::to_topic_name(const void * callback)
 
 void TracingController::add_node(const void * node_handle, std::string node_name)
 {
-  DS(node_name)
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   node_handle_to_node_names_[node_handle] = node_name;
 

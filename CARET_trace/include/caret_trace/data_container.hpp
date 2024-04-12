@@ -23,8 +23,6 @@
 #include <string>
 #include <vector>
 
-#include "caret_trace/DEBUG.hpp"
-
 #ifndef CARET_TRACE__DATA_CONTAINER_HPP_
 
 /// @brief Interface class for DataContainer.
