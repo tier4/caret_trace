@@ -57,7 +57,7 @@ public:
   /// @brief Register binding information for rclcpp_subscription_init tracepoint hook.
   /// @param subscription Address of subscription instance.
   /// @param subscription_handle Address of the subscription handle.
-  void add_subscription(const void * subscription, const void * ubscription_handle);
+  void add_subscription(const void * subscription, const void * subscription_handle);
 
   /// @brief Register binding information for rclcpp_subscription_callback_added tracepoint hook.
   /// @param subscription Address of subscription instance.
@@ -97,7 +97,7 @@ public:
   void add_state_machine(const void * state_machine, const void * node_handle);
 
   /// @brief Register binding information for rclcpp_service_callback_added tracepoint.
-  /// @param service_handle  Address of the servece handle.
+  /// @param service_handle  Address of the service handle.
   /// @param node_handle  Address of the node handle instance.
   void add_service_handle(const void * service_handle, const void * node_handle);
 
