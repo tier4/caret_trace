@@ -266,7 +266,6 @@ int dds_writecdr_impl(void * wr, void * xp, struct ddsi_serdata * dinp, bool flu
     tracepoint(
       TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, serialized_message_addr, dinp->timestamp.v);
 #ifdef DEBUG_OUTPUT
-    // std::cerr << "dds_bind_addr_to_stamp," << data << "," << tstamp << std::endl;
     std::cerr << "dds_bind_addr_to_stamp," << serialized_message_addr << "," << dinp->timestamp.v
               << std::endl;
 #endif
