@@ -38,8 +38,6 @@ public:
   /// @param node_name Node name.
   void add_node(const void * node_handle, std::string node_name);
 
-  std::string get_node_name(const std::string type, const void * key);
-
   /// @brief Register topic name for rcl_subscription_init hook.
   /// @param node_handle Address of the node handle.
   /// @param subscription_handle Address of the subscription handle.
