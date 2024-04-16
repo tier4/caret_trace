@@ -892,7 +892,7 @@ void TracingController::add_subscription(
   allowed_callbacks_.clear();
 }
 
-void TracingController::add_subscription_callback(const void * subscription, const void * callback)
+void TracingController::add_subscription_callback(const void * callback, const void * subscription)
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
 
@@ -911,13 +911,13 @@ void TracingController::add_timer_handle(const void * timer_handle, const void *
   allowed_callbacks_.clear();
 }
 
-void TracingController::add_timer_callback(const void * timer_handle, const void * callback)
+void TracingController::add_timer_callback(const void * timer_callback, const void * timer_handle)
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
 
-  callback_to_timer_handles_[callback] = timer_handle;
+  callback_to_timer_handles_[timer_callback] = timer_handle;
   allowed_timer_handles_.erase(timer_handle);
-  allowed_callbacks_.erase(callback);
+  allowed_callbacks_.erase(timer_callback);
 }
 
 void TracingController::add_publisher_handle(

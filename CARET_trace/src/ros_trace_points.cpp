@@ -422,7 +422,7 @@ void ros_trace_rclcpp_subscription_callback_added(
   auto now = clock.now();
   check_and_run_trace_node();
 
-  controller.add_subscription_callback(subscription, callback);
+  controller.add_subscription_callback(callback, subscription);
 
   if (!data_container.is_assigned_rclcpp_subscription_callback_added()) {
     data_container.assign_rclcpp_subscription_callback_added(record);
@@ -463,7 +463,7 @@ void ros_trace_rclcpp_timer_callback_added(const void * timer_handle, const void
   auto now = clock.now();
   check_and_run_trace_node();
 
-  controller.add_timer_callback(timer_handle, callback);
+  controller.add_timer_callback(callback, timer_handle);
 
   if (!data_container.is_assigned_rclcpp_timer_callback_added()) {
     data_container.assign_rclcpp_timer_callback_added(record);

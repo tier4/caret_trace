@@ -58,9 +58,9 @@ public:
   void add_subscription(const void * subscription, const void * subscription_handle);
 
   /// @brief Register binding information for rclcpp_subscription_callback_added tracepoint hook.
-  /// @param subscription Address of subscription instance.
   /// @param callback Address of callback instance.
-  void add_subscription_callback(const void * subscription, const void * callback);
+  /// @param subscription Address of subscription instance.
+  void add_subscription_callback(const void * callback, const void * subscription);
 
   /// @brief Register binding information for rclcpp_timer_link_node tracepoint hook.
   /// @param timer_handle Address of the timer handle.
@@ -75,9 +75,9 @@ public:
     const void * node_handle, const void * publisher_handle, std::string topic_name);
 
   /// @brief Register binding information for rclcpp_timer_callback_added tracepoint hook.
+  /// @param callback Address of timer callback instance.
   /// @param timer_handle Address of the timer handle.
-  /// @param callback Address of callback instance.
-  void add_timer_callback(const void * timer_handle, const void * callback);
+  void add_timer_callback(const void * timer_callback, const void * timer_handle);
 
   /// @brief Register binding information for rclcpp_buffer_to_ipb tracepoint.
   /// @param buffer  Address of the buffer.
