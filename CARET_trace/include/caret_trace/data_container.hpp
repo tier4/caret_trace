@@ -36,7 +36,7 @@ public:
   /// @return True if record has finished, false otherwise.
   virtual bool record(uint64_t loop_count = 1) = 0;
 
-  /// @brief transitiont recording state.
+  /// @brief transition to recording state.
   virtual void start_recording() = 0;
 
   /// @brief Reset recording state.
