@@ -144,33 +144,33 @@ public:
   /// @return True if the process is enabled, false otherwise.
   bool is_allowed_process();
 
-  /// @brief Check if trace point is a enabled node
+  /// @brief Check if trace point is a enabled timer handle
   /// @param timer_handle  Address of the timer handle.
   /// @return True if the timer_handle is enabled, false otherwise.
   bool is_allowed_timer_handle(const void * timer_handle);
 
-  /// @brief Check if trace point is a enabled node
+  /// @brief Check if trace point is a enabled state machine
   /// @param state_machine  Address of the lifecycle state machine.
   /// @return True if the state_machine is enabled, false otherwise.
   bool is_allowed_state_machine(const void * state_machine);
 
-  /// @brief Check if trace point is a enabled subscription
+  /// @brief Check if trace point is a enabled ipb
   /// @param buffer Address of the intra-process buffer.
-  /// @return True if the buffer is enabled, false otherwise.
+  /// @return True if the ipb is enabled, false otherwise.
   bool is_allowed_ipb(const void * ipb);
 
-  /// @brief Check if trace point is a enabled callback
+  /// @brief Check if trace point is a enabled service handle
   /// @param service_handle Address of the service handle.
-  /// @return True if the buffer is enabled, false otherwise.
+  /// @return True if the service_handle is enabled, false otherwise.
   bool is_allowed_service_handle(const void * service_handle);
 
-  /// @brief Check if trace point is a enabled callback
+  /// @brief Check if trace point is a enabled client handle
   /// @param client_handle Address of the client handle.
-  /// @return True if the buffer is enabled, false otherwise.
+  /// @return True if the client_handle is enabled, false otherwise.
   bool is_allowed_client_handle(const void * client_handle);
 
-  /// @brief Check if trace point is a enabled message
-  /// @param publisher_handle  Address of the publisher handle.
+  /// @brief Check if trace point is a enabled publisher
+  /// @param message  Address of the message.
   /// @return True if the message is enabled, false otherwise.
   bool is_allowed_message(const void * message);
 

@@ -628,8 +628,8 @@ bool TracingController::is_allowed_service_handle(const void * service_handle)
   std::unordered_map<const void *, bool>::iterator is_allowed_it;
   {
     std::shared_lock<std::shared_timed_mutex> lock(mutex_);
-    is_allowed_it = allowed_service_handle_.find(service_handle);
-    if (is_allowed_it != allowed_service_handle_.end()) {
+    is_allowed_it = allowed_service_handles_.find(service_handle);
+    if (is_allowed_it != allowed_service_handles_.end()) {
       return is_allowed_it->second;
     }
   }
@@ -640,7 +640,7 @@ bool TracingController::is_allowed_service_handle(const void * service_handle)
     auto node_name = node_handle_to_node_names_[node_handle];
 
     if (node_name.size() == 0) {
-      allowed_service_handle_[service_handle] = true;
+      allowed_service_handles_[service_handle] = true;
       return true;
     }
 
@@ -648,22 +648,22 @@ bool TracingController::is_allowed_service_handle(const void * service_handle)
       auto is_selected_node = partial_match(selected_node_names_, node_name);
 
       if (is_selected_node && selected_node_names_.size() > 0) {
-        allowed_service_handle_[service_handle] = true;
+        allowed_service_handles_[service_handle] = true;
         return true;
       }
-      allowed_service_handle_[service_handle] = false;
+      allowed_service_handles_[service_handle] = false;
       return false;
     } else if (ignore_enabled_) {
       auto is_ignored_node = partial_match(ignored_node_names_, node_name);
 
       if (is_ignored_node && ignored_node_names_.size() > 0) {
-        allowed_service_handle_[service_handle] = false;
+        allowed_service_handles_[service_handle] = false;
         return false;
       }
-      allowed_service_handle_[service_handle] = true;
+      allowed_service_handles_[service_handle] = true;
       return true;
     }
-    allowed_service_handle_[service_handle] = true;
+    allowed_service_handles_[service_handle] = true;
     return true;
   }
 }
@@ -855,7 +855,7 @@ void TracingController::add_node(const void * node_handle, std::string node_name
   allowed_timer_handles_.clear();
   allowed_state_machines_.clear();
   allowed_ipbs_.clear();
-  allowed_service_handle_.clear();
+  allowed_service_handles_.clear();
   allowed_client_handles_.clear();
   allowed_callbacks_.clear();
 }
@@ -958,7 +958,7 @@ void TracingController::add_service_handle(const void * service_handle, const vo
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   service_handle_to_node_handles_[service_handle] = node_handle;
-  allowed_service_handle_.erase(service_handle);
+  allowed_service_handles_.erase(service_handle);
 }
 
 void TracingController::add_client_handle(const void * client_handle, const void * node_handle)
