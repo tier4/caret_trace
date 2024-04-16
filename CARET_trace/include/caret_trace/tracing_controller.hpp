@@ -146,7 +146,6 @@ public:
 
   /// @brief Check if trace point is a enabled node
   /// @param timer_handle  Address of the timer handle.
-  /// @param callback  Address of the callback.
   /// @return True if the timer_handle is enabled, false otherwise.
   bool is_allowed_timer_handle(const void * timer_handle);
 
@@ -225,7 +224,7 @@ private:
   std::unordered_map<const void *, bool> allowed_state_machines_;
 
   std::unordered_map<const void *, const void *> service_handle_to_node_handles_;
-  std::unordered_map<const void *, bool> allowed_service_handle_;
+  std::unordered_map<const void *, bool> allowed_service_handles_;
   std::unordered_map<const void *, const void *> client_handle_to_node_handles_;
   std::unordered_map<const void *, bool> allowed_client_handles_;
 
