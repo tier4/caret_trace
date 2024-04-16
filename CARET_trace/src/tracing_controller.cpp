@@ -116,6 +116,14 @@ void check_condition_set(std::unordered_set<std::string> conditions, bool use_lo
   }
 }
 
+bool is_iron_or_later() {
+  const char* ros_distro = std::getenv("ROS_DISTRO");
+  if (ros_distro[0] >= "iron"[0]) {
+    return true;
+  }
+  return false;
+}
+
 TracingController::TracingController(bool use_log)
 : selected_node_names_(get_env_vars(SELECT_NODES_ENV_NAME)),
   ignored_node_names_(get_env_vars(IGNORE_NODES_ENV_NAME)),
@@ -365,6 +373,10 @@ bool TracingController::is_allowed_publisher_handle(const void * publisher_handl
 
     if (node_name.size() == 0 || topic_name.size() == 0) {
       allowed_publishers_[publisher_handle] = true;
+      if (is_iron_or_later()) {
+        // omit "/rosout" output. (after iron version)
+        return false;
+      }
       return true;
     }
 
