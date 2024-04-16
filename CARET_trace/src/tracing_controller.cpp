@@ -116,8 +116,9 @@ void check_condition_set(std::unordered_set<std::string> conditions, bool use_lo
   }
 }
 
-bool is_iron_or_later() {
-  const char* ros_distro = std::getenv("ROS_DISTRO");
+bool is_iron_or_later()
+{
+  const char * ros_distro = std::getenv("ROS_DISTRO");
   if (ros_distro[0] >= "iron"[0]) {
     return true;
   }
