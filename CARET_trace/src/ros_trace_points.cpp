@@ -1070,8 +1070,7 @@ void ros_trace_rcl_lifecycle_state_machine_init(
     const void * node_handle,
     const void * state_machine,
     int64_t init_time) {
-    if (context.get_controller().is_allowed_state_machine(state_machine) &&
-        context.is_recording_allowed()) {
+    if (context.get_controller().is_allowed_state_machine(state_machine)) {
       tracepoint(TRACEPOINT_PROVIDER, rcl_lifecycle_state_machine_init,
         node_handle, state_machine, init_time);
 #ifdef DEBUG_OUTPUT
