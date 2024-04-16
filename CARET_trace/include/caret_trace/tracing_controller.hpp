@@ -98,7 +98,7 @@ public:
 
   /// @brief Register binding information for rclcpp_service_callback_added tracepoint.
   /// @param service_handle  Address of the service handle.
-  /// @param node_handle  Address of the node handle instance.
+  /// @param node_handle  Address of the node handle.
   void add_service_handle(const void * service_handle, const void * node_handle);
 
   /// @brief Register binding information for rcl_client_init tracepoint.
