@@ -101,7 +101,7 @@ public:
 
   /// @brief Register binding information for rcl_client_init tracepoint.
   /// @param client_handle  Address of the client handle.
-  /// @param node_handle  Address of the node handle instance.
+  /// @param node_handle  Address of the node handle.
   void add_client_handle(const void * client_handle, const void * node_handle);
 
   /// @brief Register binding information for intra message tracepoint.
