@@ -104,10 +104,10 @@ public:
   /// @param node_handle  Address of the node handle.
   void add_client_handle(const void * client_handle, const void * node_handle);
 
-  /// @brief Register binding information for intra message tracepoint.
+  /// @brief Registering acceptable and unacceptable message.
   /// @param message  Address of the intra original message.
-  /// @param publisher_handle  publisher_handle  Address of the publisher handle.
-  void add_message_publisher_handle(const void * message, const void * publisher_handle);
+  /// @param is_allowed  True is enabled, false otherwise.
+  void add_allowed_messages(const void * message, bool is_allowed);
 
   /// @brief Check if trace point is a enabled callback
   /// @param callback
@@ -124,6 +124,12 @@ public:
   /// @param publisher_handle  Address of the publisher handle.
   /// @return True if the publisher is enabled, false otherwise.
   bool is_allowed_publisher_handle(const void * publisher_handle);
+
+  /// @brief Check if trace point is a enabled publisher and set to allowed message map
+  /// @param publisher_handle  Address of the publisher handle.
+  /// @param message  Address of the messgae.
+  /// @return True if the publisher is enabled, false otherwise.
+  bool is_allowed_publisher_handle_and_add_message(const void * publisher_handle, const void * message);
 
   /// @brief Check if trace point is a enabled subscription
   /// @param subscription_handle Address of the subscription handle.
@@ -228,7 +234,6 @@ private:
   std::unordered_map<const void *, const void *> client_handle_to_node_handles_;
   std::unordered_map<const void *, bool> allowed_client_handles_;
 
-  std::unordered_map<const void *, const void *> message_to_publisher_handles_;
   std::unordered_map<const void *, bool> allowed_messages_;
 };
 
