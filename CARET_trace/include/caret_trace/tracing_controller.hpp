@@ -129,7 +129,8 @@ public:
   /// @param publisher_handle  Address of the publisher handle.
   /// @param message  Address of the messgae.
   /// @return True if the publisher is enabled, false otherwise.
-  bool is_allowed_publisher_handle_and_add_message(const void * publisher_handle, const void * message);
+  bool is_allowed_publisher_handle_and_add_message(
+    const void * publisher_handle, const void * message);
 
   /// @brief Check if trace point is a enabled subscription
   /// @param subscription_handle Address of the subscription handle.

@@ -416,8 +416,7 @@ bool TracingController::is_allowed_publisher_handle(const void * publisher_handl
 }
 
 bool TracingController::is_allowed_publisher_handle_and_add_message(
-  const void * publisher_handle,
-  const void * message)
+  const void * publisher_handle, const void * message)
 {
   std::unordered_map<const void *, bool>::iterator is_allowed_it;
   {
@@ -1008,8 +1007,7 @@ void TracingController::add_client_handle(const void * client_handle, const void
   allowed_client_handles_.erase(client_handle);
 }
 
-void TracingController::add_allowed_messages(
-  const void * message, bool is_allowed)
+void TracingController::add_allowed_messages(const void * message, bool is_allowed)
 {
   // Be sure to call with "mutex_" locked.
   static const int max_sz = 256;
