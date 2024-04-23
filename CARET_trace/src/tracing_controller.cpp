@@ -800,8 +800,15 @@ bool TracingController::is_allowed_client_handle(const void * client_handle)
 
 bool TracingController::is_allowed_message(const void * message)
 {
-  std::lock_guard<std::shared_timed_mutex> lock(mutex_);
-  return allowed_messages_[message];
+  std::unordered_map<const void *, bool>::iterator is_allowed_it;
+  {
+    std::shared_lock<std::shared_timed_mutex> lock(mutex_);
+    is_allowed_it = allowed_messages_.find(message);
+    if (is_allowed_it != allowed_messages_.end()) {
+      return is_allowed_it->second;
+    }
+    return true;
+  }
 }
 
 std::string TracingController::to_node_name(const void * callback)
