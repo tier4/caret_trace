@@ -24,6 +24,7 @@
 #include "caret_msgs/msg/status.hpp"
 
 #include <unistd.h>
+#include <uuid/uuid.h>
 
 #include <chrono>
 #include <memory>
@@ -43,6 +44,7 @@ TraceNode::TraceNode(
   record_block_size_(100),
   use_log_(use_log),
   data_container_(data_container),
+  lttng_session_(lttng_session),
   execute_timer_on_run_(execute_timer_on_run)
 {
   set_log_level(level);
@@ -87,13 +89,27 @@ TraceNode::~TraceNode()
 
 std::string TraceNode::get_unique_node_name(std::string base_name)
 {
-  auto pid = getpid();
-  char * pid_str = nullptr;
-  if (asprintf(&pid_str, "%jd", (intmax_t)pid) != -1) {
-    base_name += "_" + std::string(pid_str);
-    free(pid_str);
-  }
+  std::string uuid_str = get_formatted_uuid();
+  base_name += "_" + uuid_str;
+
   return base_name;
+}
+
+std::string TraceNode::get_formatted_uuid()
+{
+  uuid_t uuid_value;
+  std::unique_ptr<char[]> uuid_string_ptr = std::make_unique<char[]>(UUID_STR_LEN);
+  uuid_generate(uuid_value);
+  uuid_unparse_lower(uuid_value, uuid_string_ptr.get());
+  auto uuid_string = std::string(uuid_string_ptr.get());
+
+  // Avoid violating node naming conventions
+  auto pos = uuid_string.find('-');
+  while (pos != std::string::npos) {
+    uuid_string.replace(pos, 1, "_");
+    pos = uuid_string.find('-');
+  }
+  return uuid_string;
 }
 
 void TraceNode::debug(std::string message) const
@@ -181,6 +197,11 @@ void TraceNode::start_callback(caret_msgs::msg::Start::UniquePtr msg)
 
   debug("Received start message.");
 
+  if (status_ != TRACE_STATUS::WAIT || !lttng_session_->is_session_running()) {
+    publish_status(status_);
+    return;
+  }
+
   // As long as PREPARE state, data of initialization trace point are stored into pending.
   // Before calling the caret_init trace point,
   // transition to the prepare state to set is_recording_allowed to False.
@@ -228,6 +249,11 @@ void TraceNode::timer_callback()
 void TraceNode::end_callback(caret_msgs::msg::End::UniquePtr msg)
 {
   (void)msg;
+
+  if (lttng_session_->is_session_running()) {
+    publish_status(status_);
+    return;
+  }
 
   status_ = TRACE_STATUS::WAIT;
 

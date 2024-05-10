@@ -21,6 +21,7 @@
   <depend>rmw_fastrtps_shared_cpp</depend>
   <depend>rmw_implementation</depend>
   <depend>std_msgs</depend>
+  <depend>uuid</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>caret_lint_common</test_depend>
