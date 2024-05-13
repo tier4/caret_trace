@@ -479,8 +479,6 @@ void SYMBOL_CONCAT_3(
     data_container.assign_add_callback_group(record);
   }
 
-  static KeysSet<void *, void *, void *> recorded_args;
-
   auto group_addr_ = const_cast<void *>(group_addr);
   auto node_addr_ = const_cast<void *>(node_addr);
 
@@ -495,11 +493,8 @@ void SYMBOL_CONCAT_3(
   auto node_handle = static_cast<const void *>(node_ptr->get_rcl_node_handle());
   data_container.store_add_callback_group(
     obj, group_addr, group_type_name.c_str(), node_handle, now);
-  if (!recorded_args.has(obj, group_addr_, node_addr_)) {
-    recorded_args.insert(obj, group_addr_, node_addr_);
 
-    record(obj, group_addr, group_type_name.c_str(), node_handle, now);
-  }
+  record(obj, group_addr, group_type_name.c_str(), node_handle, now);
 }
 
 bool SYMBOL_CONCAT_3(
