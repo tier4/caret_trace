@@ -1009,7 +1009,7 @@ void TracingController::add_client_handle(const void * client_handle, const void
 
 void TracingController::add_allowed_messages(const void * message, bool is_allowed)
 {
-  // Be sure to call with "mutex_" locked.
+  std::lock_guard<std::shared_timed_mutex> lock(nested_mutex_);
   static const int max_sz = 256;
   if (allowed_messages_.size() > max_sz) {
     allowed_messages_.clear();

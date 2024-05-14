@@ -186,6 +186,7 @@ private:
   void info(std::string message) const;
 
   std::shared_timed_mutex mutex_;
+  std::shared_timed_mutex nested_mutex_;
   std::string to_node_name(const void * callback);
   std::string to_topic_name(const void * callback);
 
