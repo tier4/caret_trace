@@ -660,8 +660,9 @@ void ros_trace_rclcpp_intra_publish(
     return;
   }
 
-  if (controller.is_allowed_publisher_handle_and_add_message(publisher_handle, message) &&
-      context.is_recording_allowed()) {
+  bool cond = controller.is_allowed_publisher_handle_and_add_message(publisher_handle, message);
+  controller.add_allowed_messages(message, cond);
+  if (cond && context.is_recording_allowed()) {
     ((functionT) orig_func)(publisher_handle, message);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rclcpp_intra_publish," <<
