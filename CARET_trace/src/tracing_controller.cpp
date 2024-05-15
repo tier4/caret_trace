@@ -247,7 +247,7 @@ bool TracingController::is_allowed_callback(const void * callback)
 
 bool TracingController::is_allowed_node(const void * node_handle)
 {
-  std::shared_lock<std::shared_timed_mutex> lock(mutex_); // read lock
+  std::shared_lock<std::shared_timed_mutex> lock(mutex_);  // read lock
   auto node_name = node_handle_to_node_names_[node_handle];
   if (node_name.size() == 0) {
     return true;
@@ -264,7 +264,7 @@ bool TracingController::is_allowed_node(const void * node_handle)
 
 bool TracingController::is_allowed_subscription_handle(const void * subscription_handle)
 {
-  std::shared_lock<std::shared_timed_mutex> lock(mutex_); // read lock
+  std::shared_lock<std::shared_timed_mutex> lock(mutex_);  // read lock
   auto node_handle = subscription_handle_to_node_handles_[subscription_handle];
   auto node_name = node_handle_to_node_names_[node_handle];
   auto topic_name = subscription_handle_to_topic_names_[subscription_handle];
