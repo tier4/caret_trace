@@ -253,10 +253,10 @@ bool TracingController::is_allowed_node(const void * node_handle)
     return true;
   }
   if (select_enabled_ && selected_node_names_.size() > 0) {
-    auto is_selected_node = partial_match(selected_node_names_, node_name_it.second);
+    auto is_selected_node = partial_match(selected_node_names_, node_name_it->second);
     return is_selected_node;
   } else if (ignore_enabled_ && ignored_node_names_.size() > 0) {
-    auto is_ignored_node = partial_match(ignored_node_names_, node_name_it.second);
+    auto is_ignored_node = partial_match(ignored_node_names_, node_name_it->second);
     return !is_ignored_node;
   }
   return true;
@@ -269,18 +269,18 @@ bool TracingController::is_allowed_subscription_handle(const void * subscription
   if (node_handle_it == subscription_handle_to_node_handles_.end()) {
     return true;
   }
-  auto node_name_it = node_handle_to_node_names_.find(node_handle_it.second);
+  auto node_name_it = node_handle_to_node_names_.find(node_handle_it->second);
   if (node_name_it == node_handle_to_node_names_.end()) {
     return true;
   }
-  auto topic_name_it = subscription_handle_to_topic_names_.find(subscription_handle_it.second);
+  auto topic_name_it = subscription_handle_to_topic_names_.find(subscription_handle);
   if (topic_name_it == subscription_handle_to_topic_names_.end()) {
     return true;
   }
 
   if (select_enabled_) {
-    auto is_selected_node = partial_match(selected_node_names_, node_name_it.second);
-    auto is_selected_topic = partial_match(selected_topic_names_, topic_name_it.second);
+    auto is_selected_node = partial_match(selected_node_names_, node_name_it->second);
+    auto is_selected_topic = partial_match(selected_topic_names_, topic_name_it->second);
 
     if (is_selected_node && selected_node_names_.size() > 0) {
       return true;
@@ -290,8 +290,8 @@ bool TracingController::is_allowed_subscription_handle(const void * subscription
     }
     return false;
   } else if (ignore_enabled_) {
-    auto is_ignored_node = partial_match(ignored_node_names_, node_name_it.second);
-    auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name_it.second);
+    auto is_ignored_node = partial_match(ignored_node_names_, node_name_it->second);
+    auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name_it->second);
 
     if (is_ignored_node && ignored_node_names_.size() > 0) {
       return false;
