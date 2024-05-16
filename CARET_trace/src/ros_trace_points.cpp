@@ -660,7 +660,7 @@ void ros_trace_rclcpp_intra_publish(
     return;
   }
 
-  bool cond = controller.is_allowed_publisher_handle_and_add_message(publisher_handle, message);
+  bool cond = controller.is_allowed_publisher_handle(publisher_handle);
   controller.add_allowed_messages(message, cond);
   if (cond && context.is_recording_allowed()) {
     ((functionT) orig_func)(publisher_handle, message);
