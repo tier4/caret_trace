@@ -271,7 +271,7 @@ int dds_writecdr_impl(void * wr, void * xp, struct ddsi_serdata * dinp, bool flu
     return dds_return;
   }
 
-  bool filter = is_jazzy_or_later()? trace_filter_is_rcl_publish_recorded: true;
+  bool filter = is_jazzy_or_later() ? trace_filter_is_rcl_publish_recorded : true;
   if (context.is_recording_allowed() && filter) {
     tracepoint(
       TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, serialized_message_addr, dinp->timestamp.v);
