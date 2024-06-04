@@ -68,6 +68,15 @@ namespace FASTDDS
 static void * SET_FRAGMENTS;
 }
 
+bool is_jazzy_or_later()
+{
+  const char * ros_distro = std::getenv("ROS_DISTRO");
+  if (ros_distro[0] >= "jazzy"[0]) {
+    return true;
+  }
+  return false;
+}
+
 namespace rclcpp
 {
 namespace executors
@@ -262,7 +271,8 @@ int dds_writecdr_impl(void * wr, void * xp, struct ddsi_serdata * dinp, bool flu
     return dds_return;
   }
 
-  if (context.is_recording_allowed() && trace_filter_is_rcl_publish_recorded) {
+  bool filter = is_jazzy_or_later() ? trace_filter_is_rcl_publish_recorded : true;
+  if (context.is_recording_allowed() && filter) {
     tracepoint(
       TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, serialized_message_addr, dinp->timestamp.v);
 #ifdef DEBUG_OUTPUT
