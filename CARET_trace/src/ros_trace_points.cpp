@@ -93,7 +93,7 @@ static bool is_python3_command()
   }
   ifs.close();
 
-  vector<string> cmd_line;
+  vector<string> cmd_line = {};
   auto itr_begin = input_data.begin();
   auto itr_find = input_data.begin();
   for (;;) {

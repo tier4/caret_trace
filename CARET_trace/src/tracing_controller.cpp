@@ -57,7 +57,7 @@ std::unordered_set<std::string> split(std::string str, char del)
 {
   std::unordered_set<std::string> result;
   std::string::size_type first = 0;
-  std::string::size_type last;
+  std::string::size_type last = 0;
 
   while (first < str.size()) {
     last = str.find_first_of(del, first);
