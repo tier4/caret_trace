@@ -879,12 +879,12 @@ void ros_trace_rcl_service_init(
 
 void ros_trace_rclcpp_service_callback_added(
   const void * service_handle,
-  const char * callback)
+  const void * callback)
 {
   static auto & context = Singleton<Context>::get_instance();
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
-  static auto record = [](const void * service_handle, const char * callback, int64_t init_time) {
+  static auto record = [](const void * service_handle, const void * callback, int64_t init_time) {
     if (!context.get_controller().is_allowed_service_handle(service_handle)) {
       return;
     }

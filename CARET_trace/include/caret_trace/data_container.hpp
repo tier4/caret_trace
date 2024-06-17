@@ -112,7 +112,7 @@ public:
     ContainerTraits<const void *, const void *, const void *, const char *, int64_t>;
 
   /// @brief ContainerTraits for rclcpp_service_callback_added trace points.
-  using RclcppServiceCallbackAdded = ContainerTraits<const void *, const char *, int64_t>;
+  using RclcppServiceCallbackAdded = ContainerTraits<const void *, const void *, int64_t>;
 
   /// @brief ContainerTraits for rcl_service_init trace points.
   using RclServiceInit =
