@@ -38,17 +38,17 @@ public:
   /// @param node_name Node name.
   void add_node(const void * node_handle, std::string node_name);
 
-  /// @brief Register topic name for rcl_subscription_init hook.
+  /// @brief Register topic name and binding information for rcl_subscription_init hook.
   /// @param node_handle Address of the node handle.
   /// @param subscription_handle Address of the subscription handle.
-  /// @param topic_name topic name.
+  /// @param topic_name Topic name.
   void add_subscription_handle(
     const void * node_handle, const void * subscription_handle, std::string topic_name);
 
-  /// @brief Register topic name for rcl_subscription_init hook.
+  /// @brief Register topic name and binding information for rcl_subscription_init hook.
   /// @param node_handle Address of the node handle.
   /// @param rmw_subscription_handle Address of the rmw_subscription handle.
-  /// @param topic_name topic name.
+  /// @param topic_name Topic name.
   void add_rmw_subscription_handle(
     const void * node_handle, const void * rmw_subscription_handle, std::string topic_name);
 
@@ -67,7 +67,7 @@ public:
   /// @param node_handle Address of the node handle.
   void add_timer_handle(const void * timer_handle, const void * node_handle);
 
-  /// @brief Register topic name for ros_trace_rcl_publisher_init
+  /// @brief Register topic name and binding information for rcl_publisher_init tracepoint.
   /// @param node_handle  Address of the node handle.
   /// @param publisher_handle  Address of the publisher handle.
   /// @param topic_name Topic name.
@@ -104,13 +104,12 @@ public:
   /// @param node_handle  Address of the node handle.
   void add_client_handle(const void * client_handle, const void * node_handle);
 
-  /// @brief Registering acceptable and unacceptable message.
+  /// @brief Register message tracing enable/disable.
   /// @param message  Address of the intra original message.
   /// @param is_allowed  True is enabled, false otherwise.
   void add_allowed_messages(const void * message, bool is_allowed);
 
   /// @brief Check if trace point is a enabled callback
-  /// @param callback
   /// @param callback Address of callback instance.
   /// @return True if the callback is enabled, false otherwise.
   bool is_allowed_callback(const void * callback);
@@ -130,12 +129,12 @@ public:
   /// @return True if the subscription is enabled, false otherwise.
   bool is_allowed_subscription_handle(const void * subscription_handle);
 
-  /// @brief Check if trace point is a enabled subscription
+  /// @brief Check if trace point is a enabled rmw subscription
   /// @param rmw_subscription_handle Address of the rmw_subscription handle.
   /// @return True if the rmw_subscription is enabled, false otherwise.
   bool is_allowed_rmw_subscription_handle(const void * rmw_subscription_handle);
 
-  /// @brief Check if trace point is a enabled subscription
+  /// @brief Check if trace point is a enabled intra-process buffer
   /// @param buffer Address of the intra-process buffer.
   /// @return True if the buffer is enabled, false otherwise.
   bool is_allowed_buffer(const void * buffer);
@@ -169,7 +168,7 @@ public:
   /// @return True if the client_handle is enabled, false otherwise.
   bool is_allowed_client_handle(const void * client_handle);
 
-  /// @brief Check if trace point is a enabled publisher
+  /// @brief Check if trace point is a enabled message
   /// @param message  Address of the message.
   /// @return True if the message is enabled, false otherwise.
   bool is_allowed_message(const void * message);
