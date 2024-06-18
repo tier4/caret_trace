@@ -104,7 +104,7 @@ public:
   /// @param node_handle  Address of the node handle.
   void add_client_handle(const void * client_handle, const void * node_handle);
 
-  /// @brief Registering Register message tracing enable/disable.
+  /// @brief Register message tracing enable/disable.
   /// @param message  Address of the intra original message.
   /// @param is_allowed  True is enabled, false otherwise.
   void add_allowed_messages(const void * message, bool is_allowed);
