@@ -41,7 +41,7 @@ public:
   /// @brief Register topic name and binding information for rcl_subscription_init hook.
   /// @param node_handle Address of the node handle.
   /// @param subscription_handle Address of the subscription handle.
-  /// @param topic_name topic name.
+  /// @param topic_name Topic name.
   void add_subscription_handle(
     const void * node_handle, const void * subscription_handle, std::string topic_name);
 
