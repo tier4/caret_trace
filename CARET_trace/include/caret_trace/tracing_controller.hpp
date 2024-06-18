@@ -45,7 +45,7 @@ public:
   void add_subscription_handle(
     const void * node_handle, const void * subscription_handle, std::string topic_name);
 
-  /// @brief Register topic name binding information for rcl_subscription_init hook.
+  /// @brief Register topic name and binding information for rcl_subscription_init hook.
   /// @param node_handle Address of the node handle.
   /// @param rmw_subscription_handle Address of the rmw_subscription handle.
   /// @param topic_name Topic name.
@@ -67,7 +67,7 @@ public:
   /// @param node_handle Address of the node handle.
   void add_timer_handle(const void * timer_handle, const void * node_handle);
 
-  /// @brief Register topic name binding information for rcl_publisher_init tracepoint.
+  /// @brief Register topic name and binding information for rcl_publisher_init tracepoint.
   /// @param node_handle  Address of the node handle.
   /// @param publisher_handle  Address of the publisher handle.
   /// @param topic_name Topic name.
