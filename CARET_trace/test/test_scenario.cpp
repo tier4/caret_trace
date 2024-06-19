@@ -38,11 +38,13 @@ using rclcpp::Logger;
 
 void add_data(DataContainer & container, int loop)
 {
+  // cppcheck-suppress-begin nullPointerArithmetic
   char * ptr = nullptr;
   for (auto i = 0; i < loop; i++) {
-    ptr++;  // NOLINT(cppcheck-suppress[nullPointerArithmetic])
+    ptr++;
     container.store_rcl_init(ptr, 0);
   }
+  // cppcheck-suppress-end nullPointerArithmetic
 }
 
 void record_data(DataContainer & container, int loop)
@@ -66,11 +68,13 @@ TEST(ScenarioTest, TestSingleThread)
 
   auto loop = 1000;
 
+  // cppcheck-suppress-begin nullPointerArithmetic
   char * ptr = nullptr;
   for (auto i = 0; i < loop; i++) {
-    ptr++;  // NOLINT(cppcheck-suppress[nullPointerArithmetic])
+    ptr++;
     EXPECT_CALL(rcl_init_mock, Call(ptr, 0)).Times(1);
   }
+  // cppcheck-suppress-end nullPointerArithmetic
 
   add_data(container, loop);
   container.record(loop);
@@ -92,11 +96,13 @@ TEST(ScenarioTest, TestMultiThread)
 
   auto loop = 1000;
 
+  // cppcheck-suppress-begin nullPointerArithmetic
   char * ptr = nullptr;
   for (auto i = 0; i < loop; i++) {
-    ptr++;  // NOLINT(cppcheck-suppress[nullPointerArithmetic])
+    ptr++;
     EXPECT_CALL(rcl_init_mock, Call(ptr, 0)).WillRepeatedly(Return());
   }
+  // cppcheck-suppress-end nullPointerArithmetic
 
   // NOTE: Ensure recording data. Avoid container.record() before add_data() is called.
   add_data(container, 1);
