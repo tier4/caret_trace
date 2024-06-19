@@ -78,7 +78,7 @@ public:
     rclcpp::Logger::Level level = rclcpp::Logger::Level::Info, bool use_log = false,
     bool execute_timer_on_run = true);
 
-  ~TraceNode();
+  ~TraceNode() override;
 
   /// @brief Check whther current status allows recording.
   /// @return True if recording is allowed, false otherwise.

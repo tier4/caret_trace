@@ -186,11 +186,11 @@ public:
     std::shared_ptr<RclcppIpbToSubscription::KeysT> rclcpp_ipb_to_subscription,
     std::shared_ptr<RmwImplementation::KeysT> rmw_implementation);
 
-  bool record(uint64_t loop_count = 1);
+  bool record(uint64_t loop_count = 1) override;
 
-  void start_recording();
+  void start_recording() override;
 
-  void reset();
+  void reset() override;
 
   /// @brief Store data for add_callback_group trace points.
   /// @tparam ...Args Data types to be stored.

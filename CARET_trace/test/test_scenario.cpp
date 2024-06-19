@@ -40,7 +40,7 @@ void add_data(DataContainer & container, int loop)
 {
   char * ptr = nullptr;
   for (auto i = 0; i < loop; i++) {
-    ptr++;
+    ptr++;  // NOLINT(cppcheck-suppress[nullPointerArithmetic])
     container.store_rcl_init(ptr, 0);
   }
 }
@@ -68,7 +68,7 @@ TEST(ScenarioTest, TestSingleThread)
 
   char * ptr = nullptr;
   for (auto i = 0; i < loop; i++) {
-    ptr++;
+    ptr++;  // NOLINT(cppcheck-suppress[nullPointerArithmetic])
     EXPECT_CALL(rcl_init_mock, Call(ptr, 0)).Times(1);
   }
 
@@ -94,7 +94,7 @@ TEST(ScenarioTest, TestMultiThread)
 
   char * ptr = nullptr;
   for (auto i = 0; i < loop; i++) {
-    ptr++;
+    ptr++;  // NOLINT(cppcheck-suppress[nullPointerArithmetic])
     EXPECT_CALL(rcl_init_mock, Call(ptr, 0)).WillRepeatedly(Return());
   }
 
