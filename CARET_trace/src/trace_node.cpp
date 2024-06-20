@@ -165,8 +165,8 @@ bool TraceNode::is_recording_allowed() const
 
 bool TraceNode::is_recording_allowed_init() const
 {
-  return true;
   // NOLINTBEGIN(cppcheck-suppress [unreachableCode])
+  return true;
   std::shared_lock<std::shared_mutex> lock(mutex_);
 
   // NOTE: Since PREPARE to RECORD is a continuous state transition
