@@ -163,17 +163,16 @@ bool TraceNode::is_recording_allowed() const
   return status_ == TRACE_STATUS::RECORD;
 }
 
+// cppcheck-suppress unreachableCode
 bool TraceNode::is_recording_allowed_init() const
 {
   return true;
-  // cppcheck-suppress-begin unreachableCode
   std::shared_lock<std::shared_mutex> lock(mutex_);
 
   // NOTE: Since PREPARE to RECORD is a continuous state transition
   // with a return value of TRUE, no mutex is required.
   // On the other hand, the transition to the PREPARE state is a boundary, so a mutex is required.
   return status_ == TRACE_STATUS::RECORD || status_ == TRACE_STATUS::PREPARE;
-  // cppcheck-suppress-end unreachableCode
 }
 
 const TRACE_STATUS & TraceNode::get_status() const
