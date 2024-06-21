@@ -71,4 +71,3 @@ jobs:
       - name: Fail the job if Cppcheck failed
         if: steps.cppcheck.outcome == 'failure'
         run: exit 1
-
