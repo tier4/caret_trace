@@ -17,12 +17,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y snapd wget
-
-      # cppcheck from apt does not yet support --check-level args, and thus install from snap
-      - name: Install Cppcheck from snap
-        run: |
-          sudo snap install cppcheck
+          sudo apt-get install -y cppcheck=2.14.2 wget
 
       # Download the cppcheck suppression file
       - name: Download cppcheck suppression file
