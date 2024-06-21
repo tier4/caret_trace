@@ -7,7 +7,7 @@ on:
 jobs:
   cppcheck-all-files:
     runs-on: ubuntu-latest
-
+    container: ros:humble
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -17,7 +17,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential wget
+          sudo apt-get install -y snapd wget
 
       # cppcheck from apt does not yet support --check-level args, and thus install from snap
       - name: Install Cppcheck from snap
