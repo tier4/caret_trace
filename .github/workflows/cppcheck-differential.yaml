@@ -6,7 +6,6 @@ on:
 jobs:
   cppcheck-differential:
     runs-on: ubuntu-latest
-    container: ros:humble
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -16,7 +15,12 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cppcheck=2.14.2 wget
+          sudo apt-get install -y wget
+
+      # cppcheck from apt does not yet support --check-level args, and thus install from snap
+      - name: Install Cppcheck from snap
+        run: |
+          sudo snap install cppcheck
 
       # Download the cppcheck suppression file
       - name: Download cppcheck suppression file
@@ -57,7 +61,7 @@ jobs:
           cat cppcheck-report.txt
 
       - name: Upload Cppcheck report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v44
         with:
           name: cppcheck-report
           path: cppcheck-report.txt
