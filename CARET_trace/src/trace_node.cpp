@@ -166,7 +166,7 @@ bool TraceNode::is_recording_allowed() const
 bool TraceNode::is_recording_allowed_init() const
 {
   return true;
-#if 0 // ignore following
+#if 0  // ignore following
   std::shared_lock<std::shared_mutex> lock(mutex_);
 
   // NOTE: Since PREPARE to RECORD is a continuous state transition
