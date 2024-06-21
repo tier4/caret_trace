@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  cppcheck-full:
+  cppcheck-all-files:
     runs-on: ubuntu-latest
 
     steps:
@@ -16,6 +16,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential cmake git libpcre3-dev wget
+
+      # Download the cppcheck suppression file
+      - name: Download cppcheck suppression file
+        run: |
+          wget https://raw.githubusercontent.com/autowarefoundation/autoware.universe/main/.cppcheck_suppressions -O .cppcheck_suppressions
 
       # cppcheck from apt does not yet support --check-level args, and thus install from source
       - name: Install Cppcheck from source
@@ -29,11 +34,6 @@ jobs:
           cmake ..
           make -j $(nproc)
           sudo make install
-
-      # Download the cppcheck suppression file
-      - name: Download cppcheck suppression file
-        run: |
-          wget https://raw.githubusercontent.com/autowarefoundation/autoware.universe/main/.cppcheck_suppressions -O .cppcheck_suppressions
 
       - name: Get all C++ files
         id: all-files
