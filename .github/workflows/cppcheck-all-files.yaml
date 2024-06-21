@@ -15,25 +15,17 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake git libpcre3-dev wget
+          sudo apt-get install -y build-essential wget
+
+      # cppcheck from apt does not yet support --check-level args, and thus install from snap
+      - name: Install Cppcheck from snap
+        run: |
+          sudo snap install cppcheck
 
       # Download the cppcheck suppression file
       - name: Download cppcheck suppression file
         run: |
           wget https://raw.githubusercontent.com/autowarefoundation/autoware.universe/main/.cppcheck_suppressions -O .cppcheck_suppressions
-
-      # cppcheck from apt does not yet support --check-level args, and thus install from source
-      - name: Install Cppcheck from source
-        run: |
-          mkdir /tmp/cppcheck
-          git clone https://github.com/danmar/cppcheck.git /tmp/cppcheck
-          cd /tmp/cppcheck
-          git checkout 2.14.1
-          mkdir build
-          cd build
-          cmake ..
-          make -j $(nproc)
-          sudo make install
 
       - name: Get all C++ files
         id: all-files
