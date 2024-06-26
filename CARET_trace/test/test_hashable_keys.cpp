@@ -16,9 +16,9 @@
 
 #include <gtest/gtest.h>
 
+#include <cstdint>
 #include <memory>
 #include <string>
-#include <cstdint>
 #include <utility>
 
 TEST(HashableKeys, IntCase)

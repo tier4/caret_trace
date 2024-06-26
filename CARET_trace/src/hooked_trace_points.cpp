@@ -19,13 +19,13 @@
 
 #include <dlfcn.h>
 
+#include <cstdint>
 #include <functional>
 #include <iomanip>
 #include <iostream>
 #include <memory>
 #include <mutex>
 #include <string>
-#include <cstdint>
 #include <unordered_set>
 #include <vector>
 

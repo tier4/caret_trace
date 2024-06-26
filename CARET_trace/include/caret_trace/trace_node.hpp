@@ -22,9 +22,9 @@
 #include "caret_msgs/msg/start.hpp"
 #include "caret_msgs/msg/status.hpp"
 
+#include <cstdint>
 #include <memory>
 #include <string>
-#include <cstdint>
 #include <utility>
 
 enum class TRACE_STATUS {

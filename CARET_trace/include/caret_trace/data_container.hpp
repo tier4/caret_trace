@@ -16,12 +16,12 @@
 #include "caret_trace/data_recorder.hpp"
 #include "caret_trace/recordable_data.hpp"
 
+#include <cstdint>
 #include <functional>
 #include <initializer_list>
 #include <memory>
 #include <shared_mutex>
 #include <string>
-#include <cstdint>
 #include <vector>
 
 #ifndef CARET_TRACE__DATA_CONTAINER_HPP_
