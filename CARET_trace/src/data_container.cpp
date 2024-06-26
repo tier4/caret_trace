@@ -23,6 +23,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <cstdint>
 #include <utility>
 #include <vector>
 

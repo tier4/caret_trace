@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <cstdint>
 #include <utility>
 
 TEST(HashableKeys, IntCase)

@@ -39,6 +39,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <cstdint>
 #include <thread>
 
 #undef ros_trace_rclcpp_publish

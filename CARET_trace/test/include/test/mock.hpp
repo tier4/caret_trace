@@ -22,6 +22,7 @@
 #include <gtest/gtest.h>
 
 #include <memory>
+#include <cstdint>
 #include <utility>
 
 /// @private

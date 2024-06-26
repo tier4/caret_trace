@@ -24,6 +24,7 @@
 
 #include <memory>
 #include <string>
+#include <cstdint>
 #include <utility>
 
 enum class TRACE_STATUS {

@@ -25,6 +25,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <cstdint>
 #include <unordered_set>
 #include <vector>
 

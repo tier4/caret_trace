@@ -21,6 +21,7 @@
 #include <memory>
 #include <shared_mutex>
 #include <string>
+#include <cstdint>
 #include <vector>
 
 #ifndef CARET_TRACE__DATA_CONTAINER_HPP_
