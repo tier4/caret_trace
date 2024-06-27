@@ -1,0 +1,63 @@
+name: cppcheck-all-files
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  cppcheck-all-files:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget
+
+      # cppcheck from apt does not yet support --check-level args, and thus install from snap
+      - name: Install Cppcheck from snap
+        run: |
+          sudo snap install cppcheck
+
+      # Download the cppcheck suppression file
+      - name: Download cppcheck suppression file
+        run: |
+          wget https://raw.githubusercontent.com/autowarefoundation/autoware.universe/main/.cppcheck_suppressions -O .cppcheck_suppressions
+
+      - name: Get all C++ files
+        id: all-files
+        run: |
+          find . -type f \( -name "*.cpp" -o -name "*.hpp" \) > all_files.txt
+          cat all_files.txt
+
+      - name: Run Cppcheck on all files
+        continue-on-error: true
+        id: cppcheck
+        run: |
+          files=$(cat all_files.txt)
+          if [ -n "$files" ]; then
+            echo "Running Cppcheck on all files: $files"
+            cppcheck --inline-suppr --enable=all --inconclusive --check-level=exhaustive --error-exitcode=1 --suppressions-list=.cppcheck_suppressions $files 2> cppcheck-report.txt
+          else
+            echo "No C++ files found."
+            touch cppcheck-report.txt
+          fi
+        shell: bash
+
+      - name: Show cppcheck-report result
+        run: |
+          cat cppcheck-report.txt
+
+      - name: Upload Cppcheck report
+        uses: actions/upload-artifact@v4
+        with:
+          name: cppcheck-report
+          path: cppcheck-report.txt
+
+      - name: Fail the job if Cppcheck failed
+        if: ${{ steps.cppcheck.outcome == 'failure' }}
+        run: exit 1

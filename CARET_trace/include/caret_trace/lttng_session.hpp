@@ -46,10 +46,10 @@ class LttngSessionImpl : public LttngSession
 public:
   LttngSessionImpl() : started_session_running_(is_session_running()) {}
 
-  ~LttngSessionImpl() {}
+  ~LttngSessionImpl() override {}
 
-  bool is_session_running() const;
-  bool started_session_running() const;
+  bool is_session_running() const override;
+  bool started_session_running() const override;
 
 private:
   mutable std::mutex mtx_;
