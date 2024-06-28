@@ -14,6 +14,8 @@
 
 #include <caret_trace/clock.hpp>
 
+#include <cstdint>
+
 Clock::Clock()
 {
   lttng_ust_trace_clock_get_read64_cb(&lttng_clock_);

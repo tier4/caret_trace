@@ -32,6 +32,7 @@
 #include <time.h>
 
 #include <cassert>
+#include <cstdint>
 #include <cstdlib>
 #include <fstream>
 #include <iomanip>

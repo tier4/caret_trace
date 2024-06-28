@@ -19,6 +19,7 @@
 #include "caret_trace/singleton.hpp"
 
 #include <cassert>
+#include <cstdint>
 #include <initializer_list>
 #include <memory>
 #include <stdexcept>

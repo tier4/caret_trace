@@ -19,6 +19,7 @@
 
 #include <dlfcn.h>
 
+#include <cstdint>
 #include <functional>
 #include <iomanip>
 #include <iostream>
