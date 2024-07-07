@@ -22,7 +22,7 @@ jobs:
             build-depends-repos: build_depends.repos
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Free disk space (Ubuntu)
         uses: jlumbroso/free-disk-space@v1.3.1
@@ -58,9 +58,12 @@ jobs:
 
       - name: Upload coverage to CodeCov
         if: ${{ steps.test.outputs.coverage-report-files != '' }}
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v3
         with:
           files: ${{ steps.test.outputs.coverage-report-files }}
           fail_ci_if_error: false
           verbose: true
           flags: total
+
+      - name: Show disk space after the tasks
+        run: df -h
