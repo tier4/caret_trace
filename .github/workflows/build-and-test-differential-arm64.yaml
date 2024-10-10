@@ -1,15 +1,23 @@
-name: build-and-test
+name: build-and-test-differential-arm64
 
 on:
-  push:
-  schedule:
-    - cron: 0 0 * * *
-  workflow_dispatch:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
 
 jobs:
-  build-and-test:
-    if: ${{ github.event_name != 'push' || github.ref_name == github.event.repository.default_branch }}
-    runs-on: ubuntu-latest
+  make-sure-label-is-present:
+    uses: autowarefoundation/autoware-github-actions/.github/workflows/make-sure-label-is-present.yaml@v1
+    with:
+      label: type:arm64
+
+  build-and-test-differential-arm64:
+    needs: make-sure-label-is-present
+    if: ${{ needs.make-sure-label-is-present.outputs.result == 'true' }}
+    runs-on: [self-hosted, linux, ARM64]
     container: ${{ matrix.container }}
     strategy:
       fail-fast: false
@@ -21,10 +29,14 @@ jobs:
             container: ros:humble
             build-depends-repos: build_depends.repos
     steps:
-      - name: Check out repository
+      - name: Set PR fetch depth
+        run: echo "PR_FETCH_DEPTH=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> "${GITHUB_ENV}"
+
+      - name: Checkout PR branch and all PR commits
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: ${{ env.PR_FETCH_DEPTH }}
 
       - name: Show disk space before the tasks
         run: df -h
@@ -32,25 +44,25 @@ jobs:
       - name: Remove exec_depend
         uses: autowarefoundation/autoware-github-actions/remove-exec-depend@v1
 
-      - name: Get self packages
-        id: get-self-packages
-        uses: autowarefoundation/autoware-github-actions/get-self-packages@v1
+      - name: Get modified packages
+        id: get-modified-packages
+        uses: autowarefoundation/autoware-github-actions/get-modified-packages@v1
 
       - name: Build
-        if: ${{ steps.get-self-packages.outputs.self-packages != '' }}
+        if: ${{ steps.get-modified-packages.outputs.modified-packages != '' }}
         uses: autowarefoundation/autoware-github-actions/colcon-build@v1
         with:
           rosdistro: ${{ matrix.rosdistro }}
-          target-packages: ${{ steps.get-self-packages.outputs.self-packages }}
+          target-packages: ${{ steps.get-modified-packages.outputs.modified-packages }}
           build-depends-repos: ${{ matrix.build-depends-repos }}
 
       - name: Test
-        if: ${{ steps.get-self-packages.outputs.self-packages != '' }}
         id: test
+        if: ${{ steps.get-modified-packages.outputs.modified-packages != '' }}
         uses: autowarefoundation/autoware-github-actions/colcon-test@v1
         with:
           rosdistro: ${{ matrix.rosdistro }}
-          target-packages: ${{ steps.get-self-packages.outputs.self-packages }}
+          target-packages: ${{ steps.get-modified-packages.outputs.modified-packages }}
           build-depends-repos: ${{ matrix.build-depends-repos }}
 
       - name: Upload coverage to CodeCov
@@ -60,7 +72,7 @@ jobs:
           files: ${{ steps.test.outputs.coverage-report-files }}
           fail_ci_if_error: false
           verbose: true
-          flags: total
+          flags: differential-arm64
 
       - name: Show disk space after the tasks
         run: df -h
