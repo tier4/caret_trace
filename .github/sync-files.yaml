@@ -17,13 +17,13 @@
   files:
     - source: .github/workflows/build-and-test.yaml
     - source: .github/workflows/build-and-test-differential.yaml
-      pre-commands: |
-        VERSION=$(grep -P -o "(?<=tj\-actions/changed\-files@).+" {dest})
-        sd "tj-actions/changed-files@(.+)" "tj-actions/changed-files@"$VERSION {source}
     - source: .github/workflows/build-and-test-differential-arm64.yaml
     - source: .github/workflows/build-and-test-arm64.yaml
     - source: .github/workflows/check-build-depends.yaml
     - source: .github/workflows/clang-tidy-differential.yaml
+      pre-commands: |
+        VERSION=$(grep -P -o "(?<=tj\-actions/changed\-files@).+" {dest})
+        sd "tj-actions/changed-files@(.+)" "tj-actions/changed-files@"$VERSION {source}
 
 - repository: tier4/caret_common
   files:
