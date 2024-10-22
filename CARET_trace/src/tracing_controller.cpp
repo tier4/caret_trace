@@ -135,6 +135,7 @@ TracingController::TracingController(bool use_log)
   ignore_enabled_(ignored_topic_names_.size() > 0 || ignored_node_names_.size() > 0),
   use_log_(use_log)
 {
+  std::shared_lock<std::shared_timed_mutex> lock(mutex_); // for SEGV test
   if (select_enabled_ || ignore_enabled_) {
     info("trace filtering is enabled.");
   }
@@ -247,7 +248,7 @@ bool TracingController::is_allowed_callback(const void * callback)
 
 bool TracingController::is_allowed_node(const void * node_handle)
 {
-  std::shared_lock<std::shared_timed_mutex> lock(mutex_);  // read lock
+  std::lock_guard<std::shared_timed_mutex> lock(mutex_); // for SEGV test
   auto node_name_it = node_handle_to_node_names_.find(node_handle);
   if (node_name_it == node_handle_to_node_names_.end()) {
     return true;
@@ -264,7 +265,7 @@ bool TracingController::is_allowed_node(const void * node_handle)
 
 bool TracingController::is_allowed_subscription_handle(const void * subscription_handle)
 {
-  std::shared_lock<std::shared_timed_mutex> lock(mutex_);  // read lock
+  std::lock_guard<std::shared_timed_mutex> lock(mutex_); // for SEGV test
   auto node_handle_it = subscription_handle_to_node_handles_.find(subscription_handle);
   if (node_handle_it == subscription_handle_to_node_handles_.end()) {
     return true;
