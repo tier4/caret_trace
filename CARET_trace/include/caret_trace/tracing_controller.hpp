@@ -181,14 +181,14 @@ private:
   std::string to_node_name(const void * callback);
   std::string to_topic_name(const void * callback);
 
-  const std::unordered_set<std::string> selected_node_names_;
-  const std::unordered_set<std::string> ignored_node_names_;
-  const std::unordered_set<std::string> selected_topic_names_;
-  const std::unordered_set<std::string> ignored_topic_names_;
-  const std::unordered_set<std::string> ignored_process_names_;
+  std::unordered_set<std::string> selected_node_names_;
+  std::unordered_set<std::string> ignored_node_names_;
+  std::unordered_set<std::string> selected_topic_names_;
+  std::unordered_set<std::string> ignored_topic_names_;
+  std::unordered_set<std::string> ignored_process_names_;
 
-  const bool select_enabled_;
-  const bool ignore_enabled_;
+  bool select_enabled_;
+  bool ignore_enabled_;
 
   bool is_ignored_process_;
 

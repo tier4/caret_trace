@@ -126,16 +126,19 @@ bool is_iron_or_later()
 }
 
 TracingController::TracingController(bool use_log)
-: selected_node_names_(get_env_vars(SELECT_NODES_ENV_NAME)),
-  ignored_node_names_(get_env_vars(IGNORE_NODES_ENV_NAME)),
-  selected_topic_names_(get_env_vars(SELECT_TOPICS_ENV_NAME)),
-  ignored_topic_names_(get_env_vars(IGNORE_TOPICS_ENV_NAME)),
-  ignored_process_names_(get_env_vars(IGNORE_PROCESSES_ENV_NAME)),
-  select_enabled_(selected_topic_names_.size() > 0 || selected_node_names_.size() > 0),
-  ignore_enabled_(ignored_topic_names_.size() > 0 || ignored_node_names_.size() > 0),
-  use_log_(use_log)
+: use_log_(use_log)
 {
-  std::shared_lock<std::shared_timed_mutex> lock(mutex_); // for SEGV test
+  std::lock_guard<std::shared_timed_mutex> lock(mutex_); // for SEGV test
+
+  selected_node_names_ = get_env_vars(SELECT_NODES_ENV_NAME);
+  ignored_node_names_ = get_env_vars(IGNORE_NODES_ENV_NAME);
+  selected_topic_names_ = get_env_vars(SELECT_TOPICS_ENV_NAME);
+  ignored_topic_names_ = get_env_vars(IGNORE_TOPICS_ENV_NAME);
+  ignored_process_names_ = get_env_vars(IGNORE_PROCESSES_ENV_NAME);
+  
+  select_enabled_ = selected_topic_names_.size() > 0 || selected_node_names_.size() > 0;
+  ignore_enabled_ = ignored_topic_names_.size() > 0 || ignored_node_names_.size() > 0;
+  
   if (select_enabled_ || ignore_enabled_) {
     info("trace filtering is enabled.");
   }
