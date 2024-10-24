@@ -35,6 +35,11 @@ find_package(rmw_fastrtps_shared_cpp REQUIRED)
 find_package(LTTngUST REQUIRED)
 find_package(caret_msgs REQUIRED)
 
+set(ENV_VAR_VALUE $ENV{ROS_DISTRO})
+if(ENV_VAR_VALUE STREQUAL "jazzy")
+  add_compile_definitions(ROS_DISTRO_JAZZY)
+endif()
+
 add_library(caret SHARED
   src/ros_trace_points.cpp
   src/hooked_trace_points.cpp

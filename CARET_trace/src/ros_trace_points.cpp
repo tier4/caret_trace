@@ -1220,6 +1220,31 @@ void ros_trace_rmw_take(
   }
 }
 
+#ifdef ROS_DISTRO_JAZZY
+void ros_trace_rmw_publish(
+  const void * rmw_publisher_handle,
+  const void * message,
+  int64_t init_timestamp
+)
+{
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & controller = context.get_controller();
+
+  if (!controller.is_allowed_process()) {
+    return;
+  }
+
+  if (trace_filter_is_rcl_publish_recorded) {
+    tracepoint(TRACEPOINT_PROVIDER, dds_write, rmw_publisher_handle, message, init_timestamp);
+#ifdef DEBUG_OUTPUT
+    std::cerr << "rmw_publish," <<
+      rmw_publisher_handle << "," <<
+      message << "," <<
+      init_timestamp << "," << std::endl;
+#endif
+  }
+}
+#else
 void ros_trace_rmw_publish(
   const void * message
 )
@@ -1239,6 +1264,7 @@ void ros_trace_rmw_publish(
 #endif
   }
 }
+#endif
 
 void ros_trace_rmw_publisher_init(
   const void * rmw_publisher_handle,

@@ -37,6 +37,10 @@ DataContainer::DataContainer()
     std::make_shared<CallbackGroupAddTimer::KeysT>("callback_group_add_timer"),
     std::make_shared<ConstructExecutor::KeysT>("construct_executor"),
     std::make_shared<ConstructStaticExecutor::KeysT>("construct_static_executor"),
+#ifdef ROS_DISTRO_JAZZY
+    std::make_shared<CallbackGroupToExecutorEntityCollector::KeysT>("callback_group_to_executor_entity_collector"),
+    std::make_shared<ExecutorEntityCollectorToExecutor::KeysT>("executor_entity_collector_to_executor"),
+#endif
     std::make_shared<RclClientInit::KeysT>("rcl_client_init"),
     std::make_shared<RclInit::KeysT>("rcl_init"),
     std::make_shared<RclNodeInit::KeysT>("rcl_node_init"),
@@ -66,6 +70,10 @@ DataContainer::DataContainer(
   std::shared_ptr<CallbackGroupAddTimer::KeysT> callback_group_add_timer,
   std::shared_ptr<ConstructExecutor::KeysT> construct_executor,
   std::shared_ptr<ConstructStaticExecutor::KeysT> construct_static_executor,
+#ifdef ROS_DISTRO_JAZZY
+  std::shared_ptr<CallbackGroupToExecutorEntityCollector::KeysT> callback_group_to_executor_entity_collector,
+  std::shared_ptr<ExecutorEntityCollectorToExecutor::KeysT> executor_entity_collector_to_executor,
+#endif
   std::shared_ptr<RclClientInit::KeysT> rcl_client_init, std::shared_ptr<RclInit::KeysT> rcl_init,
   std::shared_ptr<RclNodeInit::KeysT> rcl_node_init,
   std::shared_ptr<RclPublisherInit::KeysT> rcl_publisher_init,
@@ -90,6 +98,10 @@ DataContainer::DataContainer(
   callback_group_add_timer_(callback_group_add_timer),
   construct_executor_(construct_executor),
   construct_static_executor_(construct_static_executor),
+#ifdef ROS_DISTRO_JAZZY
+  callback_group_to_executor_entity_collector_(callback_group_to_executor_entity_collector),
+  executor_entity_collector_to_executor_(executor_entity_collector_to_executor),
+#endif
   rcl_client_init_(rcl_client_init),
   rcl_init_(rcl_init),
   rcl_node_init_(rcl_node_init),
@@ -134,6 +146,14 @@ DataContainer::DataContainer(
   if (construct_static_executor_) {
     recordable_data.emplace_back(construct_static_executor_);
   }
+#ifdef ROS_DISTRO_JAZZY
+  if (callback_group_to_executor_entity_collector_) {
+    recordable_data.emplace_back(callback_group_to_executor_entity_collector_);
+  }
+  if (executor_entity_collector_to_executor_) {
+    recordable_data.emplace_back(executor_entity_collector_to_executor_);
+  }
+#endif
   if (rcl_client_init_) {
     recordable_data.emplace_back(rcl_client_init_);
   }
@@ -272,6 +292,20 @@ void DataContainer::assign_construct_static_executor(ConstructStaticExecutor::St
   assert(construct_static_executor_.get() != nullptr);
   construct_static_executor_->assign(record);
 }
+
+#ifdef ROS_DISTRO_JAZZY
+void DataContainer::assign_callback_group_to_executor_entity_collector(CallbackGroupToExecutorEntityCollector::StdFuncT record)
+{
+  assert(callback_group_to_executor_entity_collector_.get() != nullptr);
+  callback_group_to_executor_entity_collector_->assign(record);
+}
+
+void DataContainer::assign_executor_entity_collector_to_executor(ExecutorEntityCollectorToExecutor::StdFuncT record)
+{
+  assert(executor_entity_collector_to_executor_.get() != nullptr);
+  executor_entity_collector_to_executor_->assign(record);
+}
+#endif
 
 void DataContainer::assign_rcl_client_init(RclClientInit::StdFuncT record)
 {
@@ -431,6 +465,20 @@ bool DataContainer::is_assigned_construct_static_executor() const
   assert(callback_group_add_client_.get() != nullptr);
   return callback_group_add_client_->is_assigned();
 }
+
+#ifdef ROS_DISTRO_JAZZY
+bool DataContainer::is_assigned_callback_group_to_executor_entity_collector() const
+{
+  assert(callback_group_to_executor_entity_collector_.get() != nullptr);
+  return callback_group_to_executor_entity_collector_->is_assigned();
+}
+
+bool DataContainer::is_assigned_executor_entity_collector_to_executor() const
+{
+  assert(executor_entity_collector_to_executor_.get() != nullptr);
+  return executor_entity_collector_to_executor_->is_assigned();
+}
+#endif
 
 bool DataContainer::is_assigned_rcl_client_init() const
 {

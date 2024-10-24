@@ -136,7 +136,12 @@ void TraceNode::run_timer()
   debug("Started recording timer .");
   timer_->reset();
   if (execute_timer_on_run_) {
+#ifdef ROS_DISTRO_JAZZY
+    auto timer_call_info_ = std::make_shared<rcl_timer_call_info_t>();
+    timer_->execute_callback(timer_call_info_);
+#else
     timer_->execute_callback();
+#endif
   }
 }
 
