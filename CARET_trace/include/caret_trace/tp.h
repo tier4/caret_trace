@@ -43,6 +43,22 @@ TRACEPOINT_EVENT(
   )
 )
 
+#ifdef ROS_DISTRO_JAZZY
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  dds_write,
+  TP_ARGS(
+    const void *, rmw_publisher_handle_arg,
+    const void *, message_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, rmw_publisher_handle, rmw_publisher_handle_arg)
+    ctf_integer_hex(const void *, message, message_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+#else
 TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
   dds_write,
@@ -53,6 +69,7 @@ TRACEPOINT_EVENT(
     ctf_integer_hex(const void *, message, message_arg)
   )
 )
+#endif
 
 TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
@@ -89,6 +106,36 @@ TRACEPOINT_EVENT(
   ),
   TP_FIELDS(
     ctf_string(rmw_impl, rmw_impl_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  callback_group_to_executor_entity_collector,
+  TP_ARGS(
+    const void *, executor_entities_collector_addr_arg,
+    const void *, callback_group_addr_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, executor_entities_collector_addr, executor_entities_collector_addr_arg)
+    ctf_integer_hex(const void *, callback_group_addr, callback_group_addr_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  executor_entity_collector_to_executor,
+  TP_ARGS(
+    const void *, executor_addr_arg,
+    const void *, executor_entities_collector_addr_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, executor_addr, executor_addr_arg)
+    ctf_integer_hex(const void *, executor_entities_collector_addr, executor_entities_collector_addr_arg)
     ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
   )
 )

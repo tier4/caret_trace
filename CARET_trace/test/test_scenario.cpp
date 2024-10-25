@@ -56,10 +56,17 @@ TEST(ScenarioTest, TestSingleThread)
 {
   auto keys = std::make_shared<DataContainer::RclInit::KeysT>("rcl_init");
 
+#ifdef ROS_DISTRO_JAZZY
+  DataContainer container(
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, keys, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+#else
   DataContainer container(
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, keys, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
     nullptr, nullptr, nullptr, nullptr);
+#endif
 
   MockFunction<DataContainer::RclInit::FuncT> rcl_init_mock;
   container.assign_rcl_init(rcl_init_mock.AsStdFunction());
@@ -84,10 +91,17 @@ TEST(ScenarioTest, TestMultiThread)
 {
   auto keys = std::make_shared<DataContainer::RclInit::KeysT>("rcl_init");
 
+#ifdef ROS_DISTRO_JAZZY
+  DataContainer container(
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, keys, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+#else
   DataContainer container(
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, keys, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
     nullptr, nullptr, nullptr, nullptr);
+#endif
 
   MockFunction<DataContainer::RclInit::FuncT> rcl_init_mock;
   container.assign_rcl_init(rcl_init_mock.AsStdFunction());
@@ -220,10 +234,17 @@ TEST(ScenarioTest, Record)
 
   auto keys = std::make_shared<DataContainer::RclInit::KeysT>("rcl_init");
 
+#ifdef ROS_DISTRO_JAZZY
+  auto container = std::make_shared<DataContainer>(
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, keys, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+#else
   auto container = std::make_shared<DataContainer>(
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, keys, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
     nullptr, nullptr, nullptr, nullptr);
+#endif
   Context context;
   bool pending;
 
