@@ -38,8 +38,10 @@ DataContainer::DataContainer()
     std::make_shared<ConstructExecutor::KeysT>("construct_executor"),
     std::make_shared<ConstructStaticExecutor::KeysT>("construct_static_executor"),
 #ifdef ROS_DISTRO_JAZZY
-    std::make_shared<CallbackGroupToExecutorEntityCollector::KeysT>("callback_group_to_executor_entity_collector"),
-    std::make_shared<ExecutorEntityCollectorToExecutor::KeysT>("executor_entity_collector_to_executor"),
+    std::make_shared<CallbackGroupToExecutorEntityCollector::KeysT>(
+      "callback_group_to_executor_entity_collector"),
+    std::make_shared<ExecutorEntityCollectorToExecutor::KeysT>(
+      "executor_entity_collector_to_executor"),
 #endif
     std::make_shared<RclClientInit::KeysT>("rcl_client_init"),
     std::make_shared<RclInit::KeysT>("rcl_init"),
@@ -71,7 +73,8 @@ DataContainer::DataContainer(
   std::shared_ptr<ConstructExecutor::KeysT> construct_executor,
   std::shared_ptr<ConstructStaticExecutor::KeysT> construct_static_executor,
 #ifdef ROS_DISTRO_JAZZY
-  std::shared_ptr<CallbackGroupToExecutorEntityCollector::KeysT> callback_group_to_executor_entity_collector,
+  std::shared_ptr<CallbackGroupToExecutorEntityCollector::KeysT>
+    callback_group_to_executor_entity_collector,
   std::shared_ptr<ExecutorEntityCollectorToExecutor::KeysT> executor_entity_collector_to_executor,
 #endif
   std::shared_ptr<RclClientInit::KeysT> rcl_client_init, std::shared_ptr<RclInit::KeysT> rcl_init,
@@ -294,13 +297,15 @@ void DataContainer::assign_construct_static_executor(ConstructStaticExecutor::St
 }
 
 #ifdef ROS_DISTRO_JAZZY
-void DataContainer::assign_callback_group_to_executor_entity_collector(CallbackGroupToExecutorEntityCollector::StdFuncT record)
+void DataContainer::assign_callback_group_to_executor_entity_collector(
+  CallbackGroupToExecutorEntityCollector::StdFuncT record)
 {
   assert(callback_group_to_executor_entity_collector_.get() != nullptr);
   callback_group_to_executor_entity_collector_->assign(record);
 }
 
-void DataContainer::assign_executor_entity_collector_to_executor(ExecutorEntityCollectorToExecutor::StdFuncT record)
+void DataContainer::assign_executor_entity_collector_to_executor(
+  ExecutorEntityCollectorToExecutor::StdFuncT record)
 {
   assert(executor_entity_collector_to_executor_.get() != nullptr);
   executor_entity_collector_to_executor_->assign(record);

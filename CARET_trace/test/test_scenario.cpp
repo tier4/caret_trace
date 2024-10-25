@@ -58,9 +58,9 @@ TEST(ScenarioTest, TestSingleThread)
 
 #ifdef ROS_DISTRO_JAZZY
   DataContainer container(
-    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, keys, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr, nullptr, nullptr, nullptr);
+    nullptr, keys, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
 #else
   DataContainer container(
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, keys, nullptr,
@@ -93,9 +93,9 @@ TEST(ScenarioTest, TestMultiThread)
 
 #ifdef ROS_DISTRO_JAZZY
   DataContainer container(
-    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, keys, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr, nullptr, nullptr, nullptr);
+    nullptr, keys, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
 #else
   DataContainer container(
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, keys, nullptr,
@@ -236,9 +236,9 @@ TEST(ScenarioTest, Record)
 
 #ifdef ROS_DISTRO_JAZZY
   auto container = std::make_shared<DataContainer>(
-    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, keys, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr, nullptr, nullptr, nullptr);
+    nullptr, keys, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
 #else
   auto container = std::make_shared<DataContainer>(
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, keys, nullptr,

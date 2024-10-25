@@ -167,9 +167,8 @@ public:
 }  // namespace executors
 }  // namespace rclcpp
 
-using CallbackGroupCollection = std::set<
-    rclcpp::CallbackGroup::WeakPtr,
-    std::owner_less<rclcpp::CallbackGroup::WeakPtr>>;
+using CallbackGroupCollection =
+  std::set<rclcpp::CallbackGroup::WeakPtr, std::owner_less<rclcpp::CallbackGroup::WeakPtr>>;
 
 extern "C" {
 // Get symbols from the DDS shared library
@@ -359,14 +358,17 @@ void SYMBOL_CONCAT_2(
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto record = [](const void * obj, const void * group_addr, int64_t init_time) {
-    tracepoint(TRACEPOINT_PROVIDER, callback_group_to_executor_entity_collector, obj, group_addr, init_time);
+    tracepoint(
+      TRACEPOINT_PROVIDER, callback_group_to_executor_entity_collector, obj, group_addr, init_time);
 
 #ifdef DEBUG_OUTPUT
-    //std::cerr << "callback_group_to_executor_entity_collector," << obj << "," << group_addr << std::endl;
+    // std::cerr << "callback_group_to_executor_entity_collector," << obj << "," << group_addr <<
+    // std::endl;
 #endif
   };
   auto now = clock.now();
-  using functionT = void (*)(void *, const rclcpp::CallbackGroup::SharedPtr, const CallbackGroupCollection &);
+  using functionT =
+    void (*)(void *, const rclcpp::CallbackGroup::SharedPtr, const CallbackGroupCollection &);
   ((functionT)orig_func)(obj, group_ptr, collection);
   auto group_addr = static_cast<const void *>(group_ptr.get());
 
@@ -385,18 +387,19 @@ void SYMBOL_CONCAT_2(
 }
 
 // rclcpp::Executor::Executor(rclcpp::ExecutorOptions const&)
-void _ZN6rclcpp8ExecutorC2ERKNS_15ExecutorOptionsE(
-  void * obj, const void * option)
+void _ZN6rclcpp8ExecutorC2ERKNS_15ExecutorOptionsE(void * obj, const void * option)
 {
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   static auto & context = Singleton<Context>::get_instance();
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
   static auto record = [](const void * obj, const void * collector_ptr, int64_t init_time) {
-    tracepoint(TRACEPOINT_PROVIDER, executor_entity_collector_to_executor, obj, collector_ptr, init_time);
+    tracepoint(
+      TRACEPOINT_PROVIDER, executor_entity_collector_to_executor, obj, collector_ptr, init_time);
 
 #ifdef DEBUG_OUTPUT
-    std::cerr << "executor_entity_collector_to_executor," << obj << "," << collector_ptr << std::endl;
+    std::cerr << "executor_entity_collector_to_executor," << obj << "," << collector_ptr
+              << std::endl;
 #endif
   };
 

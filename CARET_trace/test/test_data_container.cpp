@@ -26,9 +26,9 @@ TEST(DataContainerTest, EmptyCase)
 {
 #ifdef ROS_DISTRO_JAZZY
   DataContainer container(
-    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr, nullptr, nullptr, nullptr, nullptr);
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
 #else
   DataContainer container(
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,

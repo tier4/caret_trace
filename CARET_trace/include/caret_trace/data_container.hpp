@@ -80,8 +80,7 @@ public:
     ContainerTraits<const void *, const void *, int64_t>;
 
   /// @brief ContainerTraits for executor_entity_collector_to_executor trace points.
-  using ExecutorEntityCollectorToExecutor =
-    ContainerTraits<const void *, const void *, int64_t>;
+  using ExecutorEntityCollectorToExecutor = ContainerTraits<const void *, const void *, int64_t>;
 
   /// @brief ContainerTraits for rcl_init trace points.
   using RclInit = ContainerTraits<const void *, int64_t>;
@@ -153,7 +152,7 @@ public:
   /// @param callback_group_add_timer Data instance for callback_group_add_timer trace point.
   /// @param construct_executor Data instance for construct_executor trace point.
   /// @param construct_static_executor Data instance for construct_static_executor trace point.
-  /// @param callback_group_to_executor_entity_collector Data instance for 
+  /// @param callback_group_to_executor_entity_collector Data instance for
   /// callback_group_to_executor_entity_collector trace point.
   /// @param executor_entity_collector_to_executor Data instance for
   /// executor_entity_collector_to_executor trace point.
@@ -183,7 +182,8 @@ public:
     std::shared_ptr<ConstructExecutor::KeysT> construct_executor,
     std::shared_ptr<ConstructStaticExecutor::KeysT> construct_static_executor,
 #ifdef ROS_DISTRO_JAZZY
-    std::shared_ptr<CallbackGroupToExecutorEntityCollector::KeysT> callback_group_to_executor_entity_collector,
+    std::shared_ptr<CallbackGroupToExecutorEntityCollector::KeysT>
+      callback_group_to_executor_entity_collector,
     std::shared_ptr<ExecutorEntityCollectorToExecutor::KeysT> executor_entity_collector_to_executor,
 #endif
     std::shared_ptr<RclClientInit::KeysT> rcl_client_init, std::shared_ptr<RclInit::KeysT> rcl_init,
@@ -540,11 +540,13 @@ public:
 
   /// @brief Assign recording function for callback_group_to_executor_entity_collector trace points.
   /// @param record recording function.
-  void assign_callback_group_to_executor_entity_collector(CallbackGroupToExecutorEntityCollector::StdFuncT record);
+  void assign_callback_group_to_executor_entity_collector(
+    CallbackGroupToExecutorEntityCollector::StdFuncT record);
 
   /// @brief Assign recording function for executor_entity_collector_to_executor trace points.
   /// @param record recording function.
-  void assign_executor_entity_collector_to_executor(ExecutorEntityCollectorToExecutor::StdFuncT record);
+  void assign_executor_entity_collector_to_executor(
+    ExecutorEntityCollectorToExecutor::StdFuncT record);
 
   /// @brief Assign recording function for rcl_client_init trace points.
   /// @param record recording function.
@@ -655,11 +657,13 @@ public:
   /// @return True if function is assigned, false otherwise.
   bool is_assigned_construct_static_executor() const;
 
-  /// @brief Check whether recording function for callback_group_to_executor_entity_collector trace point is assigned.
+  /// @brief Check whether recording function for callback_group_to_executor_entity_collector trace
+  /// point is assigned.
   /// @return True if function is assigned, false otherwise.
   bool is_assigned_callback_group_to_executor_entity_collector() const;
 
-  /// @brief Check whether recording function for executor_entity_collector_to_executor trace point is assigned.
+  /// @brief Check whether recording function for executor_entity_collector_to_executor trace point
+  /// is assigned.
   /// @return True if function is assigned, false otherwise.
   bool is_assigned_executor_entity_collector_to_executor() const;
 
@@ -751,7 +755,8 @@ private:
   std::shared_ptr<CallbackGroupAddTimer::KeysT> callback_group_add_timer_;
   std::shared_ptr<ConstructExecutor::KeysT> construct_executor_;
   std::shared_ptr<ConstructStaticExecutor::KeysT> construct_static_executor_;
-  std::shared_ptr<CallbackGroupToExecutorEntityCollector::KeysT> callback_group_to_executor_entity_collector_;
+  std::shared_ptr<CallbackGroupToExecutorEntityCollector::KeysT>
+    callback_group_to_executor_entity_collector_;
   std::shared_ptr<ExecutorEntityCollectorToExecutor::KeysT> executor_entity_collector_to_executor_;
   std::shared_ptr<RclClientInit::KeysT> rcl_client_init_;
   std::shared_ptr<RclInit::KeysT> rcl_init_;
