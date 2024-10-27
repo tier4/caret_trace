@@ -37,7 +37,7 @@
 
 #include <csignal>
 
-static int called, reent, missing, except;
+static int called, reent, enter, missing, except;
 static int set_size1, set_size2, save_condition_size;
 static std::unordered_set<std::string>* save_set1, * save_set2;
 static std::string save_target1, save_target2, save_condition;
@@ -46,7 +46,7 @@ static std::mutex tmp_mtx;
 void SegvHandler(int signal) {
     if (signal == SIGSEGV) {
         std::cerr << "--- Segmentation fault (SIGSEGV) detected. ---" << std::endl;
-        std::cerr << "called: " << called << " reent: " << reent << " missing: " << missing << " execption: " << except << std::endl;
+        std::cerr << "called: " << called << " reent: " << reent << " enter: " << enter << " missing: " << missing << " execption: " << except << std::endl;
         std::cerr << "init set: " << save_set1 << std::endl;
         std::cerr << "init set size: " << set_size1 << std::endl;
         std::cerr << "init target_name: " << save_target1.c_str() << std::endl;
@@ -64,6 +64,7 @@ bool partial_match(std::unordered_set<std::string> set, std::string target_name)
   reent++;
   std::lock_guard<std::mutex> lock(tmp_mtx);
   called++;
+  enter++;
   if (set.size() == 0) {
     missing++;
   }
@@ -74,6 +75,7 @@ bool partial_match(std::unordered_set<std::string> set, std::string target_name)
     try {
       if (condition == "*") {
         reent--;
+        enter--;
         return true;
       }
       save_set2 = &set;
@@ -81,7 +83,7 @@ bool partial_match(std::unordered_set<std::string> set, std::string target_name)
       save_target2 = target_name;
       save_condition = condition;
       save_condition_size = condition.size();
-      #if 1 // !!! SEGV tested
+      #if 0 // !!! SEGV tested
       if (called == 100) {
         std::regex re(0);   // SEGV occured
       }
@@ -89,6 +91,7 @@ bool partial_match(std::unordered_set<std::string> set, std::string target_name)
       std::regex re(condition.c_str());
       if (std::regex_search(target_name, re)) {
         reent--;
+        enter--;
         return true;
       }
     } catch (std::regex_error & e) {
@@ -97,6 +100,7 @@ bool partial_match(std::unordered_set<std::string> set, std::string target_name)
     }
   }
   reent--;
+  enter--;
   return false;
 }
 
