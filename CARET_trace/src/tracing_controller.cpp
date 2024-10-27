@@ -38,7 +38,7 @@
 #include <csignal>
 
 static int called, reent, missing, except;
-static int set_size1, set_size2;
+static int set_size1, set_size2, save_condition_size;
 static std::unordered_set<std::string>* save_set1, * save_set2;
 static std::string save_target1, save_target2, save_condition;
 static std::mutex tmp_mtx;
@@ -53,6 +53,7 @@ void SegvHandler(int signal) {
         std::cerr << "set: " << save_set2 << std::endl;
         std::cerr << "set size: " << set_size2 << std::endl;
         std::cerr << "target_name: " << save_target2.c_str() << std::endl;
+        std::cerr << "condition size: " << save_condition_size << std::endl;
         std::cerr << "condition: " << save_condition.c_str() << std::endl;
         std::exit(EXIT_FAILURE);
     }
@@ -60,12 +61,12 @@ void SegvHandler(int signal) {
 
 bool partial_match(std::unordered_set<std::string> set, std::string target_name)
 {
+  reent++;
   std::lock_guard<std::mutex> lock(tmp_mtx);
   called++;
   if (set.size() == 0) {
     missing++;
   }
-  reent++;
   save_set1 = &set;
   set_size1 = set.size();
   save_target1 = target_name;
@@ -79,11 +80,12 @@ bool partial_match(std::unordered_set<std::string> set, std::string target_name)
       set_size2 = set.size();
       save_target2 = target_name;
       save_condition = condition;
-      /*** !!! SEGV tested
+      save_condition_size = condition.size();
+      #if 1 // !!! SEGV tested
       if (called == 100) {
         std::regex re(0);   // SEGV occured
       }
-      ***/ 
+      #endif
       std::regex re(condition.c_str());
       if (std::regex_search(target_name, re)) {
         reent--;
