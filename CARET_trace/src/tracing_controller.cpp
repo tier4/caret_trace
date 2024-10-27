@@ -35,21 +35,66 @@
 #define IGNORE_TOPICS_ENV_NAME "CARET_IGNORE_TOPICS"
 #define IGNORE_PROCESSES_ENV_NAME "CARET_IGNORE_PROCESSES"
 
+#include <csignal>
+
+static int called, reent, missing, except;
+static int set_size1, set_size2;
+static std::unordered_set<std::string>* save_set1, * save_set2;
+static std::string save_target1, save_target2, save_condition;
+static std::mutex tmp_mtx;
+
+void SegvHandler(int signal) {
+    if (signal == SIGSEGV) {
+        std::cerr << "--- Segmentation fault (SIGSEGV) detected. ---" << std::endl;
+        std::cerr << "called: " << called << " reent: " << reent << " missing: " << missing << " execption: " << except << std::endl;
+        std::cerr << "init set: " << save_set1 << std::endl;
+        std::cerr << "init set size: " << set_size1 << std::endl;
+        std::cerr << "init target_name: " << save_target1.c_str() << std::endl;
+        std::cerr << "set: " << save_set2 << std::endl;
+        std::cerr << "set size: " << set_size2 << std::endl;
+        std::cerr << "target_name: " << save_target2.c_str() << std::endl;
+        std::cerr << "condition: " << save_condition.c_str() << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+}
+
 bool partial_match(std::unordered_set<std::string> set, std::string target_name)
 {
+  std::lock_guard<std::mutex> lock(tmp_mtx);
+  called++;
+  if (set.size() == 0) {
+    missing++;
+  }
+  reent++;
+  save_set1 = &set;
+  set_size1 = set.size();
+  save_target1 = target_name;
   for (auto & condition : set) {
     try {
       if (condition == "*") {
+        reent--;
         return true;
       }
+      save_set2 = &set;
+      set_size2 = set.size();
+      save_target2 = target_name;
+      save_condition = condition;
+      /*** !!! SEGV tested
+      if (called == 100) {
+        std::regex re(0);   // SEGV occured
+      }
+      ***/ 
       std::regex re(condition.c_str());
       if (std::regex_search(target_name, re)) {
+        reent--;
         return true;
       }
     } catch (std::regex_error & e) {
       // print out error message during initialization phase
+      except++;
     }
   }
+  reent--;
   return false;
 }
 
@@ -135,6 +180,8 @@ TracingController::TracingController(bool use_log)
   ignore_enabled_(ignored_topic_names_.size() > 0 || ignored_node_names_.size() > 0),
   use_log_(use_log)
 {
+  std::signal(SIGSEGV, SegvHandler);
+
   if (select_enabled_ || ignore_enabled_) {
     info("trace filtering is enabled.");
   }
