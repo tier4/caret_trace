@@ -362,8 +362,8 @@ void SYMBOL_CONCAT_2(
       TRACEPOINT_PROVIDER, callback_group_to_executor_entity_collector, obj, group_addr, init_time);
 
 #ifdef DEBUG_OUTPUT
-    std::cerr << "callback_group_to_executor_entity_collector," << obj << "," << group_addr <<
-    std::endl;
+    std::cerr << "callback_group_to_executor_entity_collector," << obj << "," << group_addr
+              << std::endl;
 #endif
   };
   auto now = clock.now();
