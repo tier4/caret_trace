@@ -362,8 +362,8 @@ void SYMBOL_CONCAT_2(
       TRACEPOINT_PROVIDER, callback_group_to_executor_entity_collector, obj, group_addr, init_time);
 
 #ifdef DEBUG_OUTPUT
-    // std::cerr << "callback_group_to_executor_entity_collector," << obj << "," << group_addr <<
-    // std::endl;
+    std::cerr << "callback_group_to_executor_entity_collector," << obj << "," << group_addr <<
+    std::endl;
 #endif
   };
   auto now = clock.now();
@@ -375,8 +375,6 @@ void SYMBOL_CONCAT_2(
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
-
-  const std::string executor_type_name = "single_threaded_executor";
 
   if (!data_container.is_assigned_callback_group_to_executor_entity_collector()) {
     data_container.assign_callback_group_to_executor_entity_collector(record);
@@ -414,8 +412,6 @@ void _ZN6rclcpp8ExecutorC2ERKNS_15ExecutorOptionsE(void * obj, const void * opti
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
-
-  const std::string executor_type_name = "single_threaded_executor";
 
   if (!data_container.is_assigned_executor_entity_collector_to_executor()) {
     data_container.assign_executor_entity_collector_to_executor(record);

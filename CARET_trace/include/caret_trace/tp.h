@@ -50,12 +50,12 @@ TRACEPOINT_EVENT(
   TP_ARGS(
     const void *, rmw_publisher_handle_arg,
     const void *, message_arg,
-    int64_t, init_timestamp_arg
+    int64_t, timestamp_arg
   ),
   TP_FIELDS(
     ctf_integer_hex(const void *, rmw_publisher_handle, rmw_publisher_handle_arg)
     ctf_integer_hex(const void *, message, message_arg)
-    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+    ctf_integer(const int64_t, timestamp, timestamp_arg)
   )
 )
 #else
