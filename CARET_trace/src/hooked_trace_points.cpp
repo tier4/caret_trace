@@ -595,7 +595,6 @@ void SYMBOL_CONCAT_3(
   }
 
   auto group_addr_ = const_cast<void *>(group_addr);
-  auto node_addr_ = const_cast<void *>(node_addr);
 
   std::string group_type_name = "unknown";
   auto group_type = group_ptr->type();

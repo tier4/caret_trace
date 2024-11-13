@@ -119,7 +119,8 @@ TRACEPOINT_EVENT(
     int64_t, init_timestamp_arg
   ),
   TP_FIELDS(
-    ctf_integer_hex(const void *, executor_entities_collector_addr, executor_entities_collector_addr_arg)
+    ctf_integer_hex(const void *, executor_entities_collector_addr,
+      executor_entities_collector_addr_arg)
     ctf_integer_hex(const void *, callback_group_addr, callback_group_addr_arg)
     ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
   )
@@ -135,7 +136,8 @@ TRACEPOINT_EVENT(
   ),
   TP_FIELDS(
     ctf_integer_hex(const void *, executor_addr, executor_addr_arg)
-    ctf_integer_hex(const void *, executor_entities_collector_addr, executor_entities_collector_addr_arg)
+    ctf_integer_hex(const void *, executor_entities_collector_addr,
+      executor_entities_collector_addr_arg)
     ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
   )
 )
