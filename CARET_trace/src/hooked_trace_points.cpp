@@ -582,7 +582,6 @@ void SYMBOL_CONCAT_3(
     void *, rclcpp::CallbackGroup::SharedPtr, rclcpp::node_interfaces::NodeBaseInterface::SharedPtr,
     const void *, bool);
   auto group_addr = static_cast<const void *>(group_ptr.get());
-  auto node_addr = static_cast<const void *>(node_ptr.get());
 
   ((functionT)orig_func)(obj, group_ptr, node_ptr, weak_groups_to_nodes, notify);
 
