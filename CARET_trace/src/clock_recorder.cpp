@@ -47,7 +47,9 @@ public:
       inflection_++;
       if (previous_now_.nanoseconds() != 0) {
         if (now.nanoseconds() < previous_now_.nanoseconds()) {
-            RCLCPP_WARN(get_logger(), "Detect sim_time decreased: %ld -> %ld at [%d]", previous_now_.nanoseconds(), now.nanoseconds(), inflection_);
+          RCLCPP_WARN(
+            get_logger(), "Detect sim_time decreased: %ld -> %ld at [%d]",
+            previous_now_.nanoseconds(), now.nanoseconds(), inflection_);
         }
       }
       previous_now_ = now;
