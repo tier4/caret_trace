@@ -23,6 +23,7 @@
 
 using namespace std::literals::chrono_literals;
 
+// cspell:ignore rostime
 /// @brief Node class to record rostime.
 /// @details Subscribe to /clock topic and record simtime every second.
 class ClockRecorder : public rclcpp::Node
