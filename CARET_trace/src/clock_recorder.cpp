@@ -23,12 +23,13 @@
 
 using namespace std::literals::chrono_literals;
 
+// cspell:ignore rostime
 /// @brief Node class to record rostime.
 /// @details Subscribe to /clock topic and record simtime every second.
 class ClockRecorder : public rclcpp::Node
 {
 public:
-  ClockRecorder() : Node("clock_recorder")
+  ClockRecorder() : Node("clock_recorder"), previous_now_(0), inflection_(0)
   {
     auto use_sim_time = rclcpp::Parameter("use_sim_time", true);
     set_parameter(use_sim_time);
@@ -44,6 +45,15 @@ public:
           "Failed to get simtime correctly. /clock topic may not have been published.");
         return;
       }
+      inflection_++;
+      if (previous_now_.nanoseconds() != 0) {
+        if (now.nanoseconds() < previous_now_.nanoseconds()) {
+          RCLCPP_WARN(
+            get_logger(), "Detect sim_time decreased: %ld -> %ld at [%d]",
+            previous_now_.nanoseconds(), now.nanoseconds(), inflection_);
+        }
+      }
+      previous_now_ = now;
       RCLCPP_DEBUG(get_logger(), "sim_time recorded: %ld.", now.nanoseconds());
       tracepoint(TRACEPOINT_PROVIDER, sim_time, now.nanoseconds());
     };
@@ -54,6 +64,8 @@ public:
 private:
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Clock::SharedPtr timer_steady_;
+  rclcpp::Time previous_now_;
+  int inflection_;
 };
 
 int main(int argc, char ** argv)
