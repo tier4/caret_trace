@@ -357,17 +357,17 @@ void SYMBOL_CONCAT_2(
   static auto & context = Singleton<Context>::get_instance();
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
-  static auto record = [](const void * obj, const void * group_addr,
-   const char * group_type_name, int64_t init_time) {
-    tracepoint(
-      TRACEPOINT_PROVIDER, callback_group_to_executor_entity_collector,
-       obj, group_addr, group_type_name, init_time);
+  static auto record =
+    [](const void * obj, const void * group_addr, const char * group_type_name, int64_t init_time) {
+      tracepoint(
+        TRACEPOINT_PROVIDER, callback_group_to_executor_entity_collector, obj, group_addr,
+        group_type_name, init_time);
 
 #ifdef DEBUG_OUTPUT
-    std::cerr << "callback_group_to_executor_entity_collector," << obj << "," << group_addr
-              << std::endl;
+      std::cerr << "callback_group_to_executor_entity_collector," << obj << "," << group_addr
+                << std::endl;
 #endif
-  };
+    };
   auto now = clock.now();
   using functionT =
     void (*)(void *, const rclcpp::CallbackGroup::SharedPtr, const CallbackGroupCollection &);
