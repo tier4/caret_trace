@@ -1224,7 +1224,7 @@ void ros_trace_rmw_take(
 void ros_trace_rmw_publish(
   const void * rmw_publisher_handle,
   const void * message,
-  int64_t timestamp
+  int64_t source_timsestamp
 )
 {
   static auto & context = Singleton<Context>::get_instance();
@@ -1235,7 +1235,7 @@ void ros_trace_rmw_publish(
   }
 
   if (trace_filter_is_rcl_publish_recorded) {
-    tracepoint(TRACEPOINT_PROVIDER, dds_write, rmw_publisher_handle, message, timestamp);
+    tracepoint(TRACEPOINT_PROVIDER, dds_write, rmw_publisher_handle, message, source_timsestamp);
 #ifdef DEBUG_OUTPUT
     std::cerr << "rmw_publish," <<
       rmw_publisher_handle << "," <<

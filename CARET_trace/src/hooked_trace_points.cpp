@@ -357,9 +357,11 @@ void SYMBOL_CONCAT_2(
   static auto & context = Singleton<Context>::get_instance();
   static auto & clock = context.get_clock();
   static auto & data_container = context.get_data_container();
-  static auto record = [](const void * obj, const void * group_addr, int64_t init_time) {
+  static auto record = [](const void * obj, const void * group_addr,
+   const char * group_type_name, int64_t init_time) {
     tracepoint(
-      TRACEPOINT_PROVIDER, callback_group_to_executor_entity_collector, obj, group_addr, init_time);
+      TRACEPOINT_PROVIDER, callback_group_to_executor_entity_collector,
+       obj, group_addr, group_type_name, init_time);
 
 #ifdef DEBUG_OUTPUT
     std::cerr << "callback_group_to_executor_entity_collector," << obj << "," << group_addr
@@ -372,6 +374,14 @@ void SYMBOL_CONCAT_2(
   ((functionT)orig_func)(obj, group_ptr, collection);
   auto group_addr = static_cast<const void *>(group_ptr.get());
 
+  std::string group_type_name = "unknown";
+  auto group_type = group_ptr->type();
+  if (group_type == rclcpp::CallbackGroupType::MutuallyExclusive) {
+    group_type_name = "mutually_exclusive";
+  } else if (group_type == rclcpp::CallbackGroupType::Reentrant) {
+    group_type_name = "reentrant";
+  }
+
   if (!context.get_controller().is_allowed_process()) {
     return;
   }
@@ -380,8 +390,9 @@ void SYMBOL_CONCAT_2(
     data_container.assign_callback_group_to_executor_entity_collector(record);
   }
 
-  data_container.store_callback_group_to_executor_entity_collector(obj, group_addr, now);
-  record(obj, group_addr, now);
+  data_container.store_callback_group_to_executor_entity_collector(
+    obj, group_addr, group_type_name.c_str(), now);
+  record(obj, group_addr, group_type_name.c_str(), now);
 }
 
 // rclcpp::Executor::Executor(rclcpp::ExecutorOptions const&)

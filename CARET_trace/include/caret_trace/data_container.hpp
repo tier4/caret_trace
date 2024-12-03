@@ -77,7 +77,7 @@ public:
 
   /// @brief ContainerTraits for callback_group_to_executor_entity_collector trace points.
   using CallbackGroupToExecutorEntityCollector =
-    ContainerTraits<const void *, const void *, int64_t>;
+    ContainerTraits<const void *, const void *, const char *, int64_t>;
 
   /// @brief ContainerTraits for executor_entity_collector_to_executor trace points.
   using ExecutorEntityCollectorToExecutor = ContainerTraits<const void *, const void *, int64_t>;
