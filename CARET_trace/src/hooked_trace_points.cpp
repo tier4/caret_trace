@@ -132,6 +132,11 @@ public:
   std::vector<rclcpp::CallbackGroup::WeakPtr> get_automatically_added_callback_groups_from_nodes()
     override;
 
+#ifdef ROS_DISTRO_JAZZY
+  RCLCPP_PUBLIC
+  rclcpp::executors::ExecutorEntitiesCollector * get_collector_() { return &collector_; }
+#endif
+
   // protected:
   RCLCPP_PUBLIC
   bool execute_ready_executables(bool spin_once = false);
@@ -145,11 +150,25 @@ public:
   // private:
   // RCLCPP_DISABLE_COPY(StaticSingleThreadedExecutor)
 
+#ifndef ROS_DISTRO_JAZZY
   StaticExecutorEntitiesCollector::SharedPtr entities_collector_;
+#endif
 };
+
+#ifdef ROS_DISTRO_JAZZY
+class ExecutorPublic : public rclcpp::Executor
+{
+public:
+  RCLCPP_PUBLIC
+  rclcpp::executors::ExecutorEntitiesCollector * get_collector_() { return &collector_; }
+};
+#endif
 
 }  // namespace executors
 }  // namespace rclcpp
+
+using CallbackGroupCollection =
+  std::set<rclcpp::CallbackGroup::WeakPtr, std::owner_less<rclcpp::CallbackGroup::WeakPtr>>;
 
 extern "C" {
 // Get symbols from the DDS shared library
@@ -322,6 +341,98 @@ rmw_ret_t rmw_publish_serialized_message(
   return ret;
 }
 
+#ifdef ROS_DISTRO_JAZZY
+// rclcpp::executors::ExecutorEntitiesCollector::add_callback_group_to_collection(
+// std::shared_ptr<rclcpp::CallbackGroup>,
+// std::set<std::weak_ptr<rclcpp::CallbackGroup>,
+// std::owner_less<std::weak_ptr<rclcpp::CallbackGroup> >,
+// std::allocator<std::weak_ptr<rclcpp::CallbackGroup> > >&)
+void SYMBOL_CONCAT_2(
+  _ZN6rclcpp9executors25ExecutorEntitiesCollector32add_callback_group_to_collectionESt10shared_,
+  ptrINS_13CallbackGroupEERSt3setISt8weak_ptrIS3_ESt10owner_lessIS7_ESaIS7_EE)(
+  void * obj, const rclcpp::CallbackGroup::SharedPtr group_ptr,
+  const CallbackGroupCollection & collection)
+{
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
+  static auto record =
+    [](const void * obj, const void * group_addr, const char * group_type_name, int64_t init_time) {
+      tracepoint(
+        TRACEPOINT_PROVIDER, callback_group_to_executor_entity_collector, obj, group_addr,
+        group_type_name, init_time);
+
+#ifdef DEBUG_OUTPUT
+      std::cerr << "callback_group_to_executor_entity_collector," << obj << "," << group_addr << ","
+                << group_type_name << std::endl;
+#endif
+    };
+  auto now = clock.now();
+  using functionT =
+    void (*)(void *, const rclcpp::CallbackGroup::SharedPtr, const CallbackGroupCollection &);
+  ((functionT)orig_func)(obj, group_ptr, collection);
+  auto group_addr = static_cast<const void *>(group_ptr.get());
+
+  std::string group_type_name = "unknown";
+  auto group_type = group_ptr->type();
+  if (group_type == rclcpp::CallbackGroupType::MutuallyExclusive) {
+    group_type_name = "mutually_exclusive";
+  } else if (group_type == rclcpp::CallbackGroupType::Reentrant) {
+    group_type_name = "reentrant";
+  }
+
+  if (!context.get_controller().is_allowed_process()) {
+    return;
+  }
+
+  if (!data_container.is_assigned_callback_group_to_executor_entity_collector()) {
+    data_container.assign_callback_group_to_executor_entity_collector(record);
+  }
+
+  data_container.store_callback_group_to_executor_entity_collector(
+    obj, group_addr, group_type_name.c_str(), now);
+  record(obj, group_addr, group_type_name.c_str(), now);
+}
+
+// rclcpp::Executor::Executor(rclcpp::ExecutorOptions const&)
+void _ZN6rclcpp8ExecutorC2ERKNS_15ExecutorOptionsE(void * obj, const void * option)
+{
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
+  static auto record = [](const void * obj, const void * collector_ptr, int64_t init_time) {
+    tracepoint(
+      TRACEPOINT_PROVIDER, executor_entity_collector_to_executor, obj, collector_ptr, init_time);
+
+#ifdef DEBUG_OUTPUT
+    std::cerr << "executor_entity_collector_to_executor," << obj << "," << collector_ptr
+              << std::endl;
+#endif
+  };
+
+  using ExecutorPublic = rclcpp::executors::ExecutorPublic;
+  auto exec_ptr = reinterpret_cast<ExecutorPublic *>(obj);
+  auto collector_ptr = exec_ptr->get_collector_();
+
+  auto now = clock.now();
+  using functionT = void (*)(void *, const void *);
+  ((functionT)orig_func)(obj, option);
+
+  if (!context.get_controller().is_allowed_process()) {
+    return;
+  }
+
+  if (!data_container.is_assigned_executor_entity_collector_to_executor()) {
+    data_container.assign_executor_entity_collector_to_executor(record);
+  }
+
+  data_container.store_executor_entity_collector_to_executor(obj, collector_ptr, now);
+  record(obj, collector_ptr, now);
+}
+#endif
+
 // rclcpp::executors::SingleThreadedExecutor::SingleThreadedExecutor(rclcpp::ExecutorOptions const&)
 void _ZN6rclcpp9executors22SingleThreadedExecutorC1ERKNS_15ExecutorOptionsE(
   void * obj, const void * option)
@@ -431,7 +542,11 @@ void _ZN6rclcpp9executors28StaticSingleThreadedExecutorC1ERKNS_15ExecutorOptions
     data_container.assign_construct_static_executor(record);
   }
 
+#ifdef ROS_DISTRO_JAZZY
+  auto entities_collector_ptr = exec_ptr->get_collector_();
+#else
   auto entities_collector_ptr = static_cast<const void *>(exec_ptr->entities_collector_.get());
+#endif
   data_container.store_construct_static_executor(
     obj, entities_collector_ptr, "static_single_threaded_executor", now);
   record(obj, entities_collector_ptr, "static_single_threaded_executor", now);
@@ -478,7 +593,6 @@ void SYMBOL_CONCAT_3(
     void *, rclcpp::CallbackGroup::SharedPtr, rclcpp::node_interfaces::NodeBaseInterface::SharedPtr,
     const void *, bool);
   auto group_addr = static_cast<const void *>(group_ptr.get());
-  auto node_addr = static_cast<const void *>(node_ptr.get());
 
   ((functionT)orig_func)(obj, group_ptr, node_ptr, weak_groups_to_nodes, notify);
 
@@ -491,7 +605,6 @@ void SYMBOL_CONCAT_3(
   }
 
   auto group_addr_ = const_cast<void *>(group_addr);
-  auto node_addr_ = const_cast<void *>(node_addr);
 
   std::string group_type_name = "unknown";
   auto group_type = group_ptr->type();
