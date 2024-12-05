@@ -364,7 +364,7 @@ void SYMBOL_CONCAT_2(
         group_type_name, init_time);
 
 #ifdef DEBUG_OUTPUT
-      std::cerr << "callback_group_to_executor_entity_collector," << obj << "," << group_addr
+      std::cerr << "callback_group_to_executor_entity_collector," << obj << "," << group_addr << "," << group_type_name
                 << std::endl;
 #endif
     };
