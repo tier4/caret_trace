@@ -24,10 +24,17 @@
 
 TEST(DataContainerTest, EmptyCase)
 {
+#ifdef ROS_DISTRO_JAZZY
+  DataContainer container(
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+#else
   DataContainer container(
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr);
+#endif
   bool finished;
   finished = container.record();
   EXPECT_TRUE(finished);
@@ -75,6 +82,10 @@ TEST(DataContainerTest, TracePoints)
      "callback_group_add_timer",
      "construct_executor",
      "construct_static_executor",
+#ifdef ROS_DISTRO_JAZZY
+     "callback_group_to_executor_entity_collector",
+     "executor_entity_collector_to_executor",
+#endif
      "rcl_client_init",
      "rcl_init",
      "rcl_node_init",
