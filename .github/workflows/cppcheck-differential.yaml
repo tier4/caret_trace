@@ -40,13 +40,13 @@ jobs:
           echo "Modified packages:"
           echo "${{ steps.get-modified-packages.outputs.modified_packages }}"
 
-      - name: Get modified files
-        id: get-modified-files
-        uses: tj-actions/changed-files@v45
-        with:
-          files: |
-            **/*.cpp
-            **/*.hpp
+      # - name: Get modified files
+      #   id: get-modified-files
+      #   uses: tj-actions/changed-files@v45
+      #   with:
+      #     files: |
+      #       **/*.cpp
+      #       **/*.hpp
 
       # Display the modified files
       - name: Show modified files
