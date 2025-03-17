@@ -39,13 +39,13 @@ jobs:
         id: get-modified-packages
         uses: autowarefoundation/autoware-github-actions/get-modified-packages@v1
 
-      - name: Get modified files
-        id: get-modified-files
-        uses: tj-actions/changed-files@v42
-        with:
-          files: |
-            **/*.cpp
-            **/*.hpp
+      # - name: Get modified files
+      #   id: get-modified-files
+      #   uses: tj-actions/changed-files@v42
+      #   with:
+      #     files: |
+      #       **/*.cpp
+      #       **/*.hpp
 
       - name: Run clang-tidy
         if: ${{ steps.get-modified-files.outputs.all_changed_files != '' }}
