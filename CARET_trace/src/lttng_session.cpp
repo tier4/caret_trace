@@ -20,6 +20,7 @@
 #include <iostream>
 #include <memory>
 #include <mutex>
+#include <filesystem>
 
 bool LttngSessionImpl::is_session_running() const
 {
@@ -27,14 +28,10 @@ bool LttngSessionImpl::is_session_running() const
 
   // $ lttng list | grep --quiet '\[active\]'
   // Zero exit status if there is an active session, otherwise 1
-  std::string command = "lttng list | grep --quiet \'\\[active\\]\'";
-  auto fp = popen(command.c_str(), "r");
-  if (fp == nullptr) {
-    return false;
-  }
+  // std::string command = "lttng list | grep --quiet \'\\[active\\]\'";
+  // auto fp = popen(command.c_str(), "r");
+  return std::filesystem::exists("/tmp/caret_lttng_session_started");
 
-  auto is_session_running = WEXITSTATUS(pclose(fp)) == 0;
-  return is_session_running;
 }
 
 bool LttngSessionImpl::started_session_running() const
