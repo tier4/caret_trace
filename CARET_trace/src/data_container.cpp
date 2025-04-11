@@ -397,8 +397,6 @@ void DataContainer::assign_rmw_implementation(RmwImplementation::StdFuncT record
 
 void DataContainer::assign_agnocast_publisher_init(AgnocastPublisherInit::StdFuncT record)
 {
-  std::cout << "assign_agnocast_publisher_init" << std::endl;
-
   assert(agnocast_publisher_init_.get() != nullptr);
   agnocast_publisher_init_->assign(record);
 }
