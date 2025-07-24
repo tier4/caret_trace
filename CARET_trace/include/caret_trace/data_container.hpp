@@ -138,6 +138,18 @@ public:
   /// @brief ContainerTraits for rmw_implementation trace points.
   using RmwImplementation = ContainerTraits<const char *, int64_t>;
 
+  /// @brief ContainerTraits for agnocast_publisher_init trace points.
+  using AgnocastPublisherInit =
+    ContainerTraits<const void *, const void *, const char *, size_t, int64_t>;
+
+  /// @brief ContainerTraits for agnocast_subscription_init trace points.
+  using AgnocastSubscriptionInit = ContainerTraits<
+    const void *, const void *, const void *, const void *, const char *, const char *, size_t,
+    uint64_t, int64_t>;
+
+  /// @brief ContainerTraits for agnocast_construct_executor trace points.
+  using AgnocastConstructExecutor = ContainerTraits<const void *, const char *, int64_t>;
+
   /// @brief Construct an instance.
   DataContainer();
 
@@ -174,6 +186,9 @@ public:
   /// @param rclcpp_timer_callback_added Data instance for rclcpp_timer_callback_added trace point.
   /// @param rclcpp_timer_link_node Data instance for rclcpp_timer_link_node trace point.
   /// @param rmw_implementation Data instance for rmw_implementation trace point.
+  /// @param agnocast_publisher_init Data instance for agnocast_publisher_init trace point.
+  /// @param agnocast_subscription_init Data instance for agnocast_subscription_init trace point.
+  /// @param agnocast_construct_executor Data instance for agnocast_construct_executor trace point.
   DataContainer(
     std::shared_ptr<AddCallbackGroup::KeysT> add_callback_group,
     std::shared_ptr<AddCallbackGroupStaticExecutor::KeysT> add_callback_group_static_executor,
@@ -203,7 +218,10 @@ public:
     std::shared_ptr<RclcppConstructRingBuffer::KeysT> rclcpp_construct_ring_buffer,
     std::shared_ptr<RclcppBufferToIpb::KeysT> rclcpp_buffer_to_ipb,
     std::shared_ptr<RclcppIpbToSubscription::KeysT> rclcpp_ipb_to_subscription,
-    std::shared_ptr<RmwImplementation::KeysT> rmw_implementation);
+    std::shared_ptr<RmwImplementation::KeysT> rmw_implementation,
+    std::shared_ptr<AgnocastPublisherInit::KeysT> agnocast_publisher_init,
+    std::shared_ptr<AgnocastSubscriptionInit::KeysT> agnocast_subscription_init,
+    std::shared_ptr<AgnocastConstructExecutor::KeysT> agnocast_construct_executor);
 
   bool record(uint64_t loop_count = 1) override;
 
@@ -510,6 +528,39 @@ public:
     return rmw_implementation_->store(args...);
   }
 
+  /// @brief Store data for agnocast_publisher_init trace points.
+  /// @tparam ...Args Data types to be stored.
+  /// @param ...args Data to be stored.
+  /// @return True, data was stored to pending set.
+  /// @return False, data was stored to set.
+  template <typename... Args>
+  bool store_agnocast_publisher_init(Args... args)
+  {
+    return agnocast_publisher_init_->store(args...);
+  }
+
+  /// @brief Store data for agnocast_subscription_init trace points.
+  /// @tparam ...Args Data types to be stored.
+  /// @param ...args Data to be stored.
+  /// @return True, data was stored to pending set.
+  /// @return False, data was stored to set.
+  template <typename... Args>
+  bool store_agnocast_subscription_init(Args... args)
+  {
+    return agnocast_subscription_init_->store(args...);
+  }
+
+  /// @brief Store data for agnocast_construct_executor trace points.
+  /// @tparam ...Args Data types to be stored.
+  /// @param ...args Data to be stored.
+  /// @return True, data was stored to pending set.
+  /// @return False, data was stored to set.
+  template <typename... Args>
+  bool store_agnocast_construct_executor(Args... args)
+  {
+    return agnocast_construct_executor_->store(args...);
+  }
+
   /// @brief Assign recording function for add_callback_group trace points.
   /// @param record recording function.
   void assign_add_callback_group(AddCallbackGroup::StdFuncT record);
@@ -622,6 +673,18 @@ public:
   /// @brief Assign recording function for rmw_implementation trace points.
   /// @param record recording function.
   void assign_rmw_implementation(RmwImplementation::StdFuncT record);
+
+  /// @brief Assign recording function for agnocast_publisher_init trace points.
+  /// @param record recording function.
+  void assign_agnocast_publisher_init(AgnocastPublisherInit::StdFuncT record);
+
+  /// @brief Assign recording function for agnocast_subscription_init trace points.
+  /// @param record recording function.
+  void assign_agnocast_subscription_init(AgnocastSubscriptionInit::StdFuncT record);
+
+  /// @brief Assign recording function for agnocast_construct_executor trace points.
+  /// @param record recording function.
+  void assign_agnocast_construct_executor(AgnocastConstructExecutor::StdFuncT record);
 
   /// @brief Check whether recording function for add_callback_group trace point is assigned.
   /// @return True if function is assigned, false otherwise.
@@ -748,6 +811,20 @@ public:
   /// @return True if function is assigned, false otherwise.
   bool is_assigned_rmw_implementation() const;
 
+  /// @brief Check whether recording function for agnocast_publisher_init trace point is assigned.
+  /// @return True if function is assigned, false otherwise.
+  bool is_assigned_agnocast_publisher_init() const;
+
+  /// @brief Check whether recording function for agnocast_subscription_init trace point is
+  /// assigned.
+  /// @return True if function is assigned, false otherwise.
+  bool is_assigned_agnocast_subscription_init() const;
+
+  /// @brief Check whether recording function for agnocast_construct_executor trace point is
+  /// assigned.
+  /// @return True if function is assigned, false otherwise.
+  bool is_assigned_agnocast_construct_executor() const;
+
   /// @brief Get trace point names.
   /// @return Trace point names.
   std::vector<std::string> trace_points() const;
@@ -785,6 +862,9 @@ private:
   std::shared_ptr<RclcppBufferToIpb::KeysT> rclcpp_buffer_to_ipb_;
   std::shared_ptr<RclcppIpbToSubscription::KeysT> rclcpp_ipb_to_subscription_;
   std::shared_ptr<RmwImplementation::KeysT> rmw_implementation_;
+  std::shared_ptr<AgnocastPublisherInit::KeysT> agnocast_publisher_init_;
+  std::shared_ptr<AgnocastSubscriptionInit::KeysT> agnocast_subscription_init_;
+  std::shared_ptr<AgnocastConstructExecutor::KeysT> agnocast_construct_executor_;
 
   std::shared_ptr<DataRecorder> recorder_;
 };
