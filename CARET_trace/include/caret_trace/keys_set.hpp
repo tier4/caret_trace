@@ -44,13 +44,19 @@ struct if_<false, Then, Else>
 /// @tparam T4 Fourth argument type.
 /// @tparam T5 Fifth argument type.
 /// @tparam T6 Sixth argument type.
+/// @tparam T7 Seventh argument type.
+/// @tparam T8 Eighth argument type.
+/// @tparam T9 Ninth argument type.
 template<
   typename T1,
   typename T2 = std::false_type,
   typename T3 = std::false_type,
   typename T4 = std::false_type,
   typename T5 = std::false_type,
-  typename T6 = std::false_type
+  typename T6 = std::false_type,
+  typename T7 = std::false_type,
+  typename T8 = std::false_type,
+  typename T9 = std::false_type
 >
 // clang-format on
 class HashableKeys
@@ -62,6 +68,9 @@ private:
   using IsT4String = std::is_same<const char *, T4>;
   using IsT5String = std::is_same<const char *, T5>;
   using IsT6String = std::is_same<const char *, T6>;
+  using IsT7String = std::is_same<const char *, T7>;
+  using IsT8String = std::is_same<const char *, T8>;
+  using IsT9String = std::is_same<const char *, T9>;
 
   // Store string literal as std::string
   using T1_ = typename if_<IsT1String::value, std::string, T1>::type;
@@ -70,6 +79,9 @@ private:
   using T4_ = typename if_<IsT4String::value, std::string, T4>::type;
   using T5_ = typename if_<IsT5String::value, std::string, T5>::type;
   using T6_ = typename if_<IsT6String::value, std::string, T6>::type;
+  using T7_ = typename if_<IsT7String::value, std::string, T7>::type;
+  using T8_ = typename if_<IsT8String::value, std::string, T8>::type;
+  using T9_ = typename if_<IsT9String::value, std::string, T9>::type;
 
 public:
   /// @brief Construct an instance.
@@ -120,6 +132,63 @@ public:
   {
   }
 
+  /// @brief Construct an instance.
+  /// @param key1 first argument.
+  /// @param key2 second argument.
+  /// @param key3 third argument.
+  /// @param key4 fourth argument.
+  /// @param key5 fifth argument.
+  /// @param key6 sixth argument.
+  /// @param key7 seventh argument.
+  HashableKeys(T1 key1, T2 key2, T3 key3, T4 key4, T5 key5, T6 key6, T7 key7)
+  : key1_(key1), key2_(key2), key3_(key3), key4_(key4), key5_(key5), key6_(key6), key7_(key7)
+  {
+  }
+
+  /// @brief Construct an instance.
+  /// @param key1 first argument.
+  /// @param key2 second argument.
+  /// @param key3 third argument.
+  /// @param key4 fourth argument.
+  /// @param key5 fifth argument.
+  /// @param key6 sixth argument.
+  /// @param key7 seventh argument.
+  /// @param key8 eighth argument.
+  HashableKeys(T1 key1, T2 key2, T3 key3, T4 key4, T5 key5, T6 key6, T7 key7, T8 key8)
+  : key1_(key1),
+    key2_(key2),
+    key3_(key3),
+    key4_(key4),
+    key5_(key5),
+    key6_(key6),
+    key7_(key7),
+    key8_(key8)
+  {
+  }
+
+  /// @brief Construct an instance.
+  /// @param key1 first argument.
+  /// @param key2 second argument.
+  /// @param key3 third argument.
+  /// @param key4 fourth argument.
+  /// @param key5 fifth argument.
+  /// @param key6 sixth argument.
+  /// @param key7 seventh argument.
+  /// @param key8 eighth argument.
+  /// @param key9 ninth argument.
+  HashableKeys(T1 key1, T2 key2, T3 key3, T4 key4, T5 key5, T6 key6, T7 key7, T8 key8, T9 key9)
+  : key1_(key1),
+    key2_(key2),
+    key3_(key3),
+    key4_(key4),
+    key5_(key5),
+    key6_(key6),
+    key7_(key7),
+    key8_(key8),
+    key9_(key9)
+  {
+  }
+
   /// @brief Calculate hash.
   /// @return hash value.
   /// @note For hash code implementations, see:
@@ -145,6 +214,15 @@ public:
     if constexpr (!std::is_same_v<std::false_type, T6>) {
       res = res * 31 + std::hash<T6_>()(key6_);
     }
+    if constexpr (!std::is_same_v<std::false_type, T7>) {
+      res = res * 31 + std::hash<T7_>()(key7_);
+    }
+    if constexpr (!std::is_same_v<std::false_type, T8>) {
+      res = res * 31 + std::hash<T8_>()(key8_);
+    }
+    if constexpr (!std::is_same_v<std::false_type, T9>) {
+      res = res * 31 + std::hash<T9_>()(key9_);
+    }
 
     return res;
   }
@@ -152,9 +230,21 @@ public:
   /// @brief Check for equivalence.
   /// @param keys Comparison target.
   /// @return True if equal, false otherwise.
-  bool equal_to(const HashableKeys<T1, T2, T3, T4, T5, T6> & keys) const
+  bool equal_to(const HashableKeys<T1, T2, T3, T4, T5, T6, T7, T8, T9> & keys) const
   {
-    if constexpr (!std::is_same_v<std::false_type, T6>) {
+    if constexpr (!std::is_same_v<std::false_type, T9>) {
+      return key1_ == keys.key1_ && key2_ == keys.key2_ && key3_ == keys.key3_ &&
+             key4_ == keys.key4_ && key5_ == keys.key5_ && key6_ == keys.key6_ &&
+             key7_ == keys.key7_ && key8_ == keys.key8_ && key9_ == keys.key9_;
+    } else if constexpr (!std::is_same_v<std::false_type, T8>) {
+      return key1_ == keys.key1_ && key2_ == keys.key2_ && key3_ == keys.key3_ &&
+             key4_ == keys.key4_ && key5_ == keys.key5_ && key6_ == keys.key6_ &&
+             key7_ == keys.key7_ && key8_ == keys.key8_;
+    } else if constexpr (!std::is_same_v<std::false_type, T7>) {
+      return key1_ == keys.key1_ && key2_ == keys.key2_ && key3_ == keys.key3_ &&
+             key4_ == keys.key4_ && key5_ == keys.key5_ && key6_ == keys.key6_ &&
+             key7_ == keys.key7_;
+    } else if constexpr (!std::is_same_v<std::false_type, T6>) {
       return key1_ == keys.key1_ && key2_ == keys.key2_ && key3_ == keys.key3_ &&
              key4_ == keys.key4_ && key5_ == keys.key5_ && key6_ == keys.key6_;
     } else if constexpr (!std::is_same_v<std::false_type, T5>) {
@@ -175,7 +265,7 @@ public:
   /// @brief Compare with other keys.
   /// @param rhs Comparison target.
   /// @return True if rhs is greater, false otherwise.
-  bool operator<(const HashableKeys<T1, T2, T3, T4, T5, T6> & rhs) const
+  bool operator<(const HashableKeys<T1, T2, T3, T4, T5, T6, T7, T8, T9> & rhs) const
   {
     if (first() < rhs.first()) {
       return true;
@@ -207,6 +297,24 @@ public:
 
     if constexpr (!std::is_same_v<std::false_type, T6>) {
       if (sixth() < rhs.sixth()) {
+        return true;
+      }
+    }
+
+    if constexpr (!std::is_same_v<std::false_type, T7>) {
+      if (seventh() < rhs.seventh()) {
+        return true;
+      }
+    }
+
+    if constexpr (!std::is_same_v<std::false_type, T8>) {
+      if (eighth() < rhs.eighth()) {
+        return true;
+      }
+    }
+
+    if constexpr (!std::is_same_v<std::false_type, T9>) {
+      if (ninth() < rhs.ninth()) {
         return true;
       }
     }
@@ -290,6 +398,45 @@ public:
     }
   }
 
+  /// @brief Get seventh argument.
+  /// @return Seventh argument.
+  T7 seventh() const
+  {
+    static_assert(!std::is_same_v<T7, std::false_type>, "Invalid access.");
+
+    if constexpr (IsT7String::value) {
+      return key7_.c_str();
+    } else {
+      return key7_;
+    }
+  }
+
+  /// @brief Get eighth argument.
+  /// @return Eighth argument.
+  T8 eighth() const
+  {
+    static_assert(!std::is_same_v<T8, std::false_type>, "Invalid access.");
+
+    if constexpr (IsT8String::value) {
+      return key8_.c_str();
+    } else {
+      return key8_;
+    }
+  }
+
+  /// @brief Get ninth argument.
+  /// @return Ninth argument.
+  T9 ninth() const
+  {
+    static_assert(!std::is_same_v<T9, std::false_type>, "Invalid access.");
+
+    if constexpr (IsT9String::value) {
+      return key9_.c_str();
+    } else {
+      return key9_;
+    }
+  }
+
 private:
   T1_ key1_;
   T2_ key2_;
@@ -297,22 +444,32 @@ private:
   T4_ key4_;
   T5_ key5_;
   T6_ key6_;
+  T7_ key7_;
+  T8_ key8_;
+  T9_ key9_;
 };
 
 namespace std
 {
-template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-struct hash<HashableKeys<T1, T2, T3, T4, T5, T6>>
+template <
+  typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7,
+  typename T8, typename T9>
+struct hash<HashableKeys<T1, T2, T3, T4, T5, T6, T7, T8, T9>>
 {
-  size_t operator()(const HashableKeys<T1, T2, T3, T4, T5, T6> & t) const { return t.hash(); }
+  size_t operator()(const HashableKeys<T1, T2, T3, T4, T5, T6, T7, T8, T9> & t) const
+  {
+    return t.hash();
+  }
 };
 
-template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-struct equal_to<HashableKeys<T1, T2, T3, T4, T5, T6>>
+template <
+  typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7,
+  typename T8, typename T9>
+struct equal_to<HashableKeys<T1, T2, T3, T4, T5, T6, T7, T8, T9>>
 {
   size_t operator()(
-    const HashableKeys<T1, T2, T3, T4, T5, T6> & t,
-    const HashableKeys<T1, T2, T3, T4, T5, T6> & t_) const
+    const HashableKeys<T1, T2, T3, T4, T5, T6, T7, T8, T9> & t,
+    const HashableKeys<T1, T2, T3, T4, T5, T6, T7, T8, T9> & t_) const
   {
     return t.equal_to(t_);
   }
@@ -326,6 +483,9 @@ struct equal_to<HashableKeys<T1, T2, T3, T4, T5, T6>>
 /// @tparam T4 Third argument type.
 /// @tparam T5 Third argument type.
 /// @tparam T6 Third argument type.
+/// @tparam T7 Third argument type.
+/// @tparam T8 Third argument type.
+/// @tparam T9 Third argument type.
 // clang-format off
 template <
   typename T1,
@@ -333,16 +493,66 @@ template <
   typename T3 = std::false_type,
   typename T4 = std::false_type,
   typename T5 = std::false_type,
-  typename T6 = std::false_type
+  typename T6 = std::false_type,
+  typename T7 = std::false_type,
+  typename T8 = std::false_type,
+  typename T9 = std::false_type
 >
 // clang-format on
 class KeysSet
 {
 public:
   //  Use set to loop through iterators in order of addition.
-  using SetT = std::set<HashableKeys<T1, T2, T3, T4, T5, T6>>;
+  using SetT = std::set<HashableKeys<T1, T2, T3, T4, T5, T6, T7, T8, T9>>;
   using IteratorT = typename SetT::iterator;
   using ConstIteratorT = typename SetT::const_iterator;
+
+  /// @brief Insert new keys.
+  /// @param key1 First argument.
+  /// @param key2 Second argument.
+  /// @param key3 Third argument.
+  /// @param key4 Fourth argument.
+  /// @param key5 Fifth argument.
+  /// @param key6 Sixth argument.
+  /// @param key7 Seventh argument.
+  /// @param key8 Eighth argument.
+  /// @param key9 Ninth argument.
+  void insert(T1 key1, T2 key2, T3 key3, T4 key4, T5 key5, T6 key6, T7 key7, T8 key8, T9 key9)
+  {
+    HashableKeys<T1, T2, T3, T4, T5, T6, T7, T8, T9> keys(
+      key1, key2, key3, key4, key5, key6, key7, key8, key9);
+    keys_.insert(keys);
+  }
+
+  /// @brief Insert new keys.
+  /// @param key1 First argument.
+  /// @param key2 Second argument.
+  /// @param key3 Third argument.
+  /// @param key4 Fourth argument.
+  /// @param key5 Fifth argument.
+  /// @param key6 Fifth argument.
+  /// @param key7 Fifth argument.
+  /// @param key8 Fifth argument.
+  void insert(T1 key1, T2 key2, T3 key3, T4 key4, T5 key5, T6 key6, T7 key7, T8 key8)
+  {
+    HashableKeys<T1, T2, T3, T4, T5, T6, T7, T8> keys(
+      key1, key2, key3, key4, key5, key6, key7, key8);
+    keys_.insert(keys);
+  }
+
+  /// @brief Insert new keys.
+  /// @param key1 First argument.
+  /// @param key2 Second argument.
+  /// @param key3 Third argument.
+  /// @param key4 Fourth argument.
+  /// @param key5 Fifth argument.
+  /// @param key6 Fifth argument.
+  /// @param key7 Fifth argument.
+  void insert(T1 key1, T2 key2, T3 key3, T4 key4, T5 key5, T6 key6, T7 key7)
+  {
+    HashableKeys<T1, T2, T3, T4, T5, T6, T7> keys(key1, key2, key3, key4, key5, key6, key7);
+    keys_.insert(keys);
+  }
 
   /// @brief Insert new keys.
   /// @param key1 First argument.
@@ -413,11 +623,65 @@ public:
   /// @param key3 Third argument.
   /// @param key4 Fourth argument.
   /// @param key5 Fifth argument.
+  /// @param key6 Sixth argument.
+  /// @param key7 Seventh argument.
+  /// @param key8 Eighth argument.
+  /// @param key9 Ninth argument.
   /// @return True if it contains, false otherwise.
-  void insert(HashableKeys<T1, T2, T3, T4, T5, T6> keys) { keys_.insert(keys); }
+  void insert(HashableKeys<T1, T2, T3, T4, T5, T6, T7, T8, T9> keys) { keys_.insert(keys); }
 
   /// @brief Clear set.
   void clear() { keys_.clear(); }
+
+  /// @brief Confirm content.
+  /// @param key1 First argument.
+  /// @param key2 Second argument.
+  /// @param key3 Third argument.
+  /// @param key4 Fourth argument.
+  /// @param key5 Fifth argument.
+  /// @param key6 Sixth argument.
+  /// @param key7 Seventh argument.
+  /// @param key8 Eighth argument.
+  /// @param key9 Ninth argument.
+  /// @return True if it contains, false otherwise.
+  bool has(T1 key1, T2 key2, T3 key3, T4 key4, T5 key5, T6 key6, T7 key7, T8 key8, T9 key9) const
+  {
+    HashableKeys<T1, T2, T3, T4, T5, T6, T7, T8, T9> keys(
+      key1, key2, key3, key4, key5, key6, key7, key8, key9);
+    return keys_.count(keys) > 0;
+  }
+
+  /// @brief Confirm content.
+  /// @param key1 First argument.
+  /// @param key2 Second argument.
+  /// @param key3 Third argument.
+  /// @param key4 Fourth argument.
+  /// @param key5 Fifth argument.
+  /// @param key6 Sixth argument.
+  /// @param key7 Seventh argument.
+  /// @param key8 Eighth argument.
+  /// @return True if it contains, false otherwise.
+  bool has(T1 key1, T2 key2, T3 key3, T4 key4, T5 key5, T6 key6, T7 key7, T8 key8) const
+  {
+    HashableKeys<T1, T2, T3, T4, T5, T6, T7, T8> keys(
+      key1, key2, key3, key4, key5, key6, key7, key8);
+    return keys_.count(keys) > 0;
+  }
+
+  /// @brief Confirm content.
+  /// @param key1 First argument.
+  /// @param key2 Second argument.
+  /// @param key3 Third argument.
+  /// @param key4 Fourth argument.
+  /// @param key5 Fifth argument.
+  /// @param key6 Sixth argument.
+  /// @param key7 Seventh argument.
+  /// @return True if it contains, false otherwise.
+  bool has(T1 key1, T2 key2, T3 key3, T4 key4, T5 key5, T6 key6, T7 key7) const
+  {
+    HashableKeys<T1, T2, T3, T4, T5, T6, T7> keys(key1, key2, key3, key4, key5, key6, key7);
+    return keys_.count(keys) > 0;
+  }
 
   /// @brief Confirm content.
   /// @param key1 First argument.

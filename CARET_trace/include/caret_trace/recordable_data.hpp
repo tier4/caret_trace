@@ -288,7 +288,7 @@ private:
       const auto & fourth = keys.fourth();
       const auto & fifth = keys.fifth();
       func_(first, second, third, fourth, fifth);
-    } else {
+    } else if constexpr (arg_size == 6) {  // NOLINT
       const auto & first = keys.first();
       const auto & second = keys.second();
       const auto & third = keys.third();
@@ -296,6 +296,36 @@ private:
       const auto & fifth = keys.fifth();
       const auto & sixth = keys.sixth();
       func_(first, second, third, fourth, fifth, sixth);
+    } else if constexpr (arg_size == 7) {  // NOLINT
+      const auto & first = keys.first();
+      const auto & second = keys.second();
+      const auto & third = keys.third();
+      const auto & fourth = keys.fourth();
+      const auto & fifth = keys.fifth();
+      const auto & sixth = keys.sixth();
+      const auto & seventh = keys.seventh();
+      func_(first, second, third, fourth, fifth, sixth, seventh);
+    } else if constexpr (arg_size == 8) {  // NOLINT
+      const auto & first = keys.first();
+      const auto & second = keys.second();
+      const auto & third = keys.third();
+      const auto & fourth = keys.fourth();
+      const auto & fifth = keys.fifth();
+      const auto & sixth = keys.sixth();
+      const auto & seventh = keys.seventh();
+      const auto & eighth = keys.eighth();
+      func_(first, second, third, fourth, fifth, sixth, seventh, eighth);
+    } else {
+      const auto & first = keys.first();
+      const auto & second = keys.second();
+      const auto & third = keys.third();
+      const auto & fourth = keys.fourth();
+      const auto & fifth = keys.fifth();
+      const auto & sixth = keys.sixth();
+      const auto & seventh = keys.seventh();
+      const auto & eighth = keys.eighth();
+      const auto & ninth = keys.ninth();
+      func_(first, second, third, fourth, fifth, sixth, seventh, eighth, ninth);
     }
   }
 
