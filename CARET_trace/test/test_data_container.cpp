@@ -28,12 +28,12 @@ TEST(DataContainerTest, EmptyCase)
   DataContainer container(
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
 #else
   DataContainer container(
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr, nullptr, nullptr, nullptr, nullptr);
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
 #endif
   bool finished;
   finished = container.record();
@@ -102,7 +102,10 @@ TEST(DataContainerTest, TracePoints)
      "rclcpp_construct_ring_buffer",
      "rclcpp_buffer_to_ipb",
      "rclcpp_ipb_to_subscription",
-     "rmw_implementation"});
+     "rmw_implementation",
+     "agnocast_publisher_init",
+     "agnocast_subscription_init",
+     "agnocast_construct_executor"});
 
   EXPECT_EQ(trace_points, expect);
 }
