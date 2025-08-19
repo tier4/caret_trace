@@ -211,6 +211,11 @@ static void * DEFINE_ORIG_FUNC(ros_trace_rclcpp_subscription_callback_added);
 static void * DEFINE_ORIG_FUNC(ros_trace_rclcpp_subscription_init);
 static void * DEFINE_ORIG_FUNC(ros_trace_rclcpp_timer_callback_added);
 static void * DEFINE_ORIG_FUNC(ros_trace_rclcpp_timer_link_node);
+static void * DEFINE_ORIG_FUNC(ros_trace_agnocast_publish);
+static void * DEFINE_ORIG_FUNC(ros_trace_agnocast_create_callable);
+static void * DEFINE_ORIG_FUNC(ros_trace_agnocast_callable_start);
+static void * DEFINE_ORIG_FUNC(ros_trace_agnocast_callable_end);
+static void * DEFINE_ORIG_FUNC(ros_trace_agnocast_take);
 }  // namespace ORIG_FUNC
 
 // clang-format off
