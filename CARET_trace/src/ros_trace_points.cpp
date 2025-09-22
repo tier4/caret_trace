@@ -518,6 +518,104 @@ void ros_trace_rclcpp_timer_link_node(const void * timer_handle, const void * no
   record(timer_handle, node_handle, now);
 }
 
+void ros_trace_agnocast_publish(
+  const void * publisher_handle,
+  int64_t entry_id)
+{
+  static auto & context = Singleton<Context>::get_instance();
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  static auto & controller = context.get_controller();
+
+  using functionT = void (*)(const void *, int64_t);
+
+  if (!controller.is_allowed_process()) {
+    return;
+  }
+
+  if (controller.is_allowed_publisher_handle(publisher_handle) && context.is_recording_allowed()) {
+    ((functionT) orig_func)(publisher_handle, entry_id);
+  }
+}
+
+void ros_trace_agnocast_create_callable(
+  const void * callable_handle,
+  int64_t entry_id,
+  uint64_t pid_ciid)
+{
+  static auto & context = Singleton<Context>::get_instance();
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  static auto & controller = context.get_controller();
+
+  using functionT = void (*)(const void *, int64_t, uint64_t);
+
+  if (!controller.is_allowed_process()) {
+    return;
+  }
+
+  controller.add_agnocast_callable(callable_handle, pid_ciid);
+
+  if (controller.is_allowed_agnocast_callable(callable_handle) && context.is_recording_allowed()) {
+    ((functionT) orig_func)(callable_handle, entry_id, pid_ciid);
+  }
+}
+
+void ros_trace_agnocast_callable_start(
+  const void * callable_handle)
+{
+  static auto & context = Singleton<Context>::get_instance();
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  static auto & controller = context.get_controller();
+
+  using functionT = void (*)(const void *);
+
+  if (!controller.is_allowed_process()) {
+    return;
+  }
+
+  if (controller.is_allowed_agnocast_callable(callable_handle) && context.is_recording_allowed()) {
+    ((functionT) orig_func)(callable_handle);
+  }
+}
+
+void ros_trace_agnocast_callable_end(
+  const void * callable_handle)
+{
+  static auto & context = Singleton<Context>::get_instance();
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  static auto & controller = context.get_controller();
+
+  using functionT = void (*)(const void *);
+
+  if (!controller.is_allowed_process()) {
+    return;
+  }
+
+  if (controller.is_allowed_agnocast_callable(callable_handle) && context.is_recording_allowed()) {
+    ((functionT) orig_func)(callable_handle);
+  }
+}
+
+void ros_trace_agnocast_take(
+  const void * subscription_handle,
+  const void * message,
+  int64_t entry_id)
+{
+  static auto & context = Singleton<Context>::get_instance();
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  static auto & controller = context.get_controller();
+
+  using functionT = void (*)(const void *, const void *, int64_t);
+
+  if (!controller.is_allowed_process()) {
+    return;
+  }
+
+  if (controller.is_allowed_subscription_handle(subscription_handle)
+      && context.is_recording_allowed()) {
+    ((functionT) orig_func)(subscription_handle, message, entry_id);
+  }
+}
+
 void ros_trace_callback_start(const void * callback, bool is_intra_process)
 {
   static auto & context = Singleton<Context>::get_instance();
