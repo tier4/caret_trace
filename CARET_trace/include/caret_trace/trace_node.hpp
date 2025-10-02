@@ -34,6 +34,8 @@ enum class TRACE_STATUS {
   RECORD,
 };
 
+void check_and_run_trace_node();
+
 /// @brief Interface class for recording operation node.
 class TraceNodeInterface
 {

@@ -42,6 +42,7 @@ endif()
 
 add_library(caret SHARED
   src/ros_trace_points.cpp
+  src/agnocast_trace_points.cpp
   src/hooked_trace_points.cpp
   src/tracing_controller.cpp
   src/singleton.cpp
