@@ -117,7 +117,8 @@ void ros_trace_agnocast_subscription_init(
       return;
     }
     tracepoint(TRACEPOINT_PROVIDER, agnocast_subscription_init, subscription_handle,
-      node_handle, callback, callback_group, symbol, topic_name, queue_depth, pid_callback_info_id, init_time);
+      node_handle, callback, callback_group, symbol, topic_name, queue_depth,
+      pid_callback_info_id, init_time);
   };
 
   if (!controller.is_allowed_process()) {
