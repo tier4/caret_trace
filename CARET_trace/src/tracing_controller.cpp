@@ -807,7 +807,8 @@ std::string TracingController::agnocast_callable_to_node_name(const void * calla
     if (pid_callback_info_id_it == agnocast_callable_to_pid_callback_info_ids_.end()) {
       break;
     }
-    auto node_handle_it = pid_callback_info_id_to_node_handles_.find(pid_callback_info_id_it->second);
+    auto node_handle_it =
+      pid_callback_info_id_to_node_handles_.find(pid_callback_info_id_it->second);
     if (node_handle_it == pid_callback_info_id_to_node_handles_.end()) {
       break;
     }
