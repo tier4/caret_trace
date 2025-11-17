@@ -803,12 +803,12 @@ bool TracingController::is_allowed_message(const void * message)
 std::string TracingController::agnocast_callable_to_node_name(const void * callable)
 {
   do {
-    auto pid_ciid_it = agnocast_callable_to_pid_ciids_.find(callable);
-    if (pid_ciid_it == agnocast_callable_to_pid_ciids_.end()) {
+    auto pid_callback_info_id_it = agnocast_callable_to_pid_callback_info_ids_.find(callable);
+    if (pid_callback_info_id_it == agnocast_callable_to_pid_callback_info_ids_.end()) {
       break;
     }
-    auto node_handle_it = pid_ciid_to_node_handles_.find(pid_ciid_it->second);
-    if (node_handle_it == pid_ciid_to_node_handles_.end()) {
+    auto node_handle_it = pid_callback_info_id_to_node_handles_.find(pid_callback_info_id_it->second);
+    if (node_handle_it == pid_callback_info_id_to_node_handles_.end()) {
       break;
     }
     auto node_name_it = node_handle_to_node_names_.find(node_handle_it->second);
@@ -826,12 +826,12 @@ std::string TracingController::agnocast_callable_to_node_name(const void * calla
 std::string TracingController::agnocast_callable_to_topic_name(const void * callable)
 {
   do {
-    auto pid_ciid_it = agnocast_callable_to_pid_ciids_.find(callable);
-    if (pid_ciid_it == agnocast_callable_to_pid_ciids_.end()) {
+    auto pid_callback_info_id_it = agnocast_callable_to_pid_callback_info_ids_.find(callable);
+    if (pid_callback_info_id_it == agnocast_callable_to_pid_callback_info_ids_.end()) {
       break;
     }
-    auto topic_name_it = pid_ciid_to_topic_names_.find(pid_ciid_it->second);
-    if (topic_name_it == pid_ciid_to_topic_names_.end()) {
+    auto topic_name_it = pid_callback_info_id_to_topic_names_.find(pid_callback_info_id_it->second);
+    if (topic_name_it == pid_callback_info_id_to_topic_names_.end()) {
       break;
     }
     auto topic_name = topic_name_it->second;
@@ -1049,17 +1049,17 @@ void TracingController::add_allowed_messages(const void * message, bool is_allow
   allowed_messages_[message] = is_allowed;
 }
 
-void TracingController::add_pid_ciid(
-  uint64_t pid_ciid, const void * node_handle, std::string topic_name)
+void TracingController::add_pid_callback_info_id(
+  uint64_t pid_callback_info_id, const void * node_handle, std::string topic_name)
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
-  pid_ciid_to_node_handles_[pid_ciid] = node_handle;
-  pid_ciid_to_topic_names_[pid_ciid] = topic_name;
+  pid_callback_info_id_to_node_handles_[pid_callback_info_id] = node_handle;
+  pid_callback_info_id_to_topic_names_[pid_callback_info_id] = topic_name;
 }
 
-void TracingController::add_agnocast_callable(const void * callable, uint64_t pid_ciid)
+void TracingController::add_agnocast_callable(const void * callable, uint64_t pid_callback_info_id)
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
-  agnocast_callable_to_pid_ciids_[callable] = pid_ciid;
+  agnocast_callable_to_pid_callback_info_ids_[callable] = pid_callback_info_id;
   allowed_agnocast_callables_.erase(callable);
 }
