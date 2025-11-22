@@ -105,6 +105,11 @@ bool is_condition_valid(std::string condition)
   }
 }
 
+bool is_agnocast_service_topic(const std::string & topic_name)
+{
+  return topic_name.rfind("/AGNOCAST_SRV_", 0) == 0;
+}
+
 void check_condition_set(std::unordered_set<std::string> conditions, bool use_log)
 {
   for (auto & condition : conditions) {
@@ -200,6 +205,11 @@ bool TracingController::is_allowed_agnocast_callable(const void * callable)
     std::lock_guard<std::shared_timed_mutex> lock(mutex_);
     auto node_name = agnocast_callable_to_node_name(callable);
     auto topic_name = agnocast_callable_to_topic_name(callable);
+
+    if (is_agnocast_service_topic(topic_name)) {
+      allowed_agnocast_callables_[callable] = false;
+      return false;
+    }
 
     if (node_name.size() == 0 || topic_name.size() == 0) {
       allowed_agnocast_callables_[callable] = true;
@@ -334,6 +344,10 @@ bool TracingController::is_allowed_subscription_handle(const void * subscription
     return true;
   }
 
+  if (is_agnocast_service_topic(topic_name_it->second)) {
+    return false;
+  }
+
   if (select_enabled_) {
     auto is_selected_node = partial_match(selected_node_names_, node_name_it->second);
     auto is_selected_topic = partial_match(selected_topic_names_, topic_name_it->second);
@@ -432,6 +446,11 @@ bool TracingController::is_allowed_publisher_handle(const void * publisher_handl
     auto node_handle = publisher_handle_to_node_handles_[publisher_handle];
     auto node_name = node_handle_to_node_names_[node_handle];
     auto topic_name = publisher_handle_to_topic_names_[publisher_handle];
+
+    if (is_agnocast_service_topic(topic_name)) {
+      allowed_publishers_[publisher_handle] = false;
+      return false;
+    }
 
     if (node_name.size() == 0 || topic_name.size() == 0) {
       allowed_publishers_[publisher_handle] = true;
