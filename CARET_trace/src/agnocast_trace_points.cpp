@@ -128,6 +128,8 @@ void ros_trace_agnocast_subscription_init(
   auto now = clock.now();
 
   controller.add_subscription_handle(node_handle, subscription_handle, topic_name);
+  controller.add_pid_callback_info_id(
+    pid_callback_info_id, node_handle, topic_name);
 
   if (!data_container.is_assigned_agnocast_subscription_init()) {
     data_container.assign_agnocast_subscription_init(record);
