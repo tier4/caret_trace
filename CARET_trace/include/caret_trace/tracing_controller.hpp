@@ -109,16 +109,17 @@ public:
   /// @param is_allowed  True is enabled, false otherwise.
   void add_allowed_messages(const void * message, bool is_allowed);
 
-  /// @brief Register binding information for pid_ciid.
-  /// @param pid_ciid  PID and callback_info_id used in Agnocast.
+  /// @brief Register binding information for pid_callback_info_id.
+  /// @param pid_callback_info_id  PID and callback_info_id used in Agnocast.
   /// @param node_handle  Address of the node handle.
   /// @param topic_name  Topic name.
-  void add_pid_ciid(uint64_t pid_ciid, const void * node_handle, std::string topic_name);
+  void add_pid_callback_info_id(
+    uint64_t pid_callback_info_id, const void * node_handle, std::string topic_name);
 
   /// @brief Register binding information for callable instance.
   /// @param callable  Address of the callable instance.
-  /// @param pid_ciid  PID and callback_info_id used in Agnocast.
-  void add_agnocast_callable(const void * callable, uint64_t pid_ciid);
+  /// @param pid_callback_info_id  PID and callback_info_id used in Agnocast.
+  void add_agnocast_callable(const void * callable, uint64_t pid_callback_info_id);
 
   /// @brief Check if trace point is a enabled callable
   /// @param callable Address of the callable instance.
@@ -248,9 +249,9 @@ private:
 
   std::unordered_map<const void *, bool> allowed_messages_;
 
-  std::unordered_map<const void *, uint64_t> agnocast_callable_to_pid_ciids_;
-  std::unordered_map<uint64_t, const void *> pid_ciid_to_node_handles_;
-  std::unordered_map<uint64_t, std::string> pid_ciid_to_topic_names_;
+  std::unordered_map<const void *, uint64_t> agnocast_callable_to_pid_callback_info_ids_;
+  std::unordered_map<uint64_t, const void *> pid_callback_info_id_to_node_handles_;
+  std::unordered_map<uint64_t, std::string> pid_callback_info_id_to_topic_names_;
   std::unordered_map<const void *, bool> allowed_agnocast_callables_;
 };
 

@@ -93,7 +93,7 @@ void ros_trace_agnocast_subscription_init(
   const char * symbol,
   const char * topic_name,
   const size_t queue_depth,
-  const uint64_t pid_ciid)
+  const uint64_t pid_callback_info_id)
 {
   static auto & context = Singleton<Context>::get_instance();
   static auto & clock = context.get_clock();
@@ -107,7 +107,7 @@ void ros_trace_agnocast_subscription_init(
     const char * symbol,
     const char * topic_name,
     const size_t queue_depth,
-    const uint64_t pid_ciid,
+    const uint64_t pid_callback_info_id,
     int64_t init_time
   ) {
     static auto & context = Singleton<Context>::get_instance();
@@ -117,7 +117,8 @@ void ros_trace_agnocast_subscription_init(
       return;
     }
     tracepoint(TRACEPOINT_PROVIDER, agnocast_subscription_init, subscription_handle,
-      node_handle, callback, callback_group, symbol, topic_name, queue_depth, pid_ciid, init_time);
+      node_handle, callback, callback_group, symbol, topic_name, queue_depth,
+      pid_callback_info_id, init_time);
   };
 
   if (!controller.is_allowed_process()) {
@@ -136,10 +137,10 @@ void ros_trace_agnocast_subscription_init(
 
   data_container.store_agnocast_subscription_init(
     subscription_handle, node_handle, callback, callback_group, symbol, topic_name,
-    queue_depth, pid_ciid, now);
+    queue_depth, pid_callback_info_id, now);
 
   record(subscription_handle, node_handle, callback, callback_group, symbol,
-    topic_name, queue_depth, pid_ciid, now);
+    topic_name, queue_depth, pid_callback_info_id, now);
 }
 
 void ros_trace_agnocast_construct_executor(
@@ -199,7 +200,7 @@ void ros_trace_agnocast_publish(
 void ros_trace_agnocast_create_callable(
   const void * callable_handle,
   int64_t entry_id,
-  uint64_t pid_ciid)
+  uint64_t pid_callback_info_id)
 {
   static auto & context = Singleton<Context>::get_instance();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
@@ -211,10 +212,10 @@ void ros_trace_agnocast_create_callable(
     return;
   }
 
-  controller.add_agnocast_callable(callable_handle, pid_ciid);
+  controller.add_agnocast_callable(callable_handle, pid_callback_info_id);
 
   if (controller.is_allowed_agnocast_callable(callable_handle) && context.is_recording_allowed()) {
-    ((functionT) orig_func)(callable_handle, entry_id, pid_ciid);
+    ((functionT) orig_func)(callable_handle, entry_id, pid_callback_info_id);
   }
 }
 
