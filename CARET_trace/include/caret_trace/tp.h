@@ -603,7 +603,7 @@ TRACEPOINT_EVENT(
     const char *, symbol_arg,
     const char *, topic_name_arg,
     const size_t, queue_depth_arg,
-    const uint64_t, pid_callback_info_id_arg,
+    const uint64_t, pid_ciid_arg,
     int64_t, init_timestamp_arg
   ),
   TP_FIELDS(
@@ -614,7 +614,7 @@ TRACEPOINT_EVENT(
     ctf_string(symbol, symbol_arg)
     ctf_string(topic_name, topic_name_arg)
     ctf_integer(const size_t, queue_depth, queue_depth_arg)
-    ctf_integer(const uint64_t, pid_callback_info_id, pid_callback_info_id_arg)
+    ctf_integer(const uint64_t, pid_ciid, pid_ciid_arg)
     ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
   )
 )
