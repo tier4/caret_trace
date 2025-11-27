@@ -185,62 +185,6 @@ void TracingController::info(std::string message) const
   }
 }
 
-bool TracingController::is_allowed_agnocast_callable(const void * callable)
-{
-  std::unordered_map<const void *, bool>::iterator is_allowed_it;
-  {
-    std::shared_lock<std::shared_timed_mutex> lock(mutex_);
-    is_allowed_it = allowed_agnocast_callables_.find(callable);
-    if (is_allowed_it != allowed_agnocast_callables_.end()) {
-      return is_allowed_it->second;
-    }
-  }
-
-  {
-    std::lock_guard<std::shared_timed_mutex> lock(mutex_);
-    auto node_name = agnocast_callable_to_node_name(callable);
-    auto topic_name = agnocast_callable_to_topic_name(callable);
-
-    if (node_name.size() == 0 || topic_name.size() == 0) {
-      allowed_agnocast_callables_[callable] = true;
-      return true;
-    }
-
-    if (select_enabled_) {
-      auto is_selected_topic = partial_match(selected_topic_names_, topic_name);
-      auto is_selected_node = partial_match(selected_node_names_, node_name);
-
-      if (selected_topic_names_.size() > 0 && is_selected_topic) {
-        allowed_agnocast_callables_[callable] = true;
-        return true;
-      }
-      if (selected_node_names_.size() > 0 && is_selected_node) {
-        allowed_agnocast_callables_[callable] = true;
-        return true;
-      }
-      allowed_agnocast_callables_[callable] = false;
-      return false;
-    }
-    if (ignore_enabled_) {
-      auto is_ignored_node = partial_match(ignored_node_names_, node_name);
-      auto is_ignored_topic = partial_match(ignored_topic_names_, topic_name);
-
-      if (ignored_node_names_.size() > 0 && is_ignored_node) {
-        allowed_agnocast_callables_[callable] = false;
-        return false;
-      }
-      if (ignored_topic_names_.size() > 0 && is_ignored_topic) {
-        allowed_agnocast_callables_[callable] = false;
-        return false;
-      }
-      allowed_agnocast_callables_[callable] = true;
-      return true;
-    }
-    allowed_agnocast_callables_[callable] = true;
-    return true;
-  }
-}
-
 bool TracingController::is_allowed_callback(const void * callback)
 {
   std::unordered_map<const void *, bool>::iterator is_allowed_it;
@@ -800,49 +744,6 @@ bool TracingController::is_allowed_message(const void * message)
   }
 }
 
-std::string TracingController::agnocast_callable_to_node_name(const void * callable)
-{
-  do {
-    auto pid_callback_info_id_it = agnocast_callable_to_pid_callback_info_ids_.find(callable);
-    if (pid_callback_info_id_it == agnocast_callable_to_pid_callback_info_ids_.end()) {
-      break;
-    }
-    auto node_handle_it =
-      pid_callback_info_id_to_node_handles_.find(pid_callback_info_id_it->second);
-    if (node_handle_it == pid_callback_info_id_to_node_handles_.end()) {
-      break;
-    }
-    auto node_name_it = node_handle_to_node_names_.find(node_handle_it->second);
-    if (node_name_it == node_handle_to_node_names_.end()) {
-      break;
-    }
-    auto node_name = node_name_it->second;
-
-    return node_name;
-  } while (false);
-
-  return "";
-}
-
-std::string TracingController::agnocast_callable_to_topic_name(const void * callable)
-{
-  do {
-    auto pid_callback_info_id_it = agnocast_callable_to_pid_callback_info_ids_.find(callable);
-    if (pid_callback_info_id_it == agnocast_callable_to_pid_callback_info_ids_.end()) {
-      break;
-    }
-    auto topic_name_it = pid_callback_info_id_to_topic_names_.find(pid_callback_info_id_it->second);
-    if (topic_name_it == pid_callback_info_id_to_topic_names_.end()) {
-      break;
-    }
-    auto topic_name = topic_name_it->second;
-
-    return topic_name;
-  } while (false);
-
-  return "";
-}
-
 std::string TracingController::to_node_name(const void * callback)
 {
   do {
@@ -1048,19 +949,4 @@ void TracingController::add_allowed_messages(const void * message, bool is_allow
     allowed_messages_.clear();
   }
   allowed_messages_[message] = is_allowed;
-}
-
-void TracingController::add_pid_callback_info_id(
-  uint64_t pid_callback_info_id, const void * node_handle, std::string topic_name)
-{
-  std::lock_guard<std::shared_timed_mutex> lock(mutex_);
-  pid_callback_info_id_to_node_handles_[pid_callback_info_id] = node_handle;
-  pid_callback_info_id_to_topic_names_[pid_callback_info_id] = topic_name;
-}
-
-void TracingController::add_agnocast_callable(const void * callable, uint64_t pid_callback_info_id)
-{
-  std::lock_guard<std::shared_timed_mutex> lock(mutex_);
-  agnocast_callable_to_pid_callback_info_ids_[callable] = pid_callback_info_id;
-  allowed_agnocast_callables_.erase(callable);
 }
