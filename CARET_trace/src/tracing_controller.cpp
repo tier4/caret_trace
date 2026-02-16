@@ -1064,3 +1064,59 @@ void TracingController::add_agnocast_callable(const void * callable, uint64_t pi
   agnocast_callable_to_pid_callback_info_ids_[callable] = pid_callback_info_id;
   allowed_agnocast_callables_.erase(callable);
 }
+
+void TracingController::add_pid_timer_id(uint64_t pid_timer_id, const void * node_handle)
+{
+  std::lock_guard<std::shared_timed_mutex> lock(mutex_);
+  pid_timer_id_to_node_handles_[pid_timer_id] = node_handle;
+  allowed_pid_timer_ids_.erase(pid_timer_id);
+}
+
+bool TracingController::is_allowed_pid_timer_id(uint64_t pid_timer_id)
+{
+  {
+    std::shared_lock<std::shared_timed_mutex> lock(mutex_);
+    auto it = allowed_pid_timer_ids_.find(pid_timer_id);
+    if (it != allowed_pid_timer_ids_.end()) {
+      return it->second;
+    }
+  }
+
+  {
+    std::lock_guard<std::shared_timed_mutex> lock(mutex_);
+    auto node_handle_it = pid_timer_id_to_node_handles_.find(pid_timer_id);
+    if (node_handle_it == pid_timer_id_to_node_handles_.end()) {
+      allowed_pid_timer_ids_[pid_timer_id] = !select_enabled_;
+      return allowed_pid_timer_ids_[pid_timer_id];
+    }
+    auto node_handle = node_handle_it->second;
+
+    auto node_name_it = node_handle_to_node_names_.find(node_handle);
+    if (node_name_it == node_handle_to_node_names_.end()) {
+      allowed_pid_timer_ids_[pid_timer_id] = !select_enabled_;
+      return allowed_pid_timer_ids_[pid_timer_id];
+    }
+    auto node_name = node_name_it->second;
+
+    bool result;
+    if (select_enabled_) {
+      result = selected_node_names_.count(node_name) > 0;
+    } else if (ignore_enabled_) {
+      result = ignored_node_names_.count(node_name) == 0;
+    } else {
+      result = true;
+    }
+
+    allowed_pid_timer_ids_[pid_timer_id] = result;
+    return result;
+  }
+}
+
+void TracingController::add_agnocast_timer_callable(const void * callable, uint64_t pid_timer_id)
+{
+  std::lock_guard<std::shared_timed_mutex> lock(mutex_);
+  agnocast_timer_callable_to_pid_timer_ids_[callable] = pid_timer_id;
+  // callable のフィルタは既存の allowed_agnocast_callables_ を再利用せず、
+  // agnocast_create_timer_callable 側で pid_timer_id 経由で判定する
+  allowed_agnocast_callables_.erase(callable);
+}

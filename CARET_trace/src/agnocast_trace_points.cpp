@@ -31,6 +31,7 @@ static void * DEFINE_ORIG_FUNC(ros_trace_agnocast_create_callable);
 static void * DEFINE_ORIG_FUNC(ros_trace_agnocast_callable_start);
 static void * DEFINE_ORIG_FUNC(ros_trace_agnocast_callable_end);
 static void * DEFINE_ORIG_FUNC(ros_trace_agnocast_take);
+static void * DEFINE_ORIG_FUNC(ros_trace_agnocast_create_timer_callable);
 }  // namespace ORIG_FUNC
 
 // clang-format off
@@ -180,6 +181,259 @@ void ros_trace_agnocast_construct_executor(
   record(executor_addr, executor_type_name, now);
 }
 
+void ros_trace_agnocast_init(
+  const void * context_handle)
+{
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
+  static auto & controller = context.get_controller();
+
+  static auto record = [](
+    const void * context_handle,
+    int64_t init_time
+  ) {
+    tracepoint(TRACEPOINT_PROVIDER, agnocast_init, context_handle, init_time);
+  };
+
+  if (!controller.is_allowed_process()) {
+    return;
+  }
+
+  auto now = clock.now();
+
+  if (!data_container.is_assigned_agnocast_init()) {
+    data_container.assign_agnocast_init(record);
+  }
+
+  check_and_run_trace_node();
+
+  data_container.store_agnocast_init(context_handle, now);
+
+  record(context_handle, now);
+}
+
+void ros_trace_agnocast_node_init(
+  const void * node_handle,
+  const char * node_name,
+  const char * namespace_)
+{
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
+  static auto & controller = context.get_controller();
+
+  static auto record = [](
+    const void * node_handle,
+    const char * node_name,
+    const char * namespace_,
+    int64_t init_time
+  ) {
+    if (!controller.is_allowed_node(node_handle)) {
+      return;
+    }
+    tracepoint(TRACEPOINT_PROVIDER, agnocast_node_init,
+      node_handle, node_name, namespace_, init_time);
+  };
+
+  if (!controller.is_allowed_process()) {
+    return;
+  }
+
+  auto now = clock.now();
+
+  controller.add_node(node_handle, node_name);
+
+  if (!data_container.is_assigned_agnocast_node_init()) {
+    data_container.assign_agnocast_node_init(record);
+  }
+
+  check_and_run_trace_node();
+
+  data_container.store_agnocast_node_init(node_handle, node_name, namespace_, now);
+
+  record(node_handle, node_name, namespace_, now);
+}
+
+void ros_trace_agnocast_timer_init(
+  const void * node_handle,
+  const uint64_t pid_timer_id,
+  const void * callback_group,
+  const char * symbol,
+  int64_t period)
+{
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
+  static auto & controller = context.get_controller();
+
+  static auto record = [](
+    const void * node_handle,
+    const uint64_t pid_timer_id,
+    const void * callback_group,
+    const char * symbol,
+    int64_t period,
+    int64_t init_time
+  ) {
+    if (!controller.is_allowed_pid_timer_id(pid_timer_id)) {
+      return;
+    }
+    tracepoint(TRACEPOINT_PROVIDER, agnocast_timer_init,
+      node_handle, pid_timer_id, callback_group, symbol, period, init_time);
+  };
+
+  if (!controller.is_allowed_process()) {
+    return;
+  }
+
+  auto now = clock.now();
+
+  controller.add_pid_timer_id(pid_timer_id, node_handle);
+
+  if (!data_container.is_assigned_agnocast_timer_init()) {
+    data_container.assign_agnocast_timer_init(record);
+  }
+
+  check_and_run_trace_node();
+
+  data_container.store_agnocast_timer_init(
+    node_handle, pid_timer_id, callback_group, symbol, period, now);
+
+  record(node_handle, pid_timer_id, callback_group, symbol, period, now);
+}
+
+void ros_trace_agnocast_service_init(
+  const void * node_handle,
+  const void * service_handle,
+  const void * subscription_handle,
+  const char * service_name,
+  const void * callback_group,
+  const char * symbol)
+{
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
+  static auto & controller = context.get_controller();
+
+  static auto record = [](
+    const void * node_handle,
+    const void * service_handle,
+    const void * subscription_handle,
+    const char * service_name,
+    const void * callback_group,
+    const char * symbol,
+    int64_t init_time
+  ) {
+    if (!controller.is_allowed_service_handle(service_handle)) {
+      return;
+    }
+    tracepoint(TRACEPOINT_PROVIDER, agnocast_service_init,
+      node_handle, service_handle, subscription_handle,
+      service_name, callback_group, symbol, init_time);
+  };
+
+  if (!controller.is_allowed_process()) {
+    return;
+  }
+
+  auto now = clock.now();
+
+  controller.add_service_handle(service_handle, node_handle);
+
+  if (!data_container.is_assigned_agnocast_service_init()) {
+    data_container.assign_agnocast_service_init(record);
+  }
+
+  check_and_run_trace_node();
+
+  data_container.store_agnocast_service_init(
+    node_handle, service_handle, subscription_handle,
+    service_name, callback_group, symbol, now);
+
+  record(node_handle, service_handle, subscription_handle,
+    service_name, callback_group, symbol, now);
+}
+
+void ros_trace_agnocast_client_init(
+  const void * node_handle,
+  const void * client_handle,
+  const char * service_name,
+  const void * callback_group)
+{
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
+  static auto & controller = context.get_controller();
+
+  static auto record = [](
+    const void * node_handle,
+    const void * client_handle,
+    const char * service_name,
+    const void * callback_group,
+    int64_t init_time
+  ) {
+    if (!controller.is_allowed_client_handle(client_handle)) {
+      return;
+    }
+    tracepoint(TRACEPOINT_PROVIDER, agnocast_client_init,
+      node_handle, client_handle, service_name, callback_group, init_time);
+  };
+
+  if (!controller.is_allowed_process()) {
+    return;
+  }
+
+  auto now = clock.now();
+
+  controller.add_client_handle(client_handle, node_handle);
+
+  if (!data_container.is_assigned_agnocast_client_init()) {
+    data_container.assign_agnocast_client_init(record);
+  }
+
+  check_and_run_trace_node();
+
+  data_container.store_agnocast_client_init(
+    node_handle, client_handle, service_name, callback_group, now);
+
+  record(node_handle, client_handle, service_name, callback_group, now);
+}
+
+void ros_trace_agnocast_add_callback_group(
+  const void * executor_addr,
+  const void * callback_group_addr)
+{
+  static auto & context = Singleton<Context>::get_instance();
+  static auto & clock = context.get_clock();
+  static auto & data_container = context.get_data_container();
+  static auto & controller = context.get_controller();
+
+  static auto record = [](
+    const void * executor_addr,
+    const void * callback_group_addr,
+    int64_t init_time
+  ) {
+    tracepoint(TRACEPOINT_PROVIDER, agnocast_add_callback_group,
+      executor_addr, callback_group_addr, init_time);
+  };
+
+  if (!controller.is_allowed_process()) {
+    return;
+  }
+
+  auto now = clock.now();
+
+  if (!data_container.is_assigned_agnocast_add_callback_group()) {
+    data_container.assign_agnocast_add_callback_group(record);
+  }
+
+  check_and_run_trace_node();
+
+  data_container.store_agnocast_add_callback_group(executor_addr, callback_group_addr, now);
+
+  record(executor_addr, callback_group_addr, now);
+}
+
 void ros_trace_agnocast_publish(
   const void * publisher_handle,
   int64_t entry_id)
@@ -275,6 +529,27 @@ void ros_trace_agnocast_take(
   if (controller.is_allowed_subscription_handle(subscription_handle)
       && context.is_recording_allowed()) {
     ((functionT) orig_func)(subscription_handle, message, entry_id);
+  }
+}
+
+void ros_trace_agnocast_create_timer_callable(
+  const void * callable,
+  const uint64_t pid_timer_id)
+{
+  static auto & context = Singleton<Context>::get_instance();
+  static void * orig_func = dlsym(RTLD_NEXT, __func__);
+  static auto & controller = context.get_controller();
+
+  using functionT = void (*)(const void *, const uint64_t);
+
+  if (!controller.is_allowed_process()) {
+    return;
+  }
+
+  controller.add_agnocast_timer_callable(callable, pid_timer_id);
+
+  if (controller.is_allowed_pid_timer_id(pid_timer_id) && context.is_recording_allowed()) {
+    ((functionT) orig_func)(callable, pid_timer_id);
   }
 }
 
