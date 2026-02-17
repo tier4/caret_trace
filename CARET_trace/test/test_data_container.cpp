@@ -29,13 +29,13 @@ TEST(DataContainerTest, EmptyCase)
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+    nullptr, nullptr, nullptr, nullptr);
 #else
   DataContainer container(
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr, nullptr, nullptr, nullptr);
+    nullptr, nullptr);
 #endif
   bool finished;
   finished = container.record();
@@ -107,7 +107,11 @@ TEST(DataContainerTest, TracePoints)
      "rmw_implementation",
      "agnocast_publisher_init",
      "agnocast_subscription_init",
-     "agnocast_construct_executor"});
+     "agnocast_construct_executor",
+     "agnocast_init",
+     "agnocast_node_init",
+     "agnocast_timer_init",
+     "agnocast_add_callback_group"});
 
   EXPECT_EQ(trace_points, expect);
 }

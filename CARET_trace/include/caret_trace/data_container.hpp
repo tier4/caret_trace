@@ -160,14 +160,6 @@ public:
   using AgnocastTimerInit =
     ContainerTraits<const void *, uint64_t, const void *, const char *, int64_t, int64_t>;
 
-  /// @brief ContainerTraits for agnocast_service_init trace points.
-  using AgnocastServiceInit = ContainerTraits<
-    const void *, const void *, const void *, const char *, const void *, const char *, int64_t>;
-
-  /// @brief ContainerTraits for agnocast_client_init trace points.
-  using AgnocastClientInit =
-    ContainerTraits<const void *, const void *, const char *, const void *, int64_t>;
-
   /// @brief ContainerTraits for agnocast_add_callback_group trace points.
   using AgnocastAddCallbackGroup = ContainerTraits<const void *, const void *, int64_t>;
 
@@ -246,8 +238,6 @@ public:
     std::shared_ptr<AgnocastInit::KeysT> agnocast_init,
     std::shared_ptr<AgnocastNodeInit::KeysT> agnocast_node_init,
     std::shared_ptr<AgnocastTimerInit::KeysT> agnocast_timer_init,
-    std::shared_ptr<AgnocastServiceInit::KeysT> agnocast_service_init,
-    std::shared_ptr<AgnocastClientInit::KeysT> agnocast_client_init,
     std::shared_ptr<AgnocastAddCallbackGroup::KeysT> agnocast_add_callback_group);
 
   bool record(uint64_t loop_count = 1) override;
@@ -609,20 +599,6 @@ public:
     return agnocast_timer_init_->store(args...);
   }
 
-  /// @brief Store data for agnocast_service_init trace points.
-  template <typename... Args>
-  bool store_agnocast_service_init(Args... args)
-  {
-    return agnocast_service_init_->store(args...);
-  }
-
-  /// @brief Store data for agnocast_client_init trace points.
-  template <typename... Args>
-  bool store_agnocast_client_init(Args... args)
-  {
-    return agnocast_client_init_->store(args...);
-  }
-
   /// @brief Store data for agnocast_add_callback_group trace points.
   template <typename... Args>
   bool store_agnocast_add_callback_group(Args... args)
@@ -763,12 +739,6 @@ public:
 
   /// @brief Assign recording function for agnocast_timer_init trace points.
   void assign_agnocast_timer_init(AgnocastTimerInit::StdFuncT record);
-
-  /// @brief Assign recording function for agnocast_service_init trace points.
-  void assign_agnocast_service_init(AgnocastServiceInit::StdFuncT record);
-
-  /// @brief Assign recording function for agnocast_client_init trace points.
-  void assign_agnocast_client_init(AgnocastClientInit::StdFuncT record);
 
   /// @brief Assign recording function for agnocast_add_callback_group trace points.
   void assign_agnocast_add_callback_group(AgnocastAddCallbackGroup::StdFuncT record);
@@ -921,12 +891,6 @@ public:
   /// @brief Check whether recording function for agnocast_timer_init trace point is assigned.
   bool is_assigned_agnocast_timer_init() const;
 
-  /// @brief Check whether recording function for agnocast_service_init trace point is assigned.
-  bool is_assigned_agnocast_service_init() const;
-
-  /// @brief Check whether recording function for agnocast_client_init trace point is assigned.
-  bool is_assigned_agnocast_client_init() const;
-
   /// @brief Check whether recording function for agnocast_add_callback_group trace point is
   /// assigned.
   bool is_assigned_agnocast_add_callback_group() const;
@@ -975,8 +939,6 @@ private:
   std::shared_ptr<AgnocastInit::KeysT> agnocast_init_;
   std::shared_ptr<AgnocastNodeInit::KeysT> agnocast_node_init_;
   std::shared_ptr<AgnocastTimerInit::KeysT> agnocast_timer_init_;
-  std::shared_ptr<AgnocastServiceInit::KeysT> agnocast_service_init_;
-  std::shared_ptr<AgnocastClientInit::KeysT> agnocast_client_init_;
   std::shared_ptr<AgnocastAddCallbackGroup::KeysT> agnocast_add_callback_group_;
 
   std::shared_ptr<DataRecorder> recorder_;

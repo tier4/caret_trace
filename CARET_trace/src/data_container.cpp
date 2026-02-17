@@ -66,8 +66,6 @@ DataContainer::DataContainer()
     std::make_shared<AgnocastInit::KeysT>("agnocast_init"),
     std::make_shared<AgnocastNodeInit::KeysT>("agnocast_node_init"),
     std::make_shared<AgnocastTimerInit::KeysT>("agnocast_timer_init"),
-    std::make_shared<AgnocastServiceInit::KeysT>("agnocast_service_init"),
-    std::make_shared<AgnocastClientInit::KeysT>("agnocast_client_init"),
     std::make_shared<AgnocastAddCallbackGroup::KeysT>("agnocast_add_callback_group"))
 {
 }
@@ -108,8 +106,6 @@ DataContainer::DataContainer(
   std::shared_ptr<AgnocastInit::KeysT> agnocast_init,
   std::shared_ptr<AgnocastNodeInit::KeysT> agnocast_node_init,
   std::shared_ptr<AgnocastTimerInit::KeysT> agnocast_timer_init,
-  std::shared_ptr<AgnocastServiceInit::KeysT> agnocast_service_init,
-  std::shared_ptr<AgnocastClientInit::KeysT> agnocast_client_init,
   std::shared_ptr<AgnocastAddCallbackGroup::KeysT> agnocast_add_callback_group)
 : add_callback_group_(add_callback_group),
   add_callback_group_static_executor_(add_callback_group_static_executor),
@@ -146,8 +142,6 @@ DataContainer::DataContainer(
   agnocast_init_(agnocast_init),
   agnocast_node_init_(agnocast_node_init),
   agnocast_timer_init_(agnocast_timer_init),
-  agnocast_service_init_(agnocast_service_init),
-  agnocast_client_init_(agnocast_client_init),
   agnocast_add_callback_group_(agnocast_add_callback_group)
 {
   std::vector<std::shared_ptr<RecordableDataInterface>> recordable_data;
@@ -252,12 +246,6 @@ DataContainer::DataContainer(
   }
   if (agnocast_timer_init_) {
     recordable_data.emplace_back(agnocast_timer_init_);
-  }
-  if (agnocast_service_init_) {
-    recordable_data.emplace_back(agnocast_service_init_);
-  }
-  if (agnocast_client_init_) {
-    recordable_data.emplace_back(agnocast_client_init_);
   }
   if (agnocast_add_callback_group_) {
     recordable_data.emplace_back(agnocast_add_callback_group_);
@@ -694,18 +682,6 @@ void DataContainer::assign_agnocast_timer_init(AgnocastTimerInit::StdFuncT recor
   agnocast_timer_init_->assign(record);
 }
 
-void DataContainer::assign_agnocast_service_init(AgnocastServiceInit::StdFuncT record)
-{
-  assert(agnocast_service_init_.get() != nullptr);
-  agnocast_service_init_->assign(record);
-}
-
-void DataContainer::assign_agnocast_client_init(AgnocastClientInit::StdFuncT record)
-{
-  assert(agnocast_client_init_.get() != nullptr);
-  agnocast_client_init_->assign(record);
-}
-
 void DataContainer::assign_agnocast_add_callback_group(AgnocastAddCallbackGroup::StdFuncT record)
 {
   assert(agnocast_add_callback_group_.get() != nullptr);
@@ -728,18 +704,6 @@ bool DataContainer::is_assigned_agnocast_timer_init() const
 {
   assert(agnocast_timer_init_.get() != nullptr);
   return agnocast_timer_init_->is_assigned();
-}
-
-bool DataContainer::is_assigned_agnocast_service_init() const
-{
-  assert(agnocast_service_init_.get() != nullptr);
-  return agnocast_service_init_->is_assigned();
-}
-
-bool DataContainer::is_assigned_agnocast_client_init() const
-{
-  assert(agnocast_client_init_.get() != nullptr);
-  return agnocast_client_init_->is_assigned();
 }
 
 bool DataContainer::is_assigned_agnocast_add_callback_group() const
