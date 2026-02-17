@@ -306,7 +306,8 @@ void ros_trace_agnocast_timer_init(
 
 void ros_trace_agnocast_add_callback_group(
   const void * executor_addr,
-  const void * callback_group_addr)
+  const void * callback_group_addr,
+  const char * group_type_name)
 {
   static auto & context = Singleton<Context>::get_instance();
   static auto & clock = context.get_clock();
@@ -316,10 +317,11 @@ void ros_trace_agnocast_add_callback_group(
   static auto record = [](
     const void * executor_addr,
     const void * callback_group_addr,
+    const char * group_type_name,
     int64_t init_time
   ) {
     tracepoint(TRACEPOINT_PROVIDER, agnocast_add_callback_group,
-      executor_addr, callback_group_addr, init_time);
+      executor_addr, callback_group_addr, group_type_name, init_time);
   };
 
   if (!controller.is_allowed_process()) {
@@ -334,9 +336,10 @@ void ros_trace_agnocast_add_callback_group(
 
   check_and_run_trace_node();
 
-  data_container.store_agnocast_add_callback_group(executor_addr, callback_group_addr, now);
+  data_container.store_agnocast_add_callback_group(
+    executor_addr, callback_group_addr, group_type_name, now);
 
-  record(executor_addr, callback_group_addr, now);
+  record(executor_addr, callback_group_addr, group_type_name, now);
 }
 
 void ros_trace_agnocast_publish(
