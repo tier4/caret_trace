@@ -157,8 +157,8 @@ public:
   using AgnocastNodeInit = ContainerTraits<const void *, const char *, const char *, int64_t>;
 
   /// @brief ContainerTraits for agnocast_timer_init trace points.
-  using AgnocastTimerInit =
-    ContainerTraits<const void *, uint64_t, const void *, const char *, int64_t, int64_t>;
+  using AgnocastTimerInit = ContainerTraits<
+    const void *, uint64_t, const void *, const void *, const char *, int64_t, int64_t>;
 
   /// @brief ContainerTraits for agnocast_add_callback_group trace points.
   using AgnocastAddCallbackGroup = ContainerTraits<const void *, const void *, int64_t>;

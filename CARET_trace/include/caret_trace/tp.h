@@ -670,6 +670,7 @@ TRACEPOINT_EVENT(
   TP_ARGS(
     const void *, node_handle_arg,
     const uint64_t, pid_timer_id_arg,
+    const void *, callback_arg,
     const void *, callback_group_arg,
     const char *, symbol_arg,
     int64_t, period_arg,
@@ -678,6 +679,7 @@ TRACEPOINT_EVENT(
   TP_FIELDS(
     ctf_integer_hex(const void *, node_handle, node_handle_arg)
     ctf_integer(const uint64_t, pid_timer_id, pid_timer_id_arg)
+    ctf_integer_hex(const void *, callback, callback_arg)
     ctf_integer_hex(const void *, callback_group, callback_group_arg)
     ctf_string(symbol, symbol_arg)
     ctf_integer(const int64_t, period, period_arg)

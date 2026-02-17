@@ -258,6 +258,7 @@ void ros_trace_agnocast_node_init(
 void ros_trace_agnocast_timer_init(
   const void * node_handle,
   const uint64_t pid_timer_id,
+  const void * callback,
   const void * callback_group,
   const char * symbol,
   int64_t period)
@@ -270,6 +271,7 @@ void ros_trace_agnocast_timer_init(
   static auto record = [](
     const void * node_handle,
     const uint64_t pid_timer_id,
+    const void * callback,
     const void * callback_group,
     const char * symbol,
     int64_t period,
@@ -279,7 +281,7 @@ void ros_trace_agnocast_timer_init(
       return;
     }
     tracepoint(TRACEPOINT_PROVIDER, agnocast_timer_init,
-      node_handle, pid_timer_id, callback_group, symbol, period, init_time);
+      node_handle, pid_timer_id, callback, callback_group, symbol, period, init_time);
   };
 
   if (!controller.is_allowed_process()) {
@@ -297,9 +299,9 @@ void ros_trace_agnocast_timer_init(
   check_and_run_trace_node();
 
   data_container.store_agnocast_timer_init(
-    node_handle, pid_timer_id, callback_group, symbol, period, now);
+    node_handle, pid_timer_id, callback, callback_group, symbol, period, now);
 
-  record(node_handle, pid_timer_id, callback_group, symbol, period, now);
+  record(node_handle, pid_timer_id, callback, callback_group, symbol, period, now);
 }
 
 void ros_trace_agnocast_add_callback_group(
