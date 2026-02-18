@@ -121,28 +121,10 @@ public:
   /// @param pid_callback_info_id  PID and callback_info_id used in Agnocast.
   void add_agnocast_callable(const void * callable, uint64_t pid_callback_info_id);
 
-  // --- pid_timer_id フィルタリング ---
-  // 設計メモ: agnocast の Timer は rclcpp の timer_handle（ポインタ）を持たず、
-  // pid_timer_id（uint64_t）を一意識別子として使用する。
-  // timer_handle を agnocast_timer_init に追加して既存の add_timer_handle / is_allowed_timer_handle
-  // を流用する案もあるが、agnocast_create_timer_callable との紐付けに pid_timer_id が
-  // いずれにせよ必要なため、pid_timer_id をキーにしたマッピングで統一する方針とした。
-  // pid_callback_info_id のパターンと同じ構造。
-
-  /// @brief Register binding information for pid_timer_id.
-  /// @param pid_timer_id  (pid << 32) | timer_id used in Agnocast.
-  /// @param node_handle  Address of the node handle.
-  void add_pid_timer_id(uint64_t pid_timer_id, const void * node_handle);
-
-  /// @brief Check if trace point is an allowed pid_timer_id.
-  /// @param pid_timer_id  (pid << 32) | timer_id used in Agnocast.
-  /// @return True if the pid_timer_id is enabled, false otherwise.
-  bool is_allowed_pid_timer_id(uint64_t pid_timer_id);
-
   /// @brief Register binding information for agnocast timer callable instance.
   /// @param callable  Address of the callable instance.
-  /// @param pid_timer_id  (pid << 32) | timer_id used in Agnocast.
-  void add_agnocast_timer_callable(const void * callable, uint64_t pid_timer_id);
+  /// @param timer_handle  Address of the timer handle.
+  void add_agnocast_timer_callable(const void * callable, const void * timer_handle);
 
   /// @brief Check if trace point is a enabled callable
   /// @param callable Address of the callable instance.
@@ -277,9 +259,7 @@ private:
   std::unordered_map<uint64_t, std::string> pid_callback_info_id_to_topic_names_;
   std::unordered_map<const void *, bool> allowed_agnocast_callables_;
 
-  std::unordered_map<uint64_t, const void *> pid_timer_id_to_node_handles_;
-  std::unordered_map<uint64_t, bool> allowed_pid_timer_ids_;
-  std::unordered_map<const void *, uint64_t> agnocast_timer_callable_to_pid_timer_ids_;
+  std::unordered_map<const void *, const void *> agnocast_timer_callable_to_timer_handles_;
 };
 
 #endif  // CARET_TRACE__TRACING_CONTROLLER_HPP_

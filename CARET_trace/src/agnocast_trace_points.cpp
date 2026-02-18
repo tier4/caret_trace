@@ -256,8 +256,8 @@ void ros_trace_agnocast_node_init(
 }
 
 void ros_trace_agnocast_timer_init(
+  const void * timer_handle,
   const void * node_handle,
-  const uint64_t pid_timer_id,
   const void * callback,
   const void * callback_group,
   const char * symbol,
@@ -269,19 +269,19 @@ void ros_trace_agnocast_timer_init(
   static auto & controller = context.get_controller();
 
   static auto record = [](
+    const void * timer_handle,
     const void * node_handle,
-    const uint64_t pid_timer_id,
     const void * callback,
     const void * callback_group,
     const char * symbol,
     int64_t period,
     int64_t init_time
   ) {
-    if (!controller.is_allowed_pid_timer_id(pid_timer_id)) {
+    if (!controller.is_allowed_timer_handle(timer_handle)) {
       return;
     }
     tracepoint(TRACEPOINT_PROVIDER, agnocast_timer_init,
-      node_handle, pid_timer_id, callback, callback_group, symbol, period, init_time);
+      timer_handle, node_handle, callback, callback_group, symbol, period, init_time);
   };
 
   if (!controller.is_allowed_process()) {
@@ -290,8 +290,7 @@ void ros_trace_agnocast_timer_init(
 
   auto now = clock.now();
 
-  controller.add_pid_timer_id(pid_timer_id, node_handle);
-
+  controller.add_timer_handle(timer_handle, node_handle);
   if (!data_container.is_assigned_agnocast_timer_init()) {
     data_container.assign_agnocast_timer_init(record);
   }
@@ -299,9 +298,9 @@ void ros_trace_agnocast_timer_init(
   check_and_run_trace_node();
 
   data_container.store_agnocast_timer_init(
-    node_handle, pid_timer_id, callback, callback_group, symbol, period, now);
+    timer_handle, node_handle, callback, callback_group, symbol, period, now);
 
-  record(node_handle, pid_timer_id, callback, callback_group, symbol, period, now);
+  record(timer_handle, node_handle, callback, callback_group, symbol, period, now);
 }
 
 void ros_trace_agnocast_add_callback_group(
@@ -442,22 +441,22 @@ void ros_trace_agnocast_take(
 
 void ros_trace_agnocast_create_timer_callable(
   const void * callable,
-  const uint64_t pid_timer_id)
+  const void * timer_handle)
 {
   static auto & context = Singleton<Context>::get_instance();
   static void * orig_func = dlsym(RTLD_NEXT, __func__);
   static auto & controller = context.get_controller();
 
-  using functionT = void (*)(const void *, const uint64_t);
+  using functionT = void (*)(const void *, const void *);
 
   if (!controller.is_allowed_process()) {
     return;
   }
 
-  controller.add_agnocast_timer_callable(callable, pid_timer_id);
+  controller.add_agnocast_timer_callable(callable, timer_handle);
 
-  if (controller.is_allowed_pid_timer_id(pid_timer_id) && context.is_recording_allowed()) {
-    ((functionT) orig_func)(callable, pid_timer_id);
+  if (controller.is_allowed_timer_handle(timer_handle) && context.is_recording_allowed()) {
+    ((functionT) orig_func)(callable, timer_handle);
   }
 }
 

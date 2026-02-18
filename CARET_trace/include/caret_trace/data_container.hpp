@@ -158,7 +158,7 @@ public:
 
   /// @brief ContainerTraits for agnocast_timer_init trace points.
   using AgnocastTimerInit = ContainerTraits<
-    const void *, uint64_t, const void *, const void *, const char *, int64_t, int64_t>;
+    const void *, const void *, const void *, const void *, const char *, int64_t, int64_t>;
 
   /// @brief ContainerTraits for agnocast_add_callback_group trace points.
   using AgnocastAddCallbackGroup =
