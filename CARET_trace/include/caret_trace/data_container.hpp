@@ -138,6 +138,12 @@ public:
   /// @brief ContainerTraits for rmw_implementation trace points.
   using RmwImplementation = ContainerTraits<const char *, int64_t>;
 
+  /// @brief ContainerTraits for agnocast_init trace points.
+  using AgnocastInit = ContainerTraits<const void *, int64_t>;
+
+  /// @brief ContainerTraits for agnocast_node_init trace points.
+  using AgnocastNodeInit = ContainerTraits<const void *, const char *, const char *, int64_t>;
+
   /// @brief ContainerTraits for agnocast_publisher_init trace points.
   using AgnocastPublisherInit =
     ContainerTraits<const void *, const void *, const char *, size_t, int64_t>;
@@ -147,15 +153,6 @@ public:
     const void *, const void *, const void *, const void *, const char *, const char *, size_t,
     uint64_t, int64_t>;
 
-  /// @brief ContainerTraits for agnocast_construct_executor trace points.
-  using AgnocastConstructExecutor = ContainerTraits<const void *, const char *, int64_t>;
-
-  /// @brief ContainerTraits for agnocast_init trace points.
-  using AgnocastInit = ContainerTraits<const void *, int64_t>;
-
-  /// @brief ContainerTraits for agnocast_node_init trace points.
-  using AgnocastNodeInit = ContainerTraits<const void *, const char *, const char *, int64_t>;
-
   /// @brief ContainerTraits for agnocast_timer_init trace points.
   using AgnocastTimerInit = ContainerTraits<
     const void *, const void *, const void *, const void *, const char *, int64_t, int64_t>;
@@ -163,6 +160,9 @@ public:
   /// @brief ContainerTraits for agnocast_add_callback_group trace points.
   using AgnocastAddCallbackGroup =
     ContainerTraits<const void *, const void *, const char *, int64_t>;
+
+  /// @brief ContainerTraits for agnocast_construct_executor trace points.
+  using AgnocastConstructExecutor = ContainerTraits<const void *, const char *, int64_t>;
 
   /// @brief Construct an instance.
   DataContainer();
@@ -233,13 +233,13 @@ public:
     std::shared_ptr<RclcppBufferToIpb::KeysT> rclcpp_buffer_to_ipb,
     std::shared_ptr<RclcppIpbToSubscription::KeysT> rclcpp_ipb_to_subscription,
     std::shared_ptr<RmwImplementation::KeysT> rmw_implementation,
-    std::shared_ptr<AgnocastPublisherInit::KeysT> agnocast_publisher_init,
-    std::shared_ptr<AgnocastSubscriptionInit::KeysT> agnocast_subscription_init,
-    std::shared_ptr<AgnocastConstructExecutor::KeysT> agnocast_construct_executor,
     std::shared_ptr<AgnocastInit::KeysT> agnocast_init,
     std::shared_ptr<AgnocastNodeInit::KeysT> agnocast_node_init,
+    std::shared_ptr<AgnocastPublisherInit::KeysT> agnocast_publisher_init,
+    std::shared_ptr<AgnocastSubscriptionInit::KeysT> agnocast_subscription_init,
     std::shared_ptr<AgnocastTimerInit::KeysT> agnocast_timer_init,
-    std::shared_ptr<AgnocastAddCallbackGroup::KeysT> agnocast_add_callback_group);
+    std::shared_ptr<AgnocastAddCallbackGroup::KeysT> agnocast_add_callback_group,
+    std::shared_ptr<AgnocastConstructExecutor::KeysT> agnocast_construct_executor);
 
   bool record(uint64_t loop_count = 1) override;
 
@@ -546,6 +546,28 @@ public:
     return rmw_implementation_->store(args...);
   }
 
+  /// @brief Store data for agnocast_init trace points.
+  /// @tparam ...Args Data types to be stored.
+  /// @param ...args Data to be stored.
+  /// @return True, data was stored to pending set.
+  /// @return False, data was stored to set.
+  template <typename... Args>
+  bool store_agnocast_init(Args... args)
+  {
+    return agnocast_init_->store(args...);
+  }
+
+  /// @brief Store data for agnocast_node_init trace points.
+  /// @tparam ...Args Data types to be stored.
+  /// @param ...args Data to be stored.
+  /// @return True, data was stored to pending set.
+  /// @return False, data was stored to set.
+  template <typename... Args>
+  bool store_agnocast_node_init(Args... args)
+  {
+    return agnocast_node_init_->store(args...);
+  }
+
   /// @brief Store data for agnocast_publisher_init trace points.
   /// @tparam ...Args Data types to be stored.
   /// @param ...args Data to be stored.
@@ -568,6 +590,28 @@ public:
     return agnocast_subscription_init_->store(args...);
   }
 
+  /// @brief Store data for agnocast_timer_init trace points.
+  /// @tparam ...Args Data types to be stored.
+  /// @param ...args Data to be stored.
+  /// @return True, data was stored to pending set.
+  /// @return False, data was stored to set.
+  template <typename... Args>
+  bool store_agnocast_timer_init(Args... args)
+  {
+    return agnocast_timer_init_->store(args...);
+  }
+
+  /// @brief Store data for agnocast_add_callback_group trace points.
+  /// @tparam ...Args Data types to be stored.
+  /// @param ...args Data to be stored.
+  /// @return True, data was stored to pending set.
+  /// @return False, data was stored to set.
+  template <typename... Args>
+  bool store_agnocast_add_callback_group(Args... args)
+  {
+    return agnocast_add_callback_group_->store(args...);
+  }
+
   /// @brief Store data for agnocast_construct_executor trace points.
   /// @tparam ...Args Data types to be stored.
   /// @param ...args Data to be stored.
@@ -577,34 +621,6 @@ public:
   bool store_agnocast_construct_executor(Args... args)
   {
     return agnocast_construct_executor_->store(args...);
-  }
-
-  /// @brief Store data for agnocast_init trace points.
-  template <typename... Args>
-  bool store_agnocast_init(Args... args)
-  {
-    return agnocast_init_->store(args...);
-  }
-
-  /// @brief Store data for agnocast_node_init trace points.
-  template <typename... Args>
-  bool store_agnocast_node_init(Args... args)
-  {
-    return agnocast_node_init_->store(args...);
-  }
-
-  /// @brief Store data for agnocast_timer_init trace points.
-  template <typename... Args>
-  bool store_agnocast_timer_init(Args... args)
-  {
-    return agnocast_timer_init_->store(args...);
-  }
-
-  /// @brief Store data for agnocast_add_callback_group trace points.
-  template <typename... Args>
-  bool store_agnocast_add_callback_group(Args... args)
-  {
-    return agnocast_add_callback_group_->store(args...);
   }
 
   /// @brief Assign recording function for add_callback_group trace points.
@@ -720,6 +736,14 @@ public:
   /// @param record recording function.
   void assign_rmw_implementation(RmwImplementation::StdFuncT record);
 
+  /// @brief Assign recording function for agnocast_init trace points.
+  /// @param record recording function.
+  void assign_agnocast_init(AgnocastInit::StdFuncT record);
+
+  /// @brief Assign recording function for agnocast_node_init trace points.
+  /// @param record recording function.
+  void assign_agnocast_node_init(AgnocastNodeInit::StdFuncT record);
+
   /// @brief Assign recording function for agnocast_publisher_init trace points.
   /// @param record recording function.
   void assign_agnocast_publisher_init(AgnocastPublisherInit::StdFuncT record);
@@ -728,21 +752,17 @@ public:
   /// @param record recording function.
   void assign_agnocast_subscription_init(AgnocastSubscriptionInit::StdFuncT record);
 
-  /// @brief Assign recording function for agnocast_construct_executor trace points.
-  /// @param record recording function.
-  void assign_agnocast_construct_executor(AgnocastConstructExecutor::StdFuncT record);
-
-  /// @brief Assign recording function for agnocast_init trace points.
-  void assign_agnocast_init(AgnocastInit::StdFuncT record);
-
-  /// @brief Assign recording function for agnocast_node_init trace points.
-  void assign_agnocast_node_init(AgnocastNodeInit::StdFuncT record);
-
   /// @brief Assign recording function for agnocast_timer_init trace points.
+  /// @param record recording function.
   void assign_agnocast_timer_init(AgnocastTimerInit::StdFuncT record);
 
   /// @brief Assign recording function for agnocast_add_callback_group trace points.
+  /// @param record recording function.
   void assign_agnocast_add_callback_group(AgnocastAddCallbackGroup::StdFuncT record);
+
+  /// @brief Assign recording function for agnocast_construct_executor trace points.
+  /// @param record recording function.
+  void assign_agnocast_construct_executor(AgnocastConstructExecutor::StdFuncT record);
 
   /// @brief Check whether recording function for add_callback_group trace point is assigned.
   /// @return True if function is assigned, false otherwise.
@@ -869,6 +889,14 @@ public:
   /// @return True if function is assigned, false otherwise.
   bool is_assigned_rmw_implementation() const;
 
+  /// @brief Check whether recording function for agnocast_init trace point is assigned.
+  /// @return True if function is assigned, false otherwise.
+  bool is_assigned_agnocast_init() const;
+
+  /// @brief Check whether recording function for agnocast_node_init trace point is assigned.
+  /// @return True if function is assigned, false otherwise.
+  bool is_assigned_agnocast_node_init() const;
+
   /// @brief Check whether recording function for agnocast_publisher_init trace point is assigned.
   /// @return True if function is assigned, false otherwise.
   bool is_assigned_agnocast_publisher_init() const;
@@ -878,23 +906,19 @@ public:
   /// @return True if function is assigned, false otherwise.
   bool is_assigned_agnocast_subscription_init() const;
 
-  /// @brief Check whether recording function for agnocast_construct_executor trace point is
-  /// assigned.
-  /// @return True if function is assigned, false otherwise.
-  bool is_assigned_agnocast_construct_executor() const;
-
-  /// @brief Check whether recording function for agnocast_init trace point is assigned.
-  bool is_assigned_agnocast_init() const;
-
-  /// @brief Check whether recording function for agnocast_node_init trace point is assigned.
-  bool is_assigned_agnocast_node_init() const;
-
   /// @brief Check whether recording function for agnocast_timer_init trace point is assigned.
+  /// @return True if function is assigned, false otherwise.
   bool is_assigned_agnocast_timer_init() const;
 
   /// @brief Check whether recording function for agnocast_add_callback_group trace point is
   /// assigned.
+  /// @return True if function is assigned, false otherwise.
   bool is_assigned_agnocast_add_callback_group() const;
+
+  /// @brief Check whether recording function for agnocast_construct_executor trace point is
+  /// assigned.
+  /// @return True if function is assigned, false otherwise.
+  bool is_assigned_agnocast_construct_executor() const;
 
   /// @brief Get trace point names.
   /// @return Trace point names.
@@ -933,14 +957,13 @@ private:
   std::shared_ptr<RclcppBufferToIpb::KeysT> rclcpp_buffer_to_ipb_;
   std::shared_ptr<RclcppIpbToSubscription::KeysT> rclcpp_ipb_to_subscription_;
   std::shared_ptr<RmwImplementation::KeysT> rmw_implementation_;
-  std::shared_ptr<AgnocastPublisherInit::KeysT> agnocast_publisher_init_;
-  std::shared_ptr<AgnocastSubscriptionInit::KeysT> agnocast_subscription_init_;
-  std::shared_ptr<AgnocastConstructExecutor::KeysT> agnocast_construct_executor_;
-
   std::shared_ptr<AgnocastInit::KeysT> agnocast_init_;
   std::shared_ptr<AgnocastNodeInit::KeysT> agnocast_node_init_;
+  std::shared_ptr<AgnocastPublisherInit::KeysT> agnocast_publisher_init_;
+  std::shared_ptr<AgnocastSubscriptionInit::KeysT> agnocast_subscription_init_;
   std::shared_ptr<AgnocastTimerInit::KeysT> agnocast_timer_init_;
   std::shared_ptr<AgnocastAddCallbackGroup::KeysT> agnocast_add_callback_group_;
+  std::shared_ptr<AgnocastConstructExecutor::KeysT> agnocast_construct_executor_;
 
   std::shared_ptr<DataRecorder> recorder_;
 };

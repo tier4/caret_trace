@@ -575,6 +575,36 @@ TRACEPOINT_EVENT(
 
 TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
+  agnocast_init,
+  TP_ARGS(
+    const void *, context_handle_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, context_handle, context_handle_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  agnocast_node_init,
+  TP_ARGS(
+    const void *, node_handle_arg,
+    const char *, node_name_arg,
+    const char *, namespace_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, node_handle, node_handle_arg)
+    ctf_string(node_name, node_name_arg)
+    ctf_string(namespace, namespace_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
   agnocast_publisher_init,
   TP_ARGS(
     const void *, publisher_handle_arg,
@@ -621,51 +651,6 @@ TRACEPOINT_EVENT(
 
 TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
-  agnocast_construct_executor,
-  TP_ARGS(
-    const void *, executor_addr_arg,
-    const char *, executor_type_name_arg,
-    int64_t, init_timestamp_arg
-  ),
-  TP_FIELDS(
-    ctf_integer_hex(const void *, executor_addr, executor_addr_arg)
-    ctf_string(executor_type_name, executor_type_name_arg)
-    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
-  )
-)
-
-TRACEPOINT_EVENT(
-  TRACEPOINT_PROVIDER,
-  agnocast_init,
-  TP_ARGS(
-    const void *, context_handle_arg,
-    int64_t, init_timestamp_arg
-  ),
-  TP_FIELDS(
-    ctf_integer_hex(const void *, context_handle, context_handle_arg)
-    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
-  )
-)
-
-TRACEPOINT_EVENT(
-  TRACEPOINT_PROVIDER,
-  agnocast_node_init,
-  TP_ARGS(
-    const void *, node_handle_arg,
-    const char *, node_name_arg,
-    const char *, namespace_arg,
-    int64_t, init_timestamp_arg
-  ),
-  TP_FIELDS(
-    ctf_integer_hex(const void *, node_handle, node_handle_arg)
-    ctf_string(node_name, node_name_arg)
-    ctf_string(namespace, namespace_arg)
-    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
-  )
-)
-
-TRACEPOINT_EVENT(
-  TRACEPOINT_PROVIDER,
   agnocast_timer_init,
   TP_ARGS(
     const void *, timer_handle_arg,
@@ -701,6 +686,21 @@ TRACEPOINT_EVENT(
     ctf_integer_hex(const void *, callback_group_addr, callback_group_addr_arg)
     ctf_string(group_type_name, group_type_name_arg)
     ctf_integer(int64_t, init_timestamp, init_timestamp_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  agnocast_construct_executor,
+  TP_ARGS(
+    const void *, executor_addr_arg,
+    const char *, executor_type_name_arg,
+    int64_t, init_timestamp_arg
+  ),
+  TP_FIELDS(
+    ctf_integer_hex(const void *, executor_addr, executor_addr_arg)
+    ctf_string(executor_type_name, executor_type_name_arg)
+    ctf_integer(const int64_t, init_timestamp, init_timestamp_arg)
   )
 )
 

@@ -105,13 +105,13 @@ TEST(DataContainerTest, TracePoints)
      "rclcpp_buffer_to_ipb",
      "rclcpp_ipb_to_subscription",
      "rmw_implementation",
-     "agnocast_publisher_init",
-     "agnocast_subscription_init",
-     "agnocast_construct_executor",
      "agnocast_init",
      "agnocast_node_init",
+     "agnocast_publisher_init",
+     "agnocast_subscription_init",
      "agnocast_timer_init",
-     "agnocast_add_callback_group"});
+     "agnocast_add_callback_group",
+     "agnocast_construct_executor"});
 
   EXPECT_EQ(trace_points, expect);
 }

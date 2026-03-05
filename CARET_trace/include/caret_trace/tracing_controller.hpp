@@ -255,11 +255,10 @@ private:
   std::unordered_map<const void *, bool> allowed_messages_;
 
   std::unordered_map<const void *, uint64_t> agnocast_callable_to_pid_callback_info_ids_;
+  std::unordered_map<const void *, const void *> agnocast_timer_callable_to_timer_handles_;
   std::unordered_map<uint64_t, const void *> pid_callback_info_id_to_node_handles_;
   std::unordered_map<uint64_t, std::string> pid_callback_info_id_to_topic_names_;
   std::unordered_map<const void *, bool> allowed_agnocast_callables_;
-
-  std::unordered_map<const void *, const void *> agnocast_timer_callable_to_timer_handles_;
 };
 
 #endif  // CARET_TRACE__TRACING_CONTROLLER_HPP_
