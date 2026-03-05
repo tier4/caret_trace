@@ -63,8 +63,6 @@ void ros_trace_agnocast_init(
     data_container.assign_agnocast_init(record);
   }
 
-  check_and_run_trace_node();
-
   data_container.store_agnocast_init(context_handle, now);
 
   record(context_handle, now);
@@ -86,6 +84,9 @@ void ros_trace_agnocast_node_init(
     const char * namespace_,
     int64_t init_time
   ) {
+    static auto & context = Singleton<Context>::get_instance();
+    static auto & controller = context.get_controller();
+
     if (!controller.is_allowed_node(node_handle)) {
       return;
     }
@@ -99,13 +100,20 @@ void ros_trace_agnocast_node_init(
 
   auto now = clock.now();
 
-  controller.add_node(node_handle, node_name);
+  check_and_run_trace_node();
 
   if (!data_container.is_assigned_agnocast_node_init()) {
     data_container.assign_agnocast_node_init(record);
   }
 
-  check_and_run_trace_node();
+  std::string ns = namespace_;
+  char last_char = ns[ns.length() - 1];
+  if (last_char != '/') {
+    ns = ns + '/';
+  }
+  auto node_ns_and_name = ns + node_name;
+
+  controller.add_node(node_handle, node_ns_and_name);
 
   data_container.store_agnocast_node_init(node_handle, node_name, namespace_, now);
 

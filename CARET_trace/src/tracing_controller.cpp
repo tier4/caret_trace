@@ -821,6 +821,22 @@ std::string TracingController::agnocast_callable_to_node_name(const void * calla
     return node_name;
   } while (false);
 
+  do {
+    auto timer_handle_it = agnocast_timer_callable_to_timer_handles_.find(callable);
+    if (timer_handle_it == agnocast_timer_callable_to_timer_handles_.end()) {
+      break;
+    }
+    auto node_handle_it = timer_handle_to_node_handles_.find(timer_handle_it->second);
+    if (node_handle_it == timer_handle_to_node_handles_.end()) {
+      break;
+    }
+    auto node_name_it = node_handle_to_node_names_.find(node_handle_it->second);
+    if (node_name_it == node_handle_to_node_names_.end()) {
+      break;
+    }
+    return node_name_it->second;
+  } while (false);
+
   return "";
 }
 
