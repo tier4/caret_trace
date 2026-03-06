@@ -159,7 +159,7 @@ public:
 
   /// @brief ContainerTraits for agnocast_add_callback_group trace points.
   using AgnocastAddCallbackGroup =
-    ContainerTraits<const void *, const void *, const char *, int64_t>;
+    ContainerTraits<const void *, const void *, const void *, const char *, int64_t>;
 
   /// @brief ContainerTraits for agnocast_construct_executor trace points.
   using AgnocastConstructExecutor = ContainerTraits<const void *, const char *, int64_t>;
