@@ -28,12 +28,14 @@ TEST(DataContainerTest, EmptyCase)
   DataContainer container(
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr, nullptr, nullptr);
 #else
   DataContainer container(
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr);
 #endif
   bool finished;
   finished = container.record();
@@ -103,8 +105,12 @@ TEST(DataContainerTest, TracePoints)
      "rclcpp_buffer_to_ipb",
      "rclcpp_ipb_to_subscription",
      "rmw_implementation",
+     "agnocast_init",
+     "agnocast_node_init",
      "agnocast_publisher_init",
      "agnocast_subscription_init",
+     "agnocast_timer_init",
+     "agnocast_add_callback_group",
      "agnocast_construct_executor"});
 
   EXPECT_EQ(trace_points, expect);

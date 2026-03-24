@@ -821,6 +821,22 @@ std::string TracingController::agnocast_callable_to_node_name(const void * calla
     return node_name;
   } while (false);
 
+  do {
+    auto timer_handle_it = agnocast_timer_callable_to_timer_handles_.find(callable);
+    if (timer_handle_it == agnocast_timer_callable_to_timer_handles_.end()) {
+      break;
+    }
+    auto node_handle_it = timer_handle_to_node_handles_.find(timer_handle_it->second);
+    if (node_handle_it == timer_handle_to_node_handles_.end()) {
+      break;
+    }
+    auto node_name_it = node_handle_to_node_names_.find(node_handle_it->second);
+    if (node_name_it == node_handle_to_node_names_.end()) {
+      break;
+    }
+    return node_name_it->second;
+  } while (false);
+
   return "";
 }
 
@@ -1062,5 +1078,13 @@ void TracingController::add_agnocast_callable(const void * callable, uint64_t pi
 {
   std::lock_guard<std::shared_timed_mutex> lock(mutex_);
   agnocast_callable_to_pid_callback_info_ids_[callable] = pid_callback_info_id;
+  allowed_agnocast_callables_.erase(callable);
+}
+
+void TracingController::add_agnocast_timer_callable(
+  const void * callable, const void * timer_handle)
+{
+  std::lock_guard<std::shared_timed_mutex> lock(mutex_);
+  agnocast_timer_callable_to_timer_handles_[callable] = timer_handle;
   allowed_agnocast_callables_.erase(callable);
 }

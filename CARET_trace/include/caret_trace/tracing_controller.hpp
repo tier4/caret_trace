@@ -121,6 +121,11 @@ public:
   /// @param pid_callback_info_id  PID and callback_info_id used in Agnocast.
   void add_agnocast_callable(const void * callable, uint64_t pid_callback_info_id);
 
+  /// @brief Register binding information for agnocast timer callable instance.
+  /// @param callable  Address of the callable instance.
+  /// @param timer_handle  Address of the timer handle.
+  void add_agnocast_timer_callable(const void * callable, const void * timer_handle);
+
   /// @brief Check if trace point is a enabled callable
   /// @param callable Address of the callable instance.
   /// @return True if the callable is enabled, false otherwise.
@@ -250,6 +255,7 @@ private:
   std::unordered_map<const void *, bool> allowed_messages_;
 
   std::unordered_map<const void *, uint64_t> agnocast_callable_to_pid_callback_info_ids_;
+  std::unordered_map<const void *, const void *> agnocast_timer_callable_to_timer_handles_;
   std::unordered_map<uint64_t, const void *> pid_callback_info_id_to_node_handles_;
   std::unordered_map<uint64_t, std::string> pid_callback_info_id_to_topic_names_;
   std::unordered_map<const void *, bool> allowed_agnocast_callables_;

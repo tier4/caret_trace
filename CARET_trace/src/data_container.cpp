@@ -60,8 +60,12 @@ DataContainer::DataContainer()
     std::make_shared<RclcppBufferToIpb::KeysT>("rclcpp_buffer_to_ipb"),
     std::make_shared<RclcppIpbToSubscription::KeysT>("rclcpp_ipb_to_subscription"),
     std::make_shared<RmwImplementation::KeysT>("rmw_implementation"),
+    std::make_shared<AgnocastInit::KeysT>("agnocast_init"),
+    std::make_shared<AgnocastNodeInit::KeysT>("agnocast_node_init"),
     std::make_shared<AgnocastPublisherInit::KeysT>("agnocast_publisher_init"),
     std::make_shared<AgnocastSubscriptionInit::KeysT>("agnocast_subscription_init"),
+    std::make_shared<AgnocastTimerInit::KeysT>("agnocast_timer_init"),
+    std::make_shared<AgnocastAddCallbackGroup::KeysT>("agnocast_add_callback_group"),
     std::make_shared<AgnocastConstructExecutor::KeysT>("agnocast_construct_executor"))
 {
 }
@@ -96,8 +100,12 @@ DataContainer::DataContainer(
   std::shared_ptr<RclcppBufferToIpb::KeysT> rclcpp_buffer_to_ipb,
   std::shared_ptr<RclcppIpbToSubscription::KeysT> rclcpp_ipb_to_subscription,
   std::shared_ptr<RmwImplementation::KeysT> rmw_implementation,
+  std::shared_ptr<AgnocastInit::KeysT> agnocast_init,
+  std::shared_ptr<AgnocastNodeInit::KeysT> agnocast_node_init,
   std::shared_ptr<AgnocastPublisherInit::KeysT> agnocast_publisher_init,
   std::shared_ptr<AgnocastSubscriptionInit::KeysT> agnocast_subscription_init,
+  std::shared_ptr<AgnocastTimerInit::KeysT> agnocast_timer_init,
+  std::shared_ptr<AgnocastAddCallbackGroup::KeysT> agnocast_add_callback_group,
   std::shared_ptr<AgnocastConstructExecutor::KeysT> agnocast_construct_executor)
 : add_callback_group_(add_callback_group),
   add_callback_group_static_executor_(add_callback_group_static_executor),
@@ -128,8 +136,12 @@ DataContainer::DataContainer(
   rclcpp_buffer_to_ipb_(rclcpp_buffer_to_ipb),
   rclcpp_ipb_to_subscription_(rclcpp_ipb_to_subscription),
   rmw_implementation_(rmw_implementation),
+  agnocast_init_(agnocast_init),
+  agnocast_node_init_(agnocast_node_init),
   agnocast_publisher_init_(agnocast_publisher_init),
   agnocast_subscription_init_(agnocast_subscription_init),
+  agnocast_timer_init_(agnocast_timer_init),
+  agnocast_add_callback_group_(agnocast_add_callback_group),
   agnocast_construct_executor_(agnocast_construct_executor)
 {
   std::vector<std::shared_ptr<RecordableDataInterface>> recordable_data;
@@ -217,11 +229,23 @@ DataContainer::DataContainer(
   if (rmw_implementation_) {
     recordable_data.emplace_back(rmw_implementation_);
   }
+  if (agnocast_init_) {
+    recordable_data.emplace_back(agnocast_init_);
+  }
+  if (agnocast_node_init_) {
+    recordable_data.emplace_back(agnocast_node_init_);
+  }
   if (agnocast_publisher_init_) {
     recordable_data.emplace_back(agnocast_publisher_init_);
   }
   if (agnocast_subscription_init_) {
     recordable_data.emplace_back(agnocast_subscription_init_);
+  }
+  if (agnocast_timer_init_) {
+    recordable_data.emplace_back(agnocast_timer_init_);
+  }
+  if (agnocast_add_callback_group_) {
+    recordable_data.emplace_back(agnocast_add_callback_group_);
   }
   if (agnocast_construct_executor_) {
     recordable_data.emplace_back(agnocast_construct_executor_);
@@ -434,6 +458,18 @@ void DataContainer::assign_rmw_implementation(RmwImplementation::StdFuncT record
   rmw_implementation_->assign(record);
 }
 
+void DataContainer::assign_agnocast_init(AgnocastInit::StdFuncT record)
+{
+  assert(agnocast_init_.get() != nullptr);
+  agnocast_init_->assign(record);
+}
+
+void DataContainer::assign_agnocast_node_init(AgnocastNodeInit::StdFuncT record)
+{
+  assert(agnocast_node_init_.get() != nullptr);
+  agnocast_node_init_->assign(record);
+}
+
 void DataContainer::assign_agnocast_publisher_init(AgnocastPublisherInit::StdFuncT record)
 {
   assert(agnocast_publisher_init_.get() != nullptr);
@@ -444,6 +480,18 @@ void DataContainer::assign_agnocast_subscription_init(AgnocastSubscriptionInit::
 {
   assert(agnocast_subscription_init_.get() != nullptr);
   agnocast_subscription_init_->assign(record);
+}
+
+void DataContainer::assign_agnocast_timer_init(AgnocastTimerInit::StdFuncT record)
+{
+  assert(agnocast_timer_init_.get() != nullptr);
+  agnocast_timer_init_->assign(record);
+}
+
+void DataContainer::assign_agnocast_add_callback_group(AgnocastAddCallbackGroup::StdFuncT record)
+{
+  assert(agnocast_add_callback_group_.get() != nullptr);
+  agnocast_add_callback_group_->assign(record);
 }
 
 void DataContainer::assign_agnocast_construct_executor(AgnocastConstructExecutor::StdFuncT record)
@@ -622,6 +670,18 @@ bool DataContainer::is_assigned_rmw_implementation() const
   return rmw_implementation_->is_assigned();
 }
 
+bool DataContainer::is_assigned_agnocast_init() const
+{
+  assert(agnocast_init_.get() != nullptr);
+  return agnocast_init_->is_assigned();
+}
+
+bool DataContainer::is_assigned_agnocast_node_init() const
+{
+  assert(agnocast_node_init_.get() != nullptr);
+  return agnocast_node_init_->is_assigned();
+}
+
 bool DataContainer::is_assigned_agnocast_publisher_init() const
 {
   assert(agnocast_publisher_init_.get() != nullptr);
@@ -632,6 +692,18 @@ bool DataContainer::is_assigned_agnocast_subscription_init() const
 {
   assert(agnocast_subscription_init_.get() != nullptr);
   return agnocast_subscription_init_->is_assigned();
+}
+
+bool DataContainer::is_assigned_agnocast_timer_init() const
+{
+  assert(agnocast_timer_init_.get() != nullptr);
+  return agnocast_timer_init_->is_assigned();
+}
+
+bool DataContainer::is_assigned_agnocast_add_callback_group() const
+{
+  assert(agnocast_add_callback_group_.get() != nullptr);
+  return agnocast_add_callback_group_->is_assigned();
 }
 
 bool DataContainer::is_assigned_agnocast_construct_executor() const
