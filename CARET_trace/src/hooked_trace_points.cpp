@@ -59,12 +59,11 @@ rmw_ret_t rmw_get_gid_for_publisher(const rmw_publisher_t * publisher, rmw_gid_t
 // cspell: ignore WRITECDR
 namespace CYCLONEDDS
 {
-  // humble : dds_write, dds_writecdr and dds_time
+  // humble : dds_write, dds_writecdr
   // jazzy : dds_write, dds_write_ts
   void * DDS_WRITE;
   void * DDS_WRITE_TS;
   void * DDS_WRITECDR;
-  void * DDS_TIME;
 }  // namespace CYCLONEDDS
 
 // For FastDDS
@@ -243,7 +242,6 @@ void update_dds_function_addr()
     CYCLONEDDS::DDS_WRITE = lib->get_symbol("dds_write");
     CYCLONEDDS::DDS_WRITE_TS = lib->get_symbol("dds_write_ts");
     CYCLONEDDS::DDS_WRITECDR = lib->get_symbol("dds_writecdr");
-    CYCLONEDDS::DDS_TIME = lib->get_symbol("dds_time");
   }
 }
 
@@ -262,7 +260,7 @@ int dds_write(void * wr, void * data)  // NOLINT
     update_dds_function_addr();
   }
 
-  int64_t tstamp = clock.now();
+  int64_t tstamp = dds_time();
 
   // Call dds_write_ts instead of dds_write to get the timestamp for recording.
   int dds_return = 0;
@@ -272,7 +270,8 @@ int dds_write(void * wr, void * data)  // NOLINT
     dds_return = ((function_orig_T)CYCLONEDDS::DDS_WRITE)(wr, data);
   }
 
-  if (context.is_recording_allowed() && trace_filter_is_rcl_publish_recorded) {
+  bool filter = is_jazzy_or_later() ? trace_filter_is_rcl_publish_recorded : true;
+  if (context.is_recording_allowed() && filter) {
     tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, data, tstamp);
 #ifdef DEBUG_OUTPUT
     std::cerr << "dds_bind_addr_to_stamp," << data << "," << tstamp << std::endl;
@@ -281,6 +280,7 @@ int dds_write(void * wr, void * data)  // NOLINT
   return dds_return;
 }
 
+// for cyclonedds: jazzy and rolling
 int dds_write_ts(void * wr, void * data, int64_t tstamp)  // NOLINT
 {
   static auto & context = Singleton<Context>::get_instance();
@@ -290,7 +290,6 @@ int dds_write_ts(void * wr, void * data, int64_t tstamp)  // NOLINT
     update_dds_function_addr();
   }
   
-  // use rmw timestamp
   int dds_return = 0;
   if (CYCLONEDDS::DDS_WRITE_TS != nullptr) {
     dds_return = ((functionT)CYCLONEDDS::DDS_WRITE_TS)(wr, data, tstamp);
@@ -307,26 +306,6 @@ int dds_write_ts(void * wr, void * data, int64_t tstamp)  // NOLINT
 #endif
   }
   return dds_return;
-}
-
-// for cyclonedds: dds_writecdr
-static thread_local bool in_dds_writecdr_context = false;
-static thread_local int64_t forced_dds_timestamp = 0;
-
-int64_t dds_time(void) // NOLINT
-{
-  static auto & context = Singleton<Context>::get_instance();
-  using functionT = int64_t (*)(void); // NOLINT
-
-  if (CYCLONEDDS::DDS_TIME == nullptr) {
-    update_dds_function_addr();
-  }
-
-  if (in_dds_writecdr_context) {
-    return forced_dds_timestamp;
-  }
-
-  return ((functionT)CYCLONEDDS::DDS_TIME)();
 }
 
 // for cyclonedds: humble / iron
@@ -346,9 +325,7 @@ int dds_writecdr(void * writer, struct ddsi_serdata * serdata) // NOLINT
     return 0;
   }
 
-  in_dds_writecdr_context = true;
   int dds_return = ((functionT)CYCLONEDDS::DDS_WRITECDR)(writer, serdata);
-  in_dds_writecdr_context = false;
 
   bool filter = is_jazzy_or_later() ? trace_filter_is_rcl_publish_recorded : true;
   if (context.is_recording_allowed() && filter) {
