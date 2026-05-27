@@ -59,11 +59,11 @@ rmw_ret_t rmw_get_gid_for_publisher(const rmw_publisher_t * publisher, rmw_gid_t
 // cspell: ignore WRITECDR
 namespace CYCLONEDDS
 {
-  // humble : dds_write, dds_writecdr
-  // jazzy : dds_write, dds_write_ts
-  void * DDS_WRITE;
-  void * DDS_WRITE_TS;
-  void * DDS_WRITECDR;
+// humble : dds_write, dds_writecdr
+// jazzy : dds_write, dds_write_ts
+void * DDS_WRITE;
+void * DDS_WRITE_TS;
+void * DDS_WRITECDR;
 }  // namespace CYCLONEDDS
 
 // For FastDDS
@@ -289,7 +289,7 @@ int dds_write_ts(void * wr, void * data, int64_t tstamp)  // NOLINT
   if (CYCLONEDDS::DDS_WRITE_TS == nullptr) {
     update_dds_function_addr();
   }
-  
+
   int dds_return = 0;
   if (CYCLONEDDS::DDS_WRITE_TS != nullptr) {
     dds_return = ((functionT)CYCLONEDDS::DDS_WRITE_TS)(wr, data, tstamp);
