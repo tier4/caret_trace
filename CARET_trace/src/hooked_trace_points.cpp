@@ -56,7 +56,7 @@ extern thread_local bool trace_filter_is_rcl_publish_recorded;
 // Declare a prototype in order to use the functions implemented in cyclonedds.
 rmw_ret_t rmw_get_gid_for_publisher(const rmw_publisher_t * publisher, rmw_gid_t * gid);
 
-// cspell: ignore WRITECDR
+// cspell: ignore WRITECDR ddsi serdata ERKNS IKSA
 namespace CYCLONEDDS
 {
 // humble : dds_write, dds_writecdr
