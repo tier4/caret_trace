@@ -56,11 +56,14 @@ extern thread_local bool trace_filter_is_rcl_publish_recorded;
 // Declare a prototype in order to use the functions implemented in cyclonedds.
 rmw_ret_t rmw_get_gid_for_publisher(const rmw_publisher_t * publisher, rmw_gid_t * gid);
 
-// cspell: ignore WRITECDR
+// cspell: ignore WRITECDR ddsi serdata ERKNS IKSA
 namespace CYCLONEDDS
 {
-void * DDS_WRITE_IMPL;
-void * DDS_WRITECDR_IMPL;
+// humble : dds_write, dds_writecdr
+// jazzy : dds_write, dds_write_ts
+void * DDS_WRITE;
+void * DDS_WRITE_TS;
+void * DDS_WRITECDR;
 }  // namespace CYCLONEDDS
 
 // For FastDDS
@@ -199,7 +202,6 @@ void update_dds_function_addr()
     env_var = STRINGIFY(DEFAULT_RMW_IMPLEMENTATION);
   }
 
-  // ref. rosidl_typesupport/rosidl_typesupport_cpp/src/type_support_dispatch.hpp
   std::string library_name;
   try {
     library_name = rcpputils::get_platform_library_name(env_var);
@@ -228,20 +230,18 @@ void update_dds_function_addr()
     }
 
     data_container.store_rmw_implementation(env_var.c_str(), now);
-
     record(env_var.c_str(), now);
   }
 
   if (env_var == "rmw_fastrtps_cpp") {
     // clang-format off
-    // // rmw_fastrtps_shared_cpp::TypeSupport::serialize(void*,
-    // eprosima::fastrtps::rtps::SerializedPayload_t*)  // NOLINT
     FASTDDS::SET_FRAGMENTS = lib->get_symbol(
       "_ZN8eprosima8fastrtps4rtps13WriterHistory13set_fragmentsEPNS1_13CacheChange_tE");  // NOLINT
     // clang-format on
   } else if (env_var == "rmw_cyclonedds_cpp") {
-    CYCLONEDDS::DDS_WRITE_IMPL = lib->get_symbol("dds_write_impl");
-    CYCLONEDDS::DDS_WRITECDR_IMPL = lib->get_symbol("dds_writecdr_impl");
+    CYCLONEDDS::DDS_WRITE = lib->get_symbol("dds_write");
+    CYCLONEDDS::DDS_WRITE_TS = lib->get_symbol("dds_write_ts");
+    CYCLONEDDS::DDS_WRITECDR = lib->get_symbol("dds_writecdr");
   }
 }
 
@@ -249,16 +249,51 @@ void update_dds_function_addr()
 
 // for cyclonedds
 // bind : &ros_message -> source_timestamp
-int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
+int dds_write(void * wr, void * data)  // NOLINT
 {
   static auto & context = Singleton<Context>::get_instance();
-  using functionT = int (*)(void *, void *, long, int);  // NOLINT
+  static auto & clock = context.get_clock();
+  using functionT = int (*)(void *, void *, int64_t);  // NOLINT
+  using function_orig_T = int (*)(void *, void *);  // NOLINT
 
-  // clang-format on
-  if (CYCLONEDDS::DDS_WRITE_IMPL == nullptr) {
+  if (CYCLONEDDS::DDS_WRITE_TS == nullptr) {
     update_dds_function_addr();
   }
-  int dds_return = ((functionT)CYCLONEDDS::DDS_WRITE_IMPL)(wr, data, tstamp, action);
+
+  int64_t tstamp = dds_time();
+
+  // Call dds_write_ts instead of dds_write to get the timestamp for recording.
+  int dds_return = 0;
+  if (CYCLONEDDS::DDS_WRITE_TS != nullptr) {
+    dds_return = ((functionT)CYCLONEDDS::DDS_WRITE_TS)(wr, data, tstamp);
+  } else if (CYCLONEDDS::DDS_WRITE != nullptr) {
+    dds_return = ((function_orig_T)CYCLONEDDS::DDS_WRITE)(wr, data);
+  }
+
+  bool filter = is_jazzy_or_later() ? trace_filter_is_rcl_publish_recorded : true;
+  if (context.is_recording_allowed() && filter) {
+    tracepoint(TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, data, tstamp);
+#ifdef DEBUG_OUTPUT
+    std::cerr << "dds_bind_addr_to_stamp," << data << "," << tstamp << std::endl;
+#endif
+  }
+  return dds_return;
+}
+
+// for cyclonedds: jazzy and rolling
+int dds_write_ts(void * wr, void * data, int64_t tstamp)  // NOLINT
+{
+  static auto & context = Singleton<Context>::get_instance();
+  using functionT = int (*)(void *, void *, int64_t);  // NOLINT
+
+  if (CYCLONEDDS::DDS_WRITE_TS == nullptr) {
+    update_dds_function_addr();
+  }
+
+  int dds_return = 0;
+  if (CYCLONEDDS::DDS_WRITE_TS != nullptr) {
+    dds_return = ((functionT)CYCLONEDDS::DDS_WRITE_TS)(wr, data, tstamp);
+  }
 
   if (!context.get_controller().is_allowed_process()) {
     return dds_return;
@@ -273,30 +308,31 @@ int dds_write_impl(void * wr, void * data, long tstamp, int action)  // NOLINT
   return dds_return;
 }
 
-// for cyclonedds
-// bind : &ros_message -> source_timestamp
-// cspell: ignore ddsi, serdata, dinp
-int dds_writecdr_impl(void * wr, void * xp, struct ddsi_serdata * dinp, bool flush)  // NOLINT
+// for cyclonedds: humble / iron
+int dds_writecdr(void * writer, struct ddsi_serdata * serdata) // NOLINT
 {
   static auto & context = Singleton<Context>::get_instance();
-  using functionT = int (*)(void *, void *, struct ddsi_serdata *, bool);  // NOLINT
+  using functionT = int (*)(void *, struct ddsi_serdata *);  // NOLINT
 
-  // clang-format on
-  if (CYCLONEDDS::DDS_WRITECDR_IMPL == nullptr) {
+  if (CYCLONEDDS::DDS_WRITECDR == nullptr) {
     update_dds_function_addr();
   }
-  int dds_return = ((functionT)CYCLONEDDS::DDS_WRITECDR_IMPL)(wr, xp, dinp, flush);
 
-  if (!context.get_controller().is_allowed_process()) {
-    return dds_return;
+  if (CYCLONEDDS::DDS_WRITECDR == nullptr || !context.get_controller().is_allowed_process()) {
+    if (CYCLONEDDS::DDS_WRITECDR != nullptr) {
+      return ((functionT)CYCLONEDDS::DDS_WRITECDR)(writer, serdata);
+    }
+    return 0;
   }
+
+  int dds_return = ((functionT)CYCLONEDDS::DDS_WRITECDR)(writer, serdata);
 
   bool filter = is_jazzy_or_later() ? trace_filter_is_rcl_publish_recorded : true;
   if (context.is_recording_allowed() && filter) {
     tracepoint(
-      TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, serialized_message_addr, dinp->timestamp.v);
+      TRACEPOINT_PROVIDER, dds_bind_addr_to_stamp, serialized_message_addr, serdata->timestamp.v);
 #ifdef DEBUG_OUTPUT
-    std::cerr << "dds_bind_addr_to_stamp," << serialized_message_addr << "," << dinp->timestamp.v
+    std::cerr << "dds_bind_addr_to_stamp," << serialized_message_addr << "," << serdata->timestamp.v
               << std::endl;
 #endif
   }
