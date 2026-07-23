@@ -6,6 +6,8 @@
   <description>Library to add tracepoints for CARET</description>
   <maintainer email="yamasaki@isp.co.jp">ymski</maintainer>
   <maintainer email="uetsuki@isp.co.jp">isp-uetsuki</maintainer>
+  <maintainer email="myk@isp.co.jp">isp-myk</maintainer>
+  <maintainer email="akm@isp.co.jp">isp-akm</maintainer>
   <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
