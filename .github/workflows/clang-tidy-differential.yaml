@@ -18,7 +18,7 @@ jobs:
     needs: make-sure-label-is-present
     if: ${{ needs.make-sure-label-is-present.outputs.result == 'true' }}
     runs-on: ubuntu-latest
-    container: ros:humble
+    container: ros:jazzy
     steps:
       - name: Set PR fetch depth
         run: echo "PR_FETCH_DEPTH=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> "${GITHUB_ENV}"
@@ -51,7 +51,7 @@ jobs:
         if: ${{ steps.get-modified-files.outputs.all_changed_files != '' }}
         uses: autowarefoundation/autoware-github-actions/clang-tidy@v1
         with:
-          rosdistro: humble
+          rosdistro: jazzy
           target-packages: ${{ steps.get-modified-packages.outputs.modified-packages }}
           target-files: ${{ steps.get-modified-files.outputs.all_changed_files }}
           clang-tidy-config-url: https://raw.githubusercontent.com/autowarefoundation/autoware/main/.clang-tidy
